@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Pause } from 'lucide-react'
+import { ChevronsDown, Pause } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 
-export function AutoScroller() {
+interface Props {
+  scrollRef?: React.RefObject<HTMLElement | null>
+}
+
+export function AutoScroller({ scrollRef }: Props) {
   const { scrollSpeed } = useSettingsStore()
   const [isScrolling, setIsScrolling] = useState(false)
   const rafRef = useRef<number | null>(null)
@@ -17,7 +21,12 @@ export function AutoScroller() {
     const scroll = (time: number) => {
       if (lastTimeRef.current !== null) {
         const delta = time - lastTimeRef.current
-        window.scrollBy(0, (scrollSpeed * delta) / 200)
+        const amount = (scrollSpeed * delta) / 200
+        if (scrollRef?.current) {
+          scrollRef.current.scrollBy(0, amount)
+        } else {
+          window.scrollBy(0, amount)
+        }
       }
       lastTimeRef.current = time
       rafRef.current = requestAnimationFrame(scroll)
@@ -29,7 +38,7 @@ export function AutoScroller() {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       lastTimeRef.current = null
     }
-  }, [isScrolling, scrollSpeed])
+  }, [isScrolling, scrollSpeed, scrollRef])
 
   return (
     <button
@@ -42,11 +51,11 @@ export function AutoScroller() {
         minWidth: 44,
         width: 44,
       }}
-      title={isScrolling ? 'Пауза' : 'Авто-прокрутка'}
+      title={isScrolling ? 'Stop scroll' : 'Auto-scroll'}
     >
       {isScrolling
         ? <Pause size={18} strokeWidth={2} />
-        : <Play size={18} strokeWidth={1.5} />
+        : <ChevronsDown size={18} strokeWidth={1.5} />
       }
     </button>
   )

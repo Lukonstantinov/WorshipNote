@@ -1,5 +1,40 @@
 import type { ParsedSong, SongLine, SongSegment } from '../types'
 
+const STRUCTURE_LETTERS = 'ABCDEFGHIJ'
+
+/** Normalise a cue label to a base section type (strip trailing numbers, parentheticals) */
+function baseSectionType(cue: string): string {
+  return cue
+    .replace(/\s*\d+\s*$/, '')         // strip trailing number  e.g. "КУПЛЕТ 2" → "КУПЛЕТ"
+    .replace(/\s*\(.*?\)\s*$/, '')      // strip parenthetical
+    .replace(/[:\-–].*$/, '')           // strip "INTRO: GUITAR" → "INTRO"
+    .trim()
+    .toUpperCase()
+}
+
+export function extractStructure(content: string): { labels: string[]; pattern: string } {
+  const labels: string[] = []
+  for (const raw of content.split('\n')) {
+    const match = raw.trim().match(/^\[!\s*([^\]]+)\]$/)
+    if (match) labels.push(match[1].trim())
+  }
+  if (labels.length === 0) return { labels: [], pattern: '' }
+
+  const letterMap: Record<string, string> = {}
+  let nextIdx = 0
+  const pattern = labels
+    .map((lbl) => {
+      const base = baseSectionType(lbl)
+      if (!(base in letterMap)) {
+        letterMap[base] = STRUCTURE_LETTERS[nextIdx++] ?? '?'
+      }
+      return letterMap[base]
+    })
+    .join(' ')
+
+  return { labels, pattern }
+}
+
 function isChordToken(token: string): boolean {
   if (token.startsWith('!')) return false
   return /^[A-G]/.test(token)

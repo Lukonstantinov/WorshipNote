@@ -1,8 +1,11 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, Plus, Music2, ChevronDown } from 'lucide-react'
+import { Search, Plus, Music2, ChevronDown, FolderOpen, Settings2 } from 'lucide-react'
 import { useSongStore } from '../store/songStore'
+import { useFolderStore } from '../store/folderStore'
+import { useSettingsStore } from '../store/settingsStore'
+import { FolderManager } from '../features/folders/FolderManager'
 import type { Song } from '../features/songs/types'
 
 type SortKey = 'az' | 'key' | 'bpm' | 'date'
@@ -10,18 +13,20 @@ type SortKey = 'az' | 'key' | 'bpm' | 'date'
 export default function HomePage() {
   const { t } = useTranslation()
   const { songs } = useSongStore()
+  const { folders } = useFolderStore()
+  const { tagColors } = useSettingsStore()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<SortKey>('az')
   const [showSort, setShowSort] = useState(false)
+  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [activeFolderId, setActiveFolderId] = useState<string | null>(null)
+  const [showFolderManager, setShowFolderManager] = useState(false)
 
-  // Collect all unique tags for filtering
   const allTags = useMemo(() => {
     const s = new Set<string>()
     songs.forEach((song) => song.tags.forEach((tag) => s.add(tag)))
     return Array.from(s).sort()
   }, [songs])
-
-  const [activeTag, setActiveTag] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
@@ -31,18 +36,17 @@ export default function HomePage() {
         s.tags.some((tag) => tag.toLowerCase().includes(q)) ||
         (s.original_key?.toLowerCase().includes(q) ?? false)
       const matchesTag = activeTag ? s.tags.includes(activeTag) : true
-      return matchesQuery && matchesTag
+      const matchesFolder = activeFolderId ? s.folderId === activeFolderId : true
+      return matchesQuery && matchesTag && matchesFolder
     })
-
     result = [...result].sort((a, b) => {
       if (sort === 'az') return a.title.localeCompare(b.title)
       if (sort === 'key') return (a.original_key ?? '').localeCompare(b.original_key ?? '')
       if (sort === 'bpm') return (a.bpm ?? 0) - (b.bpm ?? 0)
-      // date: newest first
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
     return result
-  }, [songs, query, sort, activeTag])
+  }, [songs, query, sort, activeTag, activeFolderId])
 
   const SORT_OPTIONS: { key: SortKey; label: string }[] = [
     { key: 'az',   label: t('sortAZ') },
@@ -68,7 +72,6 @@ export default function HomePage() {
 
       {/* Search + Sort row */}
       <div className="flex gap-2 mb-3">
-        {/* Search */}
         <div
           className="flex-1 flex items-center gap-2 px-3 rounded-xl"
           style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minHeight: 44 }}
@@ -81,8 +84,6 @@ export default function HomePage() {
             placeholder={t('search') + '…'}
           />
         </div>
-
-        {/* Sort dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowSort((p) => !p)}
@@ -118,6 +119,64 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Folder chips */}
+      {folders.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-2 scrollbar-none">
+          <button
+            onClick={() => setActiveFolderId(null)}
+            className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all"
+            style={{
+              backgroundColor: activeFolderId === null ? '#bf5af2' : '#1c1c1e',
+              color: activeFolderId === null ? '#fff' : 'rgba(235,235,245,0.4)',
+              border: '1px solid #2c2c2e',
+            }}
+          >
+            {t('allFolders')}
+          </button>
+          {folders.map((folder) => {
+            const isActive = activeFolderId === folder.id
+            return (
+              <button
+                key={folder.id}
+                onClick={() => setActiveFolderId(isActive ? null : folder.id)}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: isActive ? `${folder.color}33` : '#1c1c1e',
+                  color: isActive ? folder.color : 'rgba(235,235,245,0.5)',
+                  border: `1px solid ${isActive ? folder.color + '66' : '#2c2c2e'}`,
+                }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: folder.color }}
+                />
+                {folder.name}
+              </button>
+            )
+          })}
+          <button
+            onClick={() => setShowFolderManager(true)}
+            className="flex-shrink-0 flex items-center justify-center rounded-full"
+            style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minWidth: 28, minHeight: 28 }}
+            title={t('folders')}
+          >
+            <Settings2 size={12} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.4)' }} />
+          </button>
+        </div>
+      )}
+
+      {/* Folder manager button when no folders yet */}
+      {folders.length === 0 && (
+        <button
+          onClick={() => setShowFolderManager(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs mb-2 transition-all"
+          style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.3)', border: '1px dashed #3c3c3e' }}
+        >
+          <FolderOpen size={12} strokeWidth={1.5} />
+          {t('addFolder')}
+        </button>
+      )}
+
       {/* Tag filter chips */}
       {allTags.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-1 mb-3 scrollbar-none">
@@ -129,21 +188,31 @@ export default function HomePage() {
               color: activeTag === null ? '#fff' : 'rgba(235,235,245,0.5)',
             }}
           >
-            Все
+            {t('allFolders').split(' ')[0]}
           </button>
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-              className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
-              style={{
-                backgroundColor: activeTag === tag ? '#bf5af2' : '#2c2c2e',
-                color: activeTag === tag ? '#fff' : 'rgba(235,235,245,0.5)',
-              }}
-            >
-              {tag}
-            </button>
-          ))}
+          {allTags.map((tag) => {
+            const customColor = tagColors[tag]
+            const isActive = activeTag === tag
+            return (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(isActive ? null : tag)}
+                className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: isActive
+                    ? (customColor ?? '#bf5af2')
+                    : customColor
+                      ? `${customColor}22`
+                      : '#2c2c2e',
+                  color: isActive
+                    ? '#fff'
+                    : customColor ?? 'rgba(235,235,245,0.5)',
+                }}
+              >
+                {tag}
+              </button>
+            )
+          })}
         </div>
       )}
 
@@ -156,24 +225,41 @@ export default function HomePage() {
       ) : (
         <div className="space-y-2">
           {filtered.map((song) => (
-            <SongCard key={song.id} song={song} />
+            <SongCard key={song.id} song={song} tagColors={tagColors} />
           ))}
         </div>
       )}
+
+      {/* Folder manager modal */}
+      {showFolderManager && <FolderManager onClose={() => setShowFolderManager(false)} />}
     </div>
   )
 }
 
-function SongCard({ song }: { song: Song }) {
+function SongCard({ song, tagColors }: { song: Song; tagColors: Record<string, string> }) {
   const { t } = useTranslation()
+  const { folders } = useFolderStore()
+  const folder = song.folderId ? folders.find((f) => f.id === song.folderId) : undefined
+
   return (
     <Link
       to={`/songs/${song.id}`}
       className="block p-4 rounded-2xl transition-all active:scale-[0.99] hover:opacity-90"
-      style={{ backgroundColor: '#1c1c1e' }}
+      style={{
+        backgroundColor: '#1c1c1e',
+        borderLeft: folder ? `3px solid ${folder.color}` : undefined,
+      }}
     >
       <div className="flex items-center justify-between gap-2">
-        <h3 className="font-semibold text-white text-base leading-snug">{song.title}</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-white text-base leading-snug truncate">{song.title}</h3>
+          {folder && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: folder.color }} />
+              <span className="text-xs" style={{ color: folder.color + 'cc' }}>{folder.name}</span>
+            </div>
+          )}
+        </div>
         <div className="flex gap-1.5 text-xs flex-shrink-0">
           {song.original_key && (
             <span
@@ -195,15 +281,21 @@ function SongCard({ song }: { song: Song }) {
       </div>
       {song.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
-          {song.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.35)' }}
-            >
-              {tag}
-            </span>
-          ))}
+          {song.tags.map((tag) => {
+            const color = tagColors[tag]
+            return (
+              <span
+                key={tag}
+                className="text-xs px-2 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: color ? `${color}22` : '#2c2c2e',
+                  color: color ?? 'rgba(235,235,245,0.35)',
+                }}
+              >
+                {tag}
+              </span>
+            )
+          })}
         </div>
       )}
     </Link>
