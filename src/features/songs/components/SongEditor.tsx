@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft } from 'lucide-react'
 import type { Song } from '../types'
 import { useSongStore } from '../../../store/songStore'
+import { useFolderStore } from '../../../store/folderStore'
 import { generateId } from '../../../shared/lib/storage'
 import { parseSong } from '../lib/parser'
 import { SongViewer } from './SongViewer'
+import { SimpleEditor } from './SimpleEditor'
 
 interface Props {
   song?: Song
@@ -16,36 +18,39 @@ export function SongEditor({ song }: Props) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { addSong, updateSong } = useSongStore()
+  const { folders } = useFolderStore()
 
   const [title, setTitle] = useState(song?.title ?? '')
   const [originalKey, setOriginalKey] = useState(song?.original_key ?? '')
   const [bpm, setBpm] = useState<string>(song?.bpm?.toString() ?? '')
   const [content, setContent] = useState(song?.content ?? '')
   const [tags, setTags] = useState(song?.tags?.join(', ') ?? '')
+  const [folderId, setFolderId] = useState<string>(song?.folderId ?? '')
+  const [structure, setStructure] = useState(song?.structure ?? '')
   const [showPreview, setShowPreview] = useState(false)
+  const [editorMode, setEditorMode] = useState<'simple' | 'advanced'>('advanced')
 
   const parsed = useMemo(() => parseSong(content), [content])
 
   const handleSave = () => {
     const now = new Date().toISOString()
     const parsedTags = tags.split(',').map((t) => t.trim()).filter(Boolean)
+    const fields = {
+      title,
+      original_key: originalKey || undefined,
+      bpm: bpm ? parseInt(bpm) : undefined,
+      content,
+      tags: parsedTags,
+      folderId: folderId || undefined,
+      structure: structure.trim() || undefined,
+    }
     if (song) {
-      updateSong(song.id, {
-        title,
-        original_key: originalKey || undefined,
-        bpm: bpm ? parseInt(bpm) : undefined,
-        content,
-        tags: parsedTags,
-      })
+      updateSong(song.id, fields)
       navigate(`/songs/${song.id}`)
     } else {
       const newSong: Song = {
         id: generateId(),
-        title,
-        original_key: originalKey || undefined,
-        bpm: bpm ? parseInt(bpm) : undefined,
-        content,
-        tags: parsedTags,
+        ...fields,
         created_at: now,
         updated_at: now,
       }
@@ -88,7 +93,7 @@ export function SongEditor({ song }: Props) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             style={inputStyle}
-            placeholder="Название песни"
+            placeholder="Song title"
           />
         </div>
 
@@ -122,42 +127,104 @@ export function SongEditor({ song }: Props) {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             style={inputStyle}
-            placeholder="великий пост, хвала, причастие"
+            placeholder="praise, lent, communion"
           />
         </div>
 
-        {/* Content + preview toggle */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label style={{ ...labelStyle, marginBottom: 0 }}>{t('content')}</label>
-            <button
-              onClick={() => setShowPreview((p) => !p)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium transition-all"
-              style={{
-                backgroundColor: showPreview ? '#bf5af2' : '#2c2c2e',
-                color: showPreview ? '#fff' : 'rgba(235,235,245,0.5)',
-              }}
-              title="Live preview"
+        {/* Folder picker */}
+        {folders.length > 0 && (
+          <div>
+            <label style={labelStyle}>
+              <FolderOpen size={10} strokeWidth={2} style={{ display: 'inline', marginRight: 4 }} />
+              {t('folder')}
+            </label>
+            <select
+              value={folderId}
+              onChange={(e) => setFolderId(e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer' }}
             >
-              {showPreview
-                ? <EyeOff size={13} strokeWidth={1.5} />
-                : <Eye size={13} strokeWidth={1.5} />
-              }
-              {t('preview')}
-            </button>
+              <option value="" style={{ backgroundColor: '#1c1c1e' }}>— {t('noFolder')} —</option>
+              {folders.map((f) => (
+                <option key={f.id} value={f.id} style={{ backgroundColor: '#1c1c1e' }}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
           </div>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={showPreview ? 14 : 20}
-            className="font-mono text-sm resize-none"
-            style={{
-              ...inputStyle,
-              minHeight: 'unset',
-              lineHeight: 1.7,
-            }}
-            placeholder={`[! ИНТРО: ГИТАРА]\n[G] Слава Те[Em]бе, Боже\n[C] Ибо Ты ве[D]лик.`}
+        )}
+
+        {/* Structure override */}
+        <div>
+          <label style={labelStyle}>{t('structure')} ({t('autoStructure')})</label>
+          <input
+            value={structure}
+            onChange={(e) => setStructure(e.target.value)}
+            style={inputStyle}
+            placeholder="A B A B C B  (leave blank to auto-detect)"
           />
+        </div>
+
+        {/* Content: mode toggle + editor */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+            <label style={{ ...labelStyle, marginBottom: 0 }}>{t('content')}</label>
+            <div className="flex items-center gap-1.5">
+              {/* Mode toggle */}
+              <div className="flex rounded-xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+                <button
+                  onClick={() => setEditorMode('simple')}
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: editorMode === 'simple' ? '#2c2c2e' : 'transparent',
+                    color: editorMode === 'simple' ? '#fff' : 'rgba(235,235,245,0.4)',
+                    minHeight: 32,
+                  }}
+                >
+                  <Columns2 size={12} strokeWidth={1.5} />
+                  {t('simpleMode')}
+                </button>
+                <button
+                  onClick={() => setEditorMode('advanced')}
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: editorMode === 'advanced' ? '#2c2c2e' : 'transparent',
+                    color: editorMode === 'advanced' ? '#fff' : 'rgba(235,235,245,0.4)',
+                    minHeight: 32,
+                  }}
+                >
+                  <AlignLeft size={12} strokeWidth={1.5} />
+                  {t('advancedMode')}
+                </button>
+              </div>
+
+              {editorMode === 'advanced' && (
+                <button
+                  onClick={() => setShowPreview((p) => !p)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: showPreview ? '#bf5af2' : '#2c2c2e',
+                    color: showPreview ? '#fff' : 'rgba(235,235,245,0.5)',
+                  }}
+                >
+                  {showPreview ? <EyeOff size={13} strokeWidth={1.5} /> : <Eye size={13} strokeWidth={1.5} />}
+                  {t('preview')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {editorMode === 'simple' ? (
+            <SimpleEditor content={content} onChange={setContent} />
+          ) : (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={showPreview ? 14 : 20}
+              className="font-mono text-sm resize-none"
+              style={{ ...inputStyle, minHeight: 'unset', lineHeight: 1.7 }}
+              placeholder={`[! INTRO: GUITAR]\n[G] Glory to[Em] You, Lord\n[C] For You are[D] great.`}
+            />
+          )}
         </div>
 
         {/* Actions */}
@@ -179,8 +246,8 @@ export function SongEditor({ song }: Props) {
         </div>
       </div>
 
-      {/* Right: live preview (desktop only) */}
-      {showPreview && (
+      {/* Right: live preview (desktop, advanced mode only) */}
+      {showPreview && editorMode === 'advanced' && (
         <div
           className="hidden md:flex flex-col flex-1 border-l overflow-auto"
           style={{ borderColor: '#2c2c2e', backgroundColor: '#000000' }}
