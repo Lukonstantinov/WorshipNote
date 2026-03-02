@@ -3,7 +3,6 @@ import type { ParsedSong } from '../types'
 
 interface Props {
   parsed: ParsedSong
-  transposeSteps?: number
 }
 
 export function SongViewer({ parsed }: Props) {
@@ -17,15 +16,21 @@ export function SongViewer({ parsed }: Props) {
         }
 
         if (line.type === 'cue') {
-          if (role === 'congregation') return null
-          if (role === 'singer') return null
+          if (role === 'congregation' || role === 'singer') return null
           return (
             <div
               key={i}
-              className="text-sm italic pl-2 py-1"
-              style={{ color: '#60a5fa' }}
+              className="flex items-center gap-2 text-xs italic py-1 px-2 rounded-lg w-fit"
+              style={{
+                color: '#0a84ff',
+                backgroundColor: 'rgba(10,132,255,0.1)',
+                fontSize: Math.max(11, fontSize * 0.6),
+              }}
             >
-              🎵 {line.cue}
+              <span style={{ opacity: 0.7, fontSize: 8, letterSpacing: 1, fontStyle: 'normal', fontWeight: 600 }}>
+                CUE
+              </span>
+              {line.cue}
             </div>
           )
         }
@@ -40,10 +45,11 @@ export function SongViewer({ parsed }: Props) {
               <div key={j} className="inline-flex flex-col mr-0">
                 {showChords && (
                   <span
-                    className="font-bold text-sm leading-tight"
+                    className="font-semibold leading-tight"
                     style={{
                       fontFamily: 'JetBrains Mono, Fira Code, monospace',
-                      color: '#4ade80',
+                      color: '#32d74b',
+                      fontSize: Math.max(11, fontSize * 0.65),
                       minWidth: seg.chord ? '0.5ch' : '0',
                       whiteSpace: 'pre',
                     }}
@@ -53,7 +59,7 @@ export function SongViewer({ parsed }: Props) {
                 )}
                 <span
                   className="leading-snug whitespace-pre-wrap"
-                  style={{ color: '#f5f5f5' }}
+                  style={{ color: '#ffffff' }}
                 >
                   {seg.text}
                 </span>

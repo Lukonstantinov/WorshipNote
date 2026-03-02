@@ -36,5 +36,13 @@
   "play": "Play",
   "originalKey": "Original Key",
   "semitones": "Semitones",
-  "capoFret": "Capo Fret"
+  "capoFret": "Capo Fret",
+  "playAs": "Play as",
+  "sortAZ": "A–Z",
+  "sortKey": "Key",
+  "sortBpm": "BPM",
+  "sortDate": "Date",
+  "preview": "Preview",
+  "sortBy": "Sort by",
+  "filterTag": "Tag"
 }

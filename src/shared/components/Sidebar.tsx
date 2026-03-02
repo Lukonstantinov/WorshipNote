@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { BookOpen, ListMusic, Settings } from 'lucide-react'
 
 const NAV = [
-  { to: '/library', label: 'library', icon: '📖' },
-  { to: '/setlists', label: 'setlists', icon: '📋' },
-  { to: '/settings', label: 'settings', icon: '⚙️' },
+  { to: '/library',  label: 'library',  Icon: BookOpen },
+  { to: '/setlists', label: 'setlists', Icon: ListMusic },
+  { to: '/settings', label: 'settings', Icon: Settings },
 ]
 
 export function Sidebar() {
@@ -15,30 +16,40 @@ export function Sidebar() {
       {/* Desktop sidebar */}
       <nav
         className="hidden md:flex flex-col w-56 h-full border-r"
-        style={{ backgroundColor: '#1a1a2e', borderColor: '#2d2d4e' }}
+        style={{ backgroundColor: '#111111', borderColor: '#2c2c2e' }}
       >
-        <div className="px-4 py-5 border-b" style={{ borderColor: '#2d2d4e' }}>
-          <h1 className="text-lg font-bold" style={{ color: '#a78bfa' }}>WorshipHub</h1>
-          <p className="text-xs mt-0.5" style={{ color: '#9ca3af' }}>Псалмы и аккорды</p>
+        <div className="px-5 py-5 border-b" style={{ borderColor: '#2c2c2e' }}>
+          <h1 className="text-base font-semibold tracking-tight" style={{ color: '#ffffff' }}>
+            WorshipHub
+          </h1>
+          <p className="text-xs mt-0.5" style={{ color: 'rgba(235,235,245,0.4)' }}>
+            Псалмы и аккорды
+          </p>
         </div>
         <div className="flex-1 py-2">
-          {NAV.map(({ to, label, icon }) => (
+          {NAV.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'text-white'
-                    : 'text-gray-400 hover:text-gray-200'
+                `flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all mx-2 rounded-xl ${
+                  isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                 }`
               }
               style={({ isActive }) =>
-                isActive ? { backgroundColor: '#2d2d4e', color: '#a78bfa' } : {}
+                isActive ? { backgroundColor: '#2c2c2e', color: '#ffffff' } : {}
               }
             >
-              <span>{icon}</span>
-              <span>{t(label)}</span>
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    size={18}
+                    strokeWidth={isActive ? 2 : 1.5}
+                    style={{ color: isActive ? '#bf5af2' : 'rgba(235,235,245,0.5)' }}
+                  />
+                  <span>{t(label)}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>
@@ -47,20 +58,35 @@ export function Sidebar() {
       {/* Mobile bottom tab bar */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 flex border-t z-50"
-        style={{ backgroundColor: '#1a1a2e', borderColor: '#2d2d4e' }}
+        style={{
+          backgroundColor: 'rgba(17,17,17,0.92)',
+          borderColor: '#2c2c2e',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
       >
-        {NAV.map(({ to, label, icon }) => (
+        {NAV.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center py-2 text-xs ${
-                isActive ? 'text-purple-400' : 'text-gray-400'
+              `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-all ${
+                isActive ? 'text-white' : 'text-gray-500'
               }`
             }
           >
-            <span className="text-xl">{icon}</span>
-            <span>{t(label)}</span>
+            {({ isActive }) => (
+              <>
+                <Icon
+                  size={22}
+                  strokeWidth={isActive ? 2 : 1.5}
+                  style={{ color: isActive ? '#bf5af2' : 'rgba(235,235,245,0.4)' }}
+                />
+                <span style={{ color: isActive ? '#bf5af2' : 'rgba(235,235,245,0.4)', fontSize: 10 }}>
+                  {t(label)}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

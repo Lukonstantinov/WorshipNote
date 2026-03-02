@@ -36,5 +36,13 @@
   "play": "Paleisti",
   "originalKey": "Originali tonacija",
   "semitones": "Putoniai",
-  "capoFret": "Kapodastas"
+  "capoFret": "Kapodastas",
+  "playAs": "Groti kaip",
+  "sortAZ": "A–Z",
+  "sortKey": "Tonacija",
+  "sortBpm": "Tempas",
+  "sortDate": "Data",
+  "preview": "Peržiūra",
+  "sortBy": "Rūšiuoti pagal",
+  "filterTag": "Žyma"
 }
