@@ -35,9 +35,9 @@ export function Layout() {
   }, [setlists])
 
   return (
-    <div className="flex h-full" style={{ backgroundColor: '#0f0f0f' }}>
+    <div className="flex h-full" style={{ backgroundColor: '#000000' }}>
       <Sidebar />
-      <main className="flex-1 overflow-auto" style={{ backgroundColor: '#0f0f0f' }}>
+      <main className="flex-1 overflow-auto" style={{ backgroundColor: '#000000' }}>
         <Outlet />
       </main>
     </div>

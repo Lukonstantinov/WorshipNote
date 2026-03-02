@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Play, Pause } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 
 export function AutoScroller() {
-  const { t } = useTranslation()
   const { scrollSpeed } = useSettingsStore()
   const [isScrolling, setIsScrolling] = useState(false)
   const rafRef = useRef<number | null>(null)
@@ -35,15 +34,20 @@ export function AutoScroller() {
   return (
     <button
       onClick={() => setIsScrolling((p) => !p)}
-      className="px-4 py-2 rounded-xl font-semibold text-sm"
+      className="flex items-center justify-center rounded-xl transition-all"
       style={{
-        backgroundColor: isScrolling ? '#4ade80' : '#2d2d4e',
-        color: isScrolling ? '#0f0f0f' : '#f5f5f5',
+        backgroundColor: isScrolling ? '#32d74b' : '#2c2c2e',
+        color: isScrolling ? '#000000' : 'rgba(235,235,245,0.6)',
         minHeight: 44,
         minWidth: 44,
+        width: 44,
       }}
+      title={isScrolling ? 'Пауза' : 'Авто-прокрутка'}
     >
-      {isScrolling ? '⏸ ' + t('pause') : '▶ ' + t('autoScroll')}
+      {isScrolling
+        ? <Pause size={18} strokeWidth={2} />
+        : <Play size={18} strokeWidth={1.5} />
+      }
     </button>
   )
 }
