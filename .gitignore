@@ -4,9 +4,10 @@ node_modules/
 # Build output
 dist/
 
-# Android generated (tracked separately)
-android/
+# Manual APK artefacts (CI builds these automatically)
 android-apk/
+worshiphub-debug.apk
+worshiphub-debug.apk.idsig
 
 # Environment
 .env
