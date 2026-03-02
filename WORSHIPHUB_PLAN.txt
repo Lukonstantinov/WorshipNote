@@ -1,0 +1,443 @@
+
+=====================================================================
+  WORSHIPHUB — IMPLEMENTATION PLAN FOR CLAUDE CODE
+  Church Psalm & Chord Manager
+  Stack: Vite + React + TypeScript + Tailwind CSS + Supabase
+  Primary UI: Russian | Secondary: Lithuanian, English
+=====================================================================
+
+
+============================
+  SECTION 1: PROJECT SETUP
+============================
+
+Initialize with:
+  npm create vite@latest worshiphub -- --template react-ts
+
+Core dependencies:
+  - react, react-dom, react-router-dom
+  - tailwindcss, postcss, autoprefixer
+  - @supabase/supabase-js
+  - zustand (lightweight state management)
+  - dnd-kit (drag-and-drop for setlists)
+  - tonal (music theory — chord parsing & transposition)
+  - vite-plugin-pwa (service worker / offline later)
+  - i18next, react-i18next (internationalization)
+
+Dev dependencies:
+  - vitest (unit tests for parser & transposer)
+  - @testing-library/react
+
+
+============================
+  SECTION 2: FOLDER STRUCTURE
+============================
+
+/worshiphub
+├── public/
+│   └── icons/                    # PWA icons (later)
+├── src/
+│   ├── main.tsx                  # App entry
+│   ├── App.tsx                   # Router setup
+│   ├── index.css                 # Tailwind base
+│   │
+│   ├── features/
+│   │   ├── songs/
+│   │   │   ├── components/
+│   │   │   │   ├── SongViewer.tsx        # 3-layer rendering engine (READ mode)
+│   │   │   │   ├── SongEditor.tsx        # ChordPro text input (EDIT mode)
+│   │   │   │   ├── ChordBadge.tsx        # Single chord display, tap = info
+│   │   │   │   ├── CueBadge.tsx          # Single performance cue display
+│   │   │   │   ├── LyricLine.tsx         # One rendered line (cue + chords + lyrics)
+│   │   │   │   ├── TransposeControls.tsx # +/- buttons, capo toggle, key display
+│   │   │   │   └── SongMeta.tsx          # Title, original key, BPM, tags
+│   │   │   ├── lib/
+│   │   │   │   ├── parser.ts             # ChordPro Extended → AST
+│   │   │   │   ├── parser.test.ts        # Parser unit tests
+│   │   │   │   ├── transposer.ts         # Chord transposition logic
+│   │   │   │   └── transposer.test.ts    # Transposer unit tests
+│   │   │   ├── hooks/
+│   │   │   │   └── useSong.ts            # Fetch/save single song
+│   │   │   └── types.ts                  # Song types & AST types
+│   │   │
+│   │   ├── setlists/
+│   │   │   ├── components/
+│   │   │   │   ├── SetlistView.tsx       # Ordered song list for a service
+│   │   │   │   ├── SetlistEditor.tsx     # Add/remove/reorder songs
+│   │   │   │   └── SetlistCard.tsx       # Preview card in library
+│   │   │   ├── hooks/
+│   │   │   │   └── useSetlist.ts
+│   │   │   └── types.ts
+│   │   │
+│   │   └── library/
+│   │       ├── components/
+│   │       │   ├── SongLibrary.tsx       # Main grid/list of all songs
+│   │       │   ├── SongCard.tsx          # Preview card per song
+│   │       │   ├── SearchBar.tsx         # Search + filter by key/tag
+│   │       │   └── TagFilter.tsx         # Filter chips
+│   │       └── hooks/
+│   │           └── useLibrary.ts
+│   │
+│   ├── shared/
+│   │   ├── components/
+│   │   │   ├── Layout.tsx               # Shell: sidebar + content
+│   │   │   ├── Sidebar.tsx              # Navigation
+│   │   │   ├── TopBar.tsx               # Current context, settings
+│   │   │   ├── Toggle.tsx               # Reusable toggle button
+│   │   │   ├── Modal.tsx                # Reusable modal
+│   │   │   ├── FontSizeSlider.tsx       # Adjustable text size
+│   │   │   └── AutoScroller.tsx         # Hands-free scroll controls
+│   │   ├── lib/
+│   │   │   ├── supabase.ts             # Supabase client init
+│   │   │   ├── storage.ts              # LocalStorage helpers (pre-auth)
+│   │   │   └── constants.ts            # Chord maps, semitone arrays
+│   │   └── hooks/
+│   │       ├── useLocalStorage.ts
+│   │       └── useSettings.ts          # Font size, scroll speed, role
+│   │
+│   ├── store/
+│   │   ├── songStore.ts                # Zustand: songs state
+│   │   ├── setlistStore.ts             # Zustand: setlists state
+│   │   └── settingsStore.ts            # Zustand: UI preferences
+│   │
+│   ├── i18n/
+│   │   ├── index.ts                    # i18next config
+│   │   ├── ru.json                     # Russian (primary)
+│   │   ├── lt.json                     # Lithuanian
+│   │   └── en.json                     # English
+│   │
+│   └── pages/
+│       ├── HomePage.tsx                # Song library view
+│       ├── SongPage.tsx                # Performance view (viewer + transpose)
+│       ├── SongEditPage.tsx            # Editor view
+│       ├── SetlistPage.tsx             # Setlist performance view
+│       ├── SetlistEditPage.tsx         # Setlist builder
+│       └── SettingsPage.tsx            # Language, font, role, display prefs
+│
+├── .env                                # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+├── tailwind.config.ts
+├── vite.config.ts
+├── tsconfig.json
+├── package.json
+└── README.md
+
+
+============================
+  SECTION 3: DATA MODELS
+============================
+
+--- 3A: PARSER AST (TypeScript) ---
+
+// A single parsed line of a song
+type SongSegment = {
+  chord?: string;        // e.g. "Am7"
+  text: string;          // lyric fragment, e.g. "бе"
+};
+
+type SongLine = {
+  type: 'lyric' | 'cue' | 'empty';
+  cue?: string;                    // if type='cue', e.g. "ИНТРО: ГИТАРА"
+  segments?: SongSegment[];        // if type='lyric', chord+text pairs
+};
+
+type ParsedSong = {
+  lines: SongLine[];
+};
+
+--- 3B: SUPABASE SCHEMA (Phase 1: No Auth) ---
+
+-- Songs table (no user_id yet, added in auth phase)
+CREATE TABLE songs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  original_key TEXT,             -- e.g. "G", "Am"
+  bpm INTEGER,
+  content TEXT NOT NULL,         -- raw ChordPro Extended text
+  tags TEXT[] DEFAULT '{}',      -- e.g. {"великий пост", "хвала"}
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Setlists table
+CREATE TABLE setlists (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  service_date DATE,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Junction: songs in a setlist with per-setlist transposition
+CREATE TABLE setlist_songs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  setlist_id UUID REFERENCES setlists(id) ON DELETE CASCADE,
+  song_id UUID REFERENCES songs(id) ON DELETE CASCADE,
+  sort_order INTEGER NOT NULL,
+  transpose_steps INTEGER DEFAULT 0,  -- semitones from original key
+  capo_fret INTEGER DEFAULT 0
+);
+
+
+============================
+  SECTION 4: PARSER SPEC
+============================
+
+File: src/features/songs/lib/parser.ts
+
+INPUT: Raw ChordPro Extended string (multiline)
+OUTPUT: ParsedSong (array of SongLine)
+
+RULES:
+1. Line starting with [! ...] only (no other text) → type: 'cue', block-level
+2. Line containing [! ...] mixed with text → inline cue attached to segments
+3. [X] where X is a valid chord → chord on next text segment
+4. Bare text → lyric segment with no chord
+5. Empty line → type: 'empty' (visual spacer)
+6. Multiple chords before text → each creates a segment
+
+PARSING EXAMPLE:
+
+  Input:
+    [! ИНТРО: ГИТАРА]
+    [G] Слава Те[Em]бе, Боже
+    [! ВСТУПАЮТ БАРАБАНЫ]
+    [C] Ибо Ты ве[D]лик.
+
+  Output:
+    lines: [
+      { type: 'cue', cue: 'ИНТРО: ГИТАРА' },
+      { type: 'lyric', segments: [
+          { chord: 'G', text: ' Слава Те' },
+          { chord: 'Em', text: 'бе, Боже' }
+      ]},
+      { type: 'cue', cue: 'ВСТУПАЮТ БАРАБАНЫ' },
+      { type: 'lyric', segments: [
+          { chord: 'C', text: ' Ибо Ты ве' },
+          { chord: 'D', text: 'лик.' }
+      ]}
+    ]
+
+EDGE CASES TO HANDLE:
+  - Slash chords: [G/B] → treat as single chord "G/B"
+  - Chords with no text after: [G]  [Am] on a line alone → segments with empty text
+  - Cyrillic and Latin mixed content
+  - Lines with only lyrics (no chords) → segments with no chord field
+
+
+============================
+  SECTION 5: TRANSPOSER SPEC
+============================
+
+File: src/features/songs/lib/transposer.ts
+
+CHROMATIC SCALE (sharps): C C# D D# E F F# G G# A A# B
+CHROMATIC SCALE (flats):  C Db D Eb E F Gb G Ab A Bb B
+
+FUNCTION: transposeChord(chord: string, steps: number): string
+
+LOGIC:
+1. Parse chord into: root + quality
+   - Root: C, C#, Db, D, D#, Eb, E, F, F#, Gb, G, G#, Ab, A, A#, Bb, B
+   - Quality: m, 7, m7, maj7, dim, aug, sus2, sus4, add9, etc. (everything after root)
+   - Slash bass: if "/" present, split and transpose both sides
+2. Find root index in chromatic scale
+3. Add steps (mod 12)
+4. Pick sharp or flat spelling based on TARGET KEY preference:
+   - Sharp keys: G, D, A, E, B, F#, C → use sharps
+   - Flat keys:  F, Bb, Eb, Ab, Db, Gb → use flats
+5. Reattach quality
+
+FUNCTION: transposeSong(content: string, steps: number): string
+  - Regex find all [ChordHere] patterns (excluding [! ...] cues)
+  - Apply transposeChord to each
+  - Return modified string
+
+ENHARMONIC MAP for display:
+  { "C#": "Db", "D#": "Eb", "F#": "Gb", "G#": "Ab", "A#": "Bb" }
+
+CAPO MODE:
+  - If capo = 3 and song key = Bb:
+    Display: "Каподастр: 3 | Играть как G"
+  - Calculate: actual_key - capo_fret = displayed shapes
+
+
+============================
+  SECTION 6: UI RENDERING
+============================
+
+--- SongViewer.tsx: The Core Rendering Engine ---
+
+For each SongLine:
+
+IF type = 'cue':
+  Render: <div class="text-sm text-blue-400 italic pl-2">🎵 {cue}</div>
+
+IF type = 'empty':
+  Render: <div class="h-4"></div>  (spacer)
+
+IF type = 'lyric':
+  Render a flex row where each segment is a column:
+  ┌─────────────────────────────────────────┐
+  │  [chord]     [chord]                    │  ← Row 1: Chords (green, bold)
+  │  lyric text  lyric text                 │  ← Row 2: Lyrics (white, large)
+  └─────────────────────────────────────────┘
+
+  Each segment:
+    <div class="inline-flex flex-col">
+      <span class="text-green-400 font-bold text-sm">{chord}</span>
+      <span class="text-white text-xl">{text}</span>
+    </div>
+
+--- Role Toggles ---
+  - "Музыкант"  → show all 3 layers
+  - "Певец"     → hide cues, show chords + lyrics
+  - "Община"    → hide chords + cues, show only lyrics (large font)
+
+--- Font Size ---
+  Store in settingsStore. Apply via CSS variable or inline style.
+  Range: 14px–36px, default 20px.
+
+--- Auto-Scroll ---
+  Configurable speed: 0.5x, 1x, 1.5x, 2x
+  Toggle play/pause.
+  Implementation: requestAnimationFrame scrolling the container.
+
+
+============================
+  SECTION 7: i18n SETUP
+============================
+
+File: src/i18n/index.ts
+Use i18next with react-i18next.
+
+Primary: ru (Russian) — load by default
+Secondary: lt (Lithuanian), en (English)
+
+Translate UI labels only (buttons, menus, settings).
+Song content stays in whatever language the user writes.
+
+Example ru.json keys:
+{
+  "library": "Библиотека",
+  "newSong": "Новая песня",
+  "setlists": "Списки служения",
+  "transpose": "Транспозиция",
+  "capo": "Каподастр",
+  "role": "Роль",
+  "musician": "Музыкант",
+  "singer": "Певец",
+  "congregation": "Община",
+  "settings": "Настройки",
+  "fontSize": "Размер шрифта",
+  "autoScroll": "Автопрокрутка",
+  "save": "Сохранить",
+  "delete": "Удалить",
+  "search": "Поиск",
+  "key": "Тональность",
+  "bpm": "Темп"
+}
+
+
+============================
+  SECTION 8: BUILD PHASES
+============================
+
+PHASE 1 — CORE ENGINE (Week 1-2)
+  Priority: Get songs rendering correctly.
+  Tasks:
+    [x] Project setup (Vite + React + TS + Tailwind)
+    [x] Folder structure as defined above
+    [x] parser.ts with full test coverage
+    [x] transposer.ts with full test coverage
+    [x] SongViewer.tsx — 3-layer rendering
+    [x] SongEditor.tsx — textarea with ChordPro input
+    [x] TransposeControls.tsx — +/- semitone buttons
+    [x] Basic routing: Home → Song view → Song edit
+    [x] Zustand store for songs (local state only)
+    [x] Seed 3-5 sample Russian psalms for testing
+
+PHASE 2 — SUPABASE + PERSISTENCE (Week 3)
+  Priority: Save songs to cloud.
+  Tasks:
+    [ ] Supabase project setup
+    [ ] Create songs table (schema above)
+    [ ] supabase.ts client
+    [ ] useSong hook: CRUD operations
+    [ ] useLibrary hook: fetch all, search, filter
+    [ ] SongLibrary.tsx with search + tag filter
+    [ ] Auto-save on edit with debounce
+
+PHASE 3 — SETLISTS + PERFORMANCE (Week 4)
+  Priority: Group songs for Sunday service.
+  Tasks:
+    [ ] Create setlists + setlist_songs tables
+    [ ] SetlistEditor with drag-and-drop (dnd-kit)
+    [ ] SetlistView — swipe/navigate between songs
+    [ ] Per-song transposition within setlist
+    [ ] Role toggles (musician/singer/congregation)
+
+PHASE 4 — UX POLISH (Week 5)
+  Priority: Usable on stage.
+  Tasks:
+    [ ] Font size slider (persisted per device)
+    [ ] Auto-scroll with speed control
+    [ ] Dark theme (default) + optional light
+    [ ] i18n: RU primary, add LT and EN
+    [ ] Mobile responsive layout
+    [ ] Keyboard shortcuts (arrow keys for transpose, space for scroll)
+
+PHASE 5 — FUTURE (Post-launch)
+  [ ] Auth (Supabase Auth, email/password)
+  [ ] Teams & sharing
+  [ ] PWA + Offline mode (vite-plugin-pwa + Workbox)
+  [ ] Song import/export (ChordPro .cho files, PDF export)
+  [ ] Nashville Number System toggle
+  [ ] Song duplicate/fork
+
+
+============================
+  SECTION 9: COMMANDS
+============================
+
+Claude Code: Initialize the project with these commands:
+
+  npm create vite@latest worshiphub -- --template react-ts
+  cd worshiphub
+  npm install
+  npm install react-router-dom zustand @supabase/supabase-js
+  npm install tonal i18next react-i18next
+  npm install @dnd-kit/core @dnd-kit/sortable
+  npm install -D tailwindcss @tailwindcss/vite vitest @testing-library/react
+
+Tailwind: Use the Vite plugin (@tailwindcss/vite) for setup.
+
+Then create the folder structure from Section 2 and begin Phase 1.
+
+
+============================
+  SECTION 10: DESIGN NOTES
+============================
+
+COLOR PALETTE (Dark theme, church-appropriate):
+  - Background:    #0f0f0f (near black)
+  - Surface:       #1a1a2e (dark navy)
+  - Chords:        #4ade80 (green-400)
+  - Cues:          #60a5fa (blue-400)
+  - Lyrics:        #f5f5f5 (near white)
+  - Accent:        #a78bfa (purple-400, for buttons)
+  - Danger:        #f87171 (red-400, for delete)
+
+FONT:
+  - Lyrics: Inter or Noto Sans (excellent Cyrillic support)
+  - Chords: JetBrains Mono or Fira Code (monospace for alignment)
+
+MOBILE-FIRST:
+  - Sidebar collapses to bottom tab bar on mobile
+  - Song viewer is full-screen with floating controls
+  - Swipe gestures in setlist performance mode
+
+
+=====================================================================
+  END OF PLAN — Start with Phase 1, parser.ts first.
+=====================================================================
