@@ -11,17 +11,6 @@ const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 // Expressed as index of preceding white key + 0.5
 const BLACK_KEY_POSITIONS = [0.5, 1.5, 3.5, 4.5, 5.5] // C#, D#, F#, G#, A#
 
-// Map note name (ignoring octave) to white/black key
-function noteClass(noteName: string): string {
-  return Note.pitchClass(noteName) ?? ''
-}
-
-function isEnharmonicMatch(noteA: string, noteB: string): boolean {
-  const midiA = Note.midi(noteA + '4') ?? Note.midi(noteA + '3')
-  const midiB = Note.midi(noteB + '4') ?? Note.midi(noteB + '3')
-  if (midiA == null || midiB == null) return false
-  return (midiA % 12) === (midiB % 12)
-}
 
 export function PianoDiagram({ chord, size = 120 }: Props) {
   // Parse chord notes using tonal

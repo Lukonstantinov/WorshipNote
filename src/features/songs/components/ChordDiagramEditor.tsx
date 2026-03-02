@@ -20,7 +20,7 @@ export function ChordDiagramEditor({ chordName, onClose }: Props) {
   const [frets, setFrets] = useState<number[]>(
     existing?.frets ?? Array(STRING_COUNT).fill(0)
   )
-  const [fingers, setFingers] = useState<number[]>(
+  const [fingers] = useState<number[]>(
     existing?.fingers ?? Array(STRING_COUNT).fill(0)
   )
   const [baseFret, setBaseFret] = useState(existing?.baseFret ?? 1)

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { Plus, X, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import { simpleToChordPro, chordProToSimple } from '../lib/simpleConverter'
 import type { SimpleSection, ChordedWord } from '../lib/simpleConverter'
-import { ALL_KEYS } from '../../../shared/lib/constants'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
