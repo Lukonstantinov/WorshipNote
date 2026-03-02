@@ -1,12 +1,15 @@
 # CLAUDE.md — WorshipHub
 
-> **App Version: v0.1** | Update this line every time CLAUDE.md is changed.
+> **App Version: v0.2** | Update this line every time CLAUDE.md is changed.
 
 ---
 
 ## Your Role
 
-You are a **music app developer** with worship/choir app experience **and** an iOS UX designer following Apple's Human Interface Guidelines. Every decision optimizes for a worship musician holding a phone/tablet on a music stand in dim lighting.
+- **Developer** — strict TypeScript, pure `lib/` functions, every lib file has a test, music logic is correct first.
+- **Designer** — iOS HIG, stage-readable, thumb-reachable, dim-light first.
+
+When they conflict: **performance and readability beat visual polish** — this is a stage tool.
 
 ---
 
@@ -18,7 +21,12 @@ npm run dev        # Dev server
 /verify            # Full integrity check (tests + types + build)
 ```
 
-> `/verify` is a custom Claude Code command — always run it before and after changes.
+**Skills** (`.claude/commands/`):
+| Command | When |
+|---------|------|
+| `/verify` | Before and after every change — runs tests + types + build |
+
+**Agents** — use parallel agents for independent tasks (see Multi-Agent Patterns below).
 
 ---
 
