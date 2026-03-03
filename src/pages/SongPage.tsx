@@ -15,6 +15,12 @@ import { ChordDiagramPanel } from '../features/songs/components/ChordDiagramPane
 import { useSettingsStore } from '../store/settingsStore'
 import type { Role } from '../store/settingsStore'
 
+const BUILT_IN_DEFAULTS: Record<string, { showChords: boolean; showCues: boolean; showDiagrams: boolean }> = {
+  musician: { showChords: true, showCues: true, showDiagrams: true },
+  singer: { showChords: true, showCues: false, showDiagrams: false },
+  congregation: { showChords: false, showCues: false, showDiagrams: false },
+}
+
 export default function SongPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
@@ -24,6 +30,7 @@ export default function SongPage() {
     role, setRole,
     instruments, selectedInstrument, setSelectedInstrument,
     chordDisplayPosition,
+    roleLabels, customRoles,
   } = useSettingsStore()
 
   const [steps, setSteps] = useState(0)
@@ -45,6 +52,15 @@ export default function SongPage() {
     () => (song ? extractStructure(song.content) : { labels: [], pattern: '' }),
     [song]
   )
+
+  // Resolve capabilities for the active role
+  const capabilities = useMemo(() => {
+    const customRole = customRoles.find((cr) => cr.id === role)
+    if (customRole) {
+      return { showChords: customRole.showChords, showCues: customRole.showCues, showDiagrams: customRole.showDiagrams }
+    }
+    return BUILT_IN_DEFAULTS[role as string] ?? BUILT_IN_DEFAULTS.musician
+  }, [role, customRoles])
 
   // Keyboard shortcuts
   const handleKey = useCallback((e: KeyboardEvent) => {
@@ -72,9 +88,15 @@ export default function SongPage() {
     )
   }
 
-  const ROLES: Role[] = ['musician', 'singer', 'congregation']
+  // Build combined role list: built-in + custom
+  const BUILT_IN_ROLES: Role[] = ['musician', 'singer', 'congregation']
+  const allRoles: { id: string; label: string }[] = [
+    ...BUILT_IN_ROLES.map((r) => ({ id: r, label: roleLabels[r] || t(r) })),
+    ...customRoles.map((cr) => ({ id: cr.id, label: cr.name })),
+  ]
+
   const activeInstrument = instruments.find((i) => i.id === selectedInstrument)
-  const showChordDiagrams = role === 'musician' && chordDisplayPosition !== 'none'
+  const showChordDiagrams = capabilities.showDiagrams && chordDisplayPosition !== 'none'
 
   return (
     <div className="flex flex-col h-full" style={{ backgroundColor: '#000000' }}>
@@ -136,26 +158,26 @@ export default function SongPage() {
         />
         <div className="flex items-center gap-2 flex-wrap">
           {/* Role toggle */}
-          <div className="flex rounded-xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
-            {ROLES.map((r) => (
+          <div className="flex rounded-xl overflow-hidden flex-wrap" style={{ backgroundColor: '#1c1c1e' }}>
+            {allRoles.map((r) => (
               <button
-                key={r}
-                onClick={() => setRole(r)}
+                key={r.id}
+                onClick={() => setRole(r.id)}
                 className="px-3 py-1.5 text-xs font-medium transition-all"
                 style={{
-                  backgroundColor: role === r ? '#2c2c2e' : 'transparent',
-                  color: role === r ? '#ffffff' : 'rgba(235,235,245,0.4)',
+                  backgroundColor: role === r.id ? '#2c2c2e' : 'transparent',
+                  color: role === r.id ? '#ffffff' : 'rgba(235,235,245,0.4)',
                   minHeight: 44,
                   borderRadius: 10,
                 }}
               >
-                {t(r)}
+                {r.label}
               </button>
             ))}
           </div>
 
-          {/* Instrument picker (musician only) */}
-          {role === 'musician' && instruments.length > 0 && (
+          {/* Instrument picker (when diagrams are shown) */}
+          {capabilities.showDiagrams && instruments.length > 0 && (
             <div className="relative">
               <button
                 onClick={() => setShowInstrumentMenu((p) => !p)}
@@ -191,7 +213,6 @@ export default function SongPage() {
           )}
 
           <div className="flex items-center gap-2 ml-auto">
-            {/* Metronome — replaces broken play button, only shows when BPM set */}
             {song.bpm && <Metronome bpm={song.bpm} />}
             <FontSizeSlider />
             <AutoScroller scrollRef={scrollRef as React.RefObject<HTMLElement | null>} />
@@ -205,7 +226,7 @@ export default function SongPage() {
       )}
 
       {/* ABAC structure bar */}
-      {role !== 'congregation' && (structureLabels.length > 0 || song.structure) && (
+      {capabilities.showCues && (structureLabels.length > 0 || song.structure) && (
         <SongStructure
           labels={structureLabels}
           pattern={structurePattern}

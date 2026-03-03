@@ -5,15 +5,10 @@ interface Props {
   size?: number
 }
 
-// White key note names in one octave (C to B)
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
-// Black key positions relative to white keys (between which whites)
-// Expressed as index of preceding white key + 0.5
-const BLACK_KEY_POSITIONS = [0.5, 1.5, 3.5, 4.5, 5.5] // C#, D#, F#, G#, A#
+const BLACK_KEY_POSITIONS = [0.5, 1.5, 3.5, 4.5, 5.5]
 
-
-export function PianoDiagram({ chord, size = 120 }: Props) {
-  // Parse chord notes using tonal
+export function MiniPianoDiagram({ chord, size = 56 }: Props) {
   const chordData = Chord.get(chord)
   const chordNotes: string[] = chordData.notes.length > 0
     ? chordData.notes
@@ -21,19 +16,18 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
 
   const highlightedPCs = new Set(chordNotes.map((n) => Note.pitchClass(n)).filter(Boolean))
 
-  const WHITE_COUNT = 8 // C to C (one octave + C)
+  const WHITE_COUNT = 8
   const w = size
-  const h = size * 0.8
+  const h = size * 0.55
   const wKeyW = w / WHITE_COUNT
   const wKeyH = h
   const bKeyW = wKeyW * 0.6
-  const bKeyH = h * 0.62
+  const bKeyH = h * 0.6
 
   const isWhiteHighlighted = (noteIdx: number) => {
     const noteName = WHITE_KEYS[noteIdx % 7]
     if (!noteName) return false
     return highlightedPCs.has(noteName) ||
-      // check enharmonics
       Array.from(highlightedPCs).some((pc) => {
         const midiA = Note.midi(pc + '4')
         const midiB = Note.midi(noteName + '4')
@@ -42,7 +36,6 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
   }
 
   const isBlackHighlighted = (pos: number) => {
-    // Black key note names: C# D# F# G# A#
     const blackNoteNames = ['C#', 'D#', 'F#', 'G#', 'A#']
     const bIdx = BLACK_KEY_POSITIONS.indexOf(pos)
     const noteName = blackNoteNames[bIdx]
@@ -56,20 +49,9 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
   }
 
   return (
-    <svg width={w} height={h + 20} viewBox={`0 0 ${w} ${h + 20}`}>
-      {/* Chord name */}
-      <text
-        x={w / 2} y={13}
-        textAnchor="middle"
-        fontSize={12}
-        fontWeight="700"
-        fill="#ffffff"
-        fontFamily="system-ui, sans-serif"
-      >
-        {chord}
-      </text>
-
-      <g transform="translate(0,18)">
+    <div className="flex flex-col items-center">
+      <span className="text-xs font-bold mb-0.5" style={{ color: '#32d74b', fontSize: 9 }}>{chord}</span>
+      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
         {/* White keys */}
         {Array.from({ length: WHITE_COUNT }).map((_, i) => {
           const hi = isWhiteHighlighted(i)
@@ -80,7 +62,7 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
               y={0.5}
               width={wKeyW - 1}
               height={wKeyH - 1}
-              rx={2}
+              rx={1}
               fill={hi ? '#32d74b' : '#ffffff'}
               stroke="#333"
               strokeWidth={0.5}
@@ -99,12 +81,12 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
               y={0}
               width={bKeyW}
               height={bKeyH}
-              rx={2}
+              rx={1}
               fill={hi ? '#0a84ff' : '#111111'}
             />
           )
         })}
-      </g>
-    </svg>
+      </svg>
+    </div>
   )
 }

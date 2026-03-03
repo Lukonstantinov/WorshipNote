@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum } from 'lucide-react'
+import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil } from 'lucide-react'
 import { useSettingsStore } from '../store/settingsStore'
 import { useSongStore } from '../store/songStore'
-import type { Language, ChordDisplayPosition } from '../store/settingsStore'
+import type { Language, ChordDisplayPosition, ChordDiagramMode, CustomRole } from '../store/settingsStore'
 import type { Instrument } from '../features/songs/types'
 import { FONT_SIZE_MIN, FONT_SIZE_MAX } from '../shared/lib/constants'
 import { generateId } from '../shared/lib/storage'
@@ -29,18 +29,26 @@ const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
   other:    <Music2 size={16} strokeWidth={1.5} />,
 }
 
+const BUILT_IN_ROLES = ['musician', 'singer', 'congregation'] as const
+
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
   const {
     language, fontSize, scrollSpeed, setLanguage, setFontSize, setScrollSpeed,
     instruments, setInstruments,
     chordDisplayPosition, setChordDisplayPosition,
+    chordDiagramMode, setChordDiagramMode,
     tagColors, setTagColor,
+    roleLabels, setRoleLabel,
+    customRoles, addCustomRole, updateCustomRole, deleteCustomRole,
   } = useSettingsStore()
   const { songs } = useSongStore()
 
   const [newInstrName, setNewInstrName] = useState('')
   const [newInstrType, setNewInstrType] = useState<Instrument['type']>('guitar')
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null)
+  const [editingRoleLabel, setEditingRoleLabel] = useState('')
+  const [newRoleName, setNewRoleName] = useState('')
 
   const handleLanguage = (lang: Language) => {
     setLanguage(lang)
@@ -58,6 +66,19 @@ export default function SettingsPage() {
     setInstruments(instruments.filter((i) => i.id !== id))
   }
 
+  const handleAddCustomRole = () => {
+    if (!newRoleName.trim()) return
+    const role: CustomRole = {
+      id: generateId(),
+      name: newRoleName.trim(),
+      showChords: true,
+      showCues: true,
+      showDiagrams: true,
+    }
+    addCustomRole(role)
+    setNewRoleName('')
+  }
+
   const allTags = [...new Set(songs.flatMap((s) => s.tags))].sort()
 
   const sectionLabel: React.CSSProperties = {
@@ -73,6 +94,12 @@ export default function SettingsPage() {
     { key: 'side', label: t('diagramSide') },
     { key: 'top',  label: t('diagramTop') },
     { key: 'none', label: t('diagramOff') },
+  ]
+
+  const CHORD_MODES: { key: ChordDiagramMode; label: string }[] = [
+    { key: 'single', label: t('diagramSingle') },
+    { key: 'all',    label: t('diagramAll') },
+    { key: 'mini',   label: t('diagramMini') },
   ]
 
   const INSTR_TYPES: Instrument['type'][] = ['guitar', 'piano', 'keyboard', 'bass', 'ukulele', 'drums', 'other']
@@ -228,6 +255,142 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
+
+          {/* Chord diagram mode (only when position is not 'none') */}
+          {chordDisplayPosition !== 'none' && (
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {CHORD_MODES.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setChordDiagramMode(key)}
+                  className="py-3 rounded-2xl text-sm font-medium transition-all active:scale-95"
+                  style={{
+                    backgroundColor: chordDiagramMode === key ? '#32d74b' : '#1c1c1e',
+                    color: chordDiagramMode === key ? '#000' : 'rgba(235,235,245,0.4)',
+                    minHeight: 50,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Roles */}
+        <section>
+          <p style={sectionLabel}>{t('roles')}</p>
+
+          {/* Built-in roles */}
+          <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: '#1c1c1e' }}>
+            {BUILT_IN_ROLES.map((roleId, idx) => {
+              const displayLabel = roleLabels[roleId] || t(roleId)
+              const isEditing = editingRoleId === roleId
+              return (
+                <div
+                  key={roleId}
+                  className="flex items-center gap-3 px-4 py-3"
+                  style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
+                >
+                  {isEditing ? (
+                    <input
+                      value={editingRoleLabel}
+                      onChange={(e) => setEditingRoleLabel(e.target.value)}
+                      onBlur={() => {
+                        if (editingRoleLabel.trim()) setRoleLabel(roleId, editingRoleLabel.trim())
+                        setEditingRoleId(null)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          if (editingRoleLabel.trim()) setRoleLabel(roleId, editingRoleLabel.trim())
+                          setEditingRoleId(null)
+                        }
+                        if (e.key === 'Escape') setEditingRoleId(null)
+                      }}
+                      className="flex-1 bg-transparent text-sm text-white outline-none px-1 rounded"
+                      style={{ backgroundColor: '#2c2c2e' }}
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="flex-1 text-sm text-white">{displayLabel}</span>
+                  )}
+                  <span className="text-xs" style={{ color: 'rgba(235,235,245,0.2)' }}>{t(roleId)}</span>
+                  <button
+                    onClick={() => {
+                      setEditingRoleId(roleId)
+                      setEditingRoleLabel(roleLabels[roleId] || t(roleId))
+                    }}
+                  >
+                    <Pencil size={13} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.4)' }} />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Custom roles */}
+          {customRoles.length > 0 && (
+            <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: '#1c1c1e' }}>
+              {customRoles.map((cr, idx) => (
+                <div
+                  key={cr.id}
+                  className="px-4 py-3"
+                  style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm text-white flex-1">{cr.name}</span>
+                    <button onClick={() => deleteCustomRole(cr.id)}>
+                      <Trash2 size={13} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+                    </button>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {([
+                      ['showChords', t('showChords')] as const,
+                      ['showCues', t('showCues')] as const,
+                      ['showDiagrams', t('showDiagrams')] as const,
+                    ]).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => updateCustomRole(cr.id, { [key]: !cr[key] })}
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                        style={{
+                          backgroundColor: cr[key] ? '#32d74b22' : '#2c2c2e',
+                          color: cr[key] ? '#32d74b' : 'rgba(235,235,245,0.3)',
+                          border: cr[key] ? '1px solid #32d74b44' : '1px solid transparent',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add custom role */}
+          <div className="flex gap-2">
+            <input
+              value={newRoleName}
+              onChange={(e) => setNewRoleName(e.target.value)}
+              className="flex-1 rounded-xl px-3 text-sm outline-none text-white"
+              style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minHeight: 44 }}
+              placeholder={t('roleName')}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAddCustomRole() }}
+            />
+            <button
+              onClick={handleAddCustomRole}
+              disabled={!newRoleName.trim()}
+              className="flex items-center justify-center rounded-xl transition-all active:scale-95"
+              style={{
+                backgroundColor: newRoleName.trim() ? '#bf5af2' : '#1c1c1e',
+                color: newRoleName.trim() ? '#fff' : 'rgba(235,235,245,0.3)',
+                minWidth: 44, minHeight: 44,
+              }}
+            >
+              <Plus size={18} strokeWidth={2.5} />
+            </button>
+          </div>
         </section>
 
         {/* Tag colors */}
@@ -286,7 +449,7 @@ export default function SettingsPage() {
         <section>
           <div className="p-4 rounded-2xl text-center" style={{ backgroundColor: '#1c1c1e' }}>
             <p className="font-semibold text-white">WorshipNote</p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(235,235,245,0.3)' }}>v0.2.0 · Psalms & Chords</p>
+            <p className="text-xs mt-1" style={{ color: 'rgba(235,235,245,0.3)' }}>v0.3.0 · Psalms & Chords</p>
           </div>
         </section>
 

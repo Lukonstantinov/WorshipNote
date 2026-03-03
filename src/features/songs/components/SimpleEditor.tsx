@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Plus, X, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import { simpleToChordPro, chordProToSimple } from '../lib/simpleConverter'
 import type { SimpleSection, ChordedWord } from '../lib/simpleConverter'
-import { ALL_KEYS } from '../../../shared/lib/constants'
+
 import { useTranslation } from 'react-i18next'
 
 interface Props {
@@ -13,9 +13,14 @@ interface Props {
 const SECTION_PRESETS = [
   { label: 'VERSE', display: 'Verse' },
   { label: 'CHORUS', display: 'Chorus' },
+  { label: 'PRE-CHORUS', display: 'Pre-Chorus' },
   { label: 'BRIDGE', display: 'Bridge' },
   { label: 'INTRO', display: 'Intro' },
   { label: 'OUTRO', display: 'Outro' },
+  { label: 'INTERLUDE', display: 'Interlude' },
+  { label: 'SOLO', display: 'Solo' },
+  { label: 'TAG', display: 'Tag' },
+  { label: 'INSTRUMENTAL', display: 'Instrumental' },
 ]
 
 const COMMON_CHORDS = [
@@ -138,6 +143,8 @@ interface SectionBlockProps {
 function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFirst, isLast }: SectionBlockProps) {
   const [editing, setEditing] = useState(false)
   const [rawText, setRawText] = useState(() => section.words.map((w) => w.text).join(' '))
+  const [editingLabel, setEditingLabel] = useState(false)
+  const [customLabel, setCustomLabel] = useState(section.label)
   const { t } = useTranslation()
 
   const commitText = () => {
@@ -155,19 +162,49 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
       {/* Section header */}
       <div className="flex items-center gap-2 mb-2">
         <GripVertical size={14} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.2)' }} />
-        <select
-          value={section.label}
-          onChange={(e) => onChange({ ...section, label: e.target.value })}
-          className="flex-1 bg-transparent text-xs font-semibold outline-none"
-          style={{ color: '#bf5af2' }}
-        >
-          {SECTION_PRESETS.map((p) => (
-            <option key={p.label} value={p.label} style={{ backgroundColor: '#2c2c2e' }}>{p.display}</option>
-          ))}
-          {!SECTION_PRESETS.find((p) => p.label === section.label) && (
-            <option value={section.label} style={{ backgroundColor: '#2c2c2e' }}>{section.label}</option>
-          )}
-        </select>
+        {editingLabel ? (
+          <input
+            value={customLabel}
+            onChange={(e) => setCustomLabel(e.target.value)}
+            onBlur={() => {
+              if (customLabel.trim()) onChange({ ...section, label: customLabel.trim() })
+              setEditingLabel(false)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (customLabel.trim()) onChange({ ...section, label: customLabel.trim() })
+                setEditingLabel(false)
+              }
+              if (e.key === 'Escape') { setCustomLabel(section.label); setEditingLabel(false) }
+            }}
+            className="flex-1 bg-transparent text-xs font-semibold outline-none px-1 rounded"
+            style={{ color: '#bf5af2', backgroundColor: '#2c2c2e' }}
+            placeholder="Custom label..."
+            autoFocus
+          />
+        ) : (
+          <select
+            value={SECTION_PRESETS.find((p) => p.label === section.label) ? section.label : '__custom__'}
+            onChange={(e) => {
+              if (e.target.value === '__custom__') {
+                setCustomLabel(section.label)
+                setEditingLabel(true)
+              } else {
+                onChange({ ...section, label: e.target.value })
+              }
+            }}
+            className="flex-1 bg-transparent text-xs font-semibold outline-none"
+            style={{ color: '#bf5af2' }}
+          >
+            {SECTION_PRESETS.map((p) => (
+              <option key={p.label} value={p.label} style={{ backgroundColor: '#2c2c2e' }}>{p.display}</option>
+            ))}
+            {!SECTION_PRESETS.find((p) => p.label === section.label) && (
+              <option value="__custom__" style={{ backgroundColor: '#2c2c2e' }}>{section.label}</option>
+            )}
+            <option value="__custom__" style={{ backgroundColor: '#2c2c2e' }}>Custom...</option>
+          </select>
+        )}
         <div className="flex items-center gap-1 ml-auto">
           {!isFirst && (
             <button onClick={() => onMove(-1)}>
@@ -255,6 +292,85 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
   )
 }
 
+function MoreSectionsMenu({ onAdd }: { onAdd: (label: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [customInput, setCustomInput] = useState('')
+  const { t } = useTranslation()
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const extraPresets = SECTION_PRESETS.slice(5)
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
+        style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.5)', border: '1px dashed #3c3c3e' }}
+      >
+        <Plus size={12} strokeWidth={2.5} />
+        {t('more')}...
+      </button>
+      {open && (
+        <div
+          className="absolute bottom-full mb-1 left-0 rounded-xl shadow-2xl z-20 overflow-hidden py-1"
+          style={{ backgroundColor: '#2c2c2e', minWidth: 180 }}
+        >
+          {extraPresets.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => { onAdd(p.label); setOpen(false) }}
+              className="w-full text-left px-4 py-2 text-xs font-medium transition-all hover:bg-white/10"
+              style={{ color: 'rgba(235,235,245,0.8)' }}
+            >
+              + {p.display}
+            </button>
+          ))}
+          <div
+            className="px-3 py-2 flex gap-2"
+            style={{ borderTop: '1px solid #3c3c3e' }}
+          >
+            <input
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              className="flex-1 bg-transparent text-white text-xs outline-none"
+              placeholder={t('customSection')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && customInput.trim()) {
+                  onAdd(customInput.trim().toUpperCase())
+                  setCustomInput('')
+                  setOpen(false)
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                if (customInput.trim()) {
+                  onAdd(customInput.trim().toUpperCase())
+                  setCustomInput('')
+                  setOpen(false)
+                }
+              }}
+              className="text-xs font-semibold px-2 py-1 rounded"
+              style={{ color: customInput.trim() ? '#32d74b' : 'rgba(235,235,245,0.3)' }}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function SimpleEditor({ content, onChange }: Props) {
   const { t } = useTranslation()
   const [sections, setSections] = useState<SimpleSection[]>(() => chordProToSimple(content))
@@ -303,7 +419,7 @@ export function SimpleEditor({ content, onChange }: Props) {
 
       {/* Add section buttons */}
       <div className="flex flex-wrap gap-2 mt-2">
-        {SECTION_PRESETS.map((preset) => (
+        {SECTION_PRESETS.slice(0, 5).map((preset) => (
           <button
             key={preset.label}
             onClick={() => addSection(preset)}
@@ -314,6 +430,8 @@ export function SimpleEditor({ content, onChange }: Props) {
             {t(`add${preset.display.replace(/\s/g, '')}` as 'addVerse') ?? preset.display}
           </button>
         ))}
+        {/* More presets dropdown */}
+        <MoreSectionsMenu onAdd={(label) => commit([...sections, { label, words: [] }])} />
       </div>
     </div>
   )
