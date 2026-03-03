@@ -92,10 +92,7 @@ lint/tmp/
 # Cordova plugins for Capacitor
 capacitor-cordova-android-plugins
 
-# Copied web assets
-app/src/main/assets/public
-
 # Generated Config files
-app/src/main/assets/capacitor.config.json
-app/src/main/assets/capacitor.plugins.json
+# Note: web assets (app/src/main/assets/public) and capacitor.config.json
+# are tracked so the repo always contains a ready-to-build Android project.
 app/src/main/res/xml/config.xml
