@@ -140,7 +140,7 @@ interface SectionBlockProps {
   isLast: boolean
 }
 
-function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFirst, isLast }: SectionBlockProps) {
+function SectionBlock({ section, onChange, onDelete, onMove, isFirst, isLast }: SectionBlockProps) {
   const [editing, setEditing] = useState(false)
   const [rawText, setRawText] = useState(() => section.words.map((w) => w.text).join(' '))
   const [editingLabel, setEditingLabel] = useState(false)

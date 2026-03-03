@@ -24,7 +24,7 @@ function parseChordList(input: string): string[] {
     .filter((c) => c.length > 0)
 }
 
-export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) {
+export function ChordRowsPanel({ chordRows, onChange }: Props) {
   const {
     selectedInstrument, instruments,
     customChords, customPianoChords,
