@@ -41,13 +41,60 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           BUILD_NUMBER=${{ github.run_number }}
-          # Parse semantic version for versionName
           echo "App version: $VERSION (build $BUILD_NUMBER)"
-          # Update versionCode (always incrementing) and versionName from package.json
           sed -i "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
           sed -i "s/versionName \"[^\"]*\"/versionName \"$VERSION\"/" android/app/build.gradle
 
-      - name: Build Release APK (unsigned)
+      - name: Generate debug keystore (if missing)
+        run: |
+          mkdir -p android/app
+          if [ ! -f android/app/debug.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore android/app/debug.keystore \
+              -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass android -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Configure signing in build.gradle
+        run: |
+          python3 - <<'EOF'
+          import re
+
+          with open('android/app/build.gradle', 'r') as f:
+              content = f.read()
+
+          signing_config = """
+              signingConfigs {
+                  release {
+                      storeFile file('debug.keystore')
+                      storePassword 'android'
+                      keyAlias 'androiddebugkey'
+                      keyPassword 'android'
+                  }
+              }
+          """
+
+          # Insert signingConfigs before buildTypes if not already present
+          if 'signingConfigs' not in content:
+              content = content.replace('    buildTypes {', signing_config + '    buildTypes {')
+
+          # Add signingConfig to release buildType
+          content = re.sub(
+              r'(release \{[^}]*?)(minifyEnabled)',
+              r'\1signingConfig signingConfigs.release\n            \2',
+              content,
+              flags=re.DOTALL
+          )
+
+          with open('android/app/build.gradle', 'w') as f:
+              f.write(content)
+
+          print("build.gradle updated with signing config")
+          EOF
+
+      - name: Build signed Release APK
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon
 
@@ -55,7 +102,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: WorshipHub-v${{ github.run_number }}
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
       - name: Create GitHub Release on master push
@@ -70,10 +117,8 @@ jobs:
             Built from commit ${{ github.sha }}
 
             **Install on Android:**
-            1. Download `app-release-unsigned.apk`
+            1. Download `WorshipNote-v${{ github.run_number }}.apk`
             2. On your Android device, go to **Settings → Security → Install unknown apps** and allow your file manager or browser
             3. Open the downloaded APK file and tap Install
-
-            > Note: This is an unsigned release APK. It works on all Android devices but requires allowing installs from unknown sources once.
-          files: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          files: android/app/build/outputs/apk/release/app-release.apk
           prerelease: false
