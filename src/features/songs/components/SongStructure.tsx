@@ -13,6 +13,8 @@ const TYPE_COLORS: [string, string][] = [
   ['ПРИПЕВ', '#bf5af2'],
   ['CHORUS', '#bf5af2'],
   ['РЕФРЕН', '#bf5af2'],
+  ['PRE-CHORUS', '#64d2ff'],
+  ['ПРЕДПРИПЕВ', '#64d2ff'],
   ['МОСТ', '#ff9f0a'],
   ['BRIDGE', '#ff9f0a'],
   ['ВСТУПЛЕНИЕ', '#30d158'],
@@ -20,9 +22,18 @@ const TYPE_COLORS: [string, string][] = [
   ['ИНТРО', '#30d158'],
   ['ФИНАЛ', '#ff453a'],
   ['OUTRO', '#ff453a'],
+  ['ENDING', '#ff453a'],
+  ['ОКОНЧАНИЕ', '#ff453a'],
   ['КОДА', '#ff453a'],
   ['ПОВТОР', '#5e5ce6'],
-  ['CHORUS', '#5e5ce6'],
+  ['INTERLUDE', '#ff6482'],
+  ['ИНТЕРЛЮДИЯ', '#ff6482'],
+  ['SOLO', '#ffd60a'],
+  ['СОЛО', '#ffd60a'],
+  ['TAG', '#5ac8fa'],
+  ['ТЕГ', '#5ac8fa'],
+  ['INSTRUMENTAL', '#ff9f0a'],
+  ['ИНСТРУМЕНТАЛ', '#ff9f0a'],
 ]
 
 function sectionColor(label: string): string {

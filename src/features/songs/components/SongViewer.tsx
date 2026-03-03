@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useSettingsStore } from '../../../store/settingsStore'
 import type { ParsedSong } from '../types'
 
@@ -5,8 +6,22 @@ interface Props {
   parsed: ParsedSong
 }
 
+const BUILT_IN_DEFAULTS: Record<string, { showChords: boolean; showCues: boolean }> = {
+  musician: { showChords: true, showCues: true },
+  singer: { showChords: true, showCues: false },
+  congregation: { showChords: false, showCues: false },
+}
+
 export function SongViewer({ parsed }: Props) {
-  const { role, fontSize } = useSettingsStore()
+  const { role, fontSize, customRoles } = useSettingsStore()
+
+  const capabilities = useMemo(() => {
+    const customRole = customRoles.find((cr) => cr.id === role)
+    if (customRole) {
+      return { showChords: customRole.showChords, showCues: customRole.showCues }
+    }
+    return BUILT_IN_DEFAULTS[role as string] ?? BUILT_IN_DEFAULTS.musician
+  }, [role, customRoles])
 
   return (
     <div className="space-y-1 pb-24" style={{ fontSize: `${fontSize}px` }}>
@@ -16,7 +31,7 @@ export function SongViewer({ parsed }: Props) {
         }
 
         if (line.type === 'cue') {
-          if (role === 'congregation' || role === 'singer') return null
+          if (!capabilities.showCues) return null
           return (
             <div
               key={i}
@@ -37,13 +52,12 @@ export function SongViewer({ parsed }: Props) {
 
         // lyric line
         const segments = line.segments || []
-        const showChords = role !== 'congregation'
 
         return (
           <div key={i} className="flex flex-wrap">
             {segments.map((seg, j) => (
               <div key={j} className="inline-flex flex-col mr-0">
-                {showChords && (
+                {capabilities.showChords && (
                   <span
                     className="font-semibold leading-tight"
                     style={{
