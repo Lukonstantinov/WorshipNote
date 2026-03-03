@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "cap:sync": "cap sync",
-    "cap:android": "cap open android"
+    "cap:android": "cap open android",
+    "build:android": "npm run build && cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",
