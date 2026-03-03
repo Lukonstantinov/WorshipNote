@@ -26,12 +26,33 @@ export interface Instrument {
 }
 
 export interface CustomChordDiagram {
-  /** 6 strings (low E → high e). -1 = muted, 0 = open, 1-5 = fret number */
+  /** strings (low → high). -1 = muted, 0 = open, 1-5 = fret number */
   frets: number[];
   /** optional finger numbers per string (0 = no finger, 1-4) */
   fingers?: number[];
   /** starting fret number (1 for open-position chords) */
   baseFret?: number;
+  /** optional text comment displayed below the diagram */
+  comment?: string;
+}
+
+export interface CustomPianoChordDiagram {
+  /** pitch classes to highlight, e.g. ['C', 'E', 'G'] */
+  notes: string[];
+  /** optional text comment displayed below the diagram */
+  comment?: string;
+}
+
+export interface ChordRow {
+  id: string;
+  /** label shown on the left side of the row */
+  label?: string;
+  /** comment shown below the row */
+  comment?: string;
+  /** chord names for this row */
+  chords: string[];
+  /** colour tag for visual distinction */
+  color?: string;
 }
 
 export interface Song {
@@ -43,6 +64,8 @@ export interface Song {
   tags: string[];
   folderId?: string;
   structure?: string;
+  /** extra chord rows added by the user (beyond auto-parsed chords) */
+  chordRows?: ChordRow[];
   created_at: string;
   updated_at: string;
 }

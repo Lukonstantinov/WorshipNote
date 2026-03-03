@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Pencil, Trash2, ChevronDown } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, ChevronDown, Guitar, Piano, Music2, Drum } from 'lucide-react'
 import { useSongStore } from '../store/songStore'
 import { parseSong, extractStructure } from '../features/songs/lib/parser'
 import { transposeSong } from '../features/songs/lib/transposer'
@@ -12,8 +12,20 @@ import { FontSizeSlider } from '../shared/components/FontSizeSlider'
 import { Metronome } from '../features/songs/components/Metronome'
 import { SongStructure } from '../features/songs/components/SongStructure'
 import { ChordDiagramPanel } from '../features/songs/components/ChordDiagramPanel'
+import { ChordRowsPanel } from '../features/songs/components/ChordRowsPanel'
 import { useSettingsStore } from '../store/settingsStore'
 import type { Role } from '../store/settingsStore'
+import type { Instrument } from '../features/songs/types'
+
+const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
+  guitar:   <Guitar size={14} strokeWidth={1.5} />,
+  piano:    <Piano size={14} strokeWidth={1.5} />,
+  keyboard: <Piano size={14} strokeWidth={1.5} />,
+  bass:     <Guitar size={14} strokeWidth={1.5} />,
+  ukulele:  <Music2 size={14} strokeWidth={1.5} />,
+  drums:    <Drum size={14} strokeWidth={1.5} />,
+  other:    <Music2 size={14} strokeWidth={1.5} />,
+}
 
 const BUILT_IN_DEFAULTS: Record<string, { showChords: boolean; showCues: boolean; showDiagrams: boolean }> = {
   musician: { showChords: true, showCues: true, showDiagrams: true },
@@ -25,7 +37,7 @@ export default function SongPage() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { getSongById, deleteSong } = useSongStore()
+  const { getSongById, deleteSong, updateSong } = useSongStore()
   const {
     role, setRole,
     instruments, selectedInstrument, setSelectedInstrument,
@@ -189,6 +201,7 @@ export default function SongPage() {
                   border: '1px solid #2c2c2e',
                 }}
               >
+                {activeInstrument && <span style={{ opacity: 0.7 }}>{INSTRUMENT_ICONS[activeInstrument.type]}</span>}
                 <span>{activeInstrument?.name ?? t('instrument')}</span>
                 <ChevronDown size={12} strokeWidth={2} />
               </button>
@@ -201,9 +214,10 @@ export default function SongPage() {
                     <button
                       key={inst.id}
                       onClick={() => { setSelectedInstrument(inst.id); setShowInstrumentMenu(false) }}
-                      className="w-full text-left px-4 py-2.5 text-sm transition-all hover:bg-white/10"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:bg-white/10"
                       style={{ color: selectedInstrument === inst.id ? '#32d74b' : 'rgba(235,235,245,0.8)' }}
                     >
+                      <span style={{ opacity: 0.7 }}>{INSTRUMENT_ICONS[inst.type]}</span>
                       {inst.name}
                     </button>
                   ))}
@@ -237,8 +251,18 @@ export default function SongPage() {
       {/* Main area: content + optional side chord panel */}
       <div className="flex flex-1 min-h-0">
         {/* Song content */}
-        <div ref={scrollRef} className="flex-1 overflow-auto p-4 md:p-8">
-          <SongViewer parsed={parsed} />
+        <div ref={scrollRef} className="flex-1 overflow-auto">
+          <div className="p-4 md:p-8">
+            <SongViewer parsed={parsed} />
+          </div>
+          {/* Chord rows panel */}
+          {capabilities.showDiagrams && (
+            <ChordRowsPanel
+              songId={song.id}
+              chordRows={song.chordRows ?? []}
+              onChange={(rows) => updateSong(song.id, { chordRows: rows })}
+            />
+          )}
         </div>
 
         {/* Chord diagrams — side position (desktop) */}

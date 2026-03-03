@@ -6,6 +6,10 @@ export interface SetlistSong {
   sort_order: number
   transpose_steps: number
   capo_fret: number
+  /** vocalist name shown in brackets before the song title */
+  vocalist?: string
+  /** hex colour for the vocalist label */
+  vocalColor?: string
 }
 
 export interface Setlist {

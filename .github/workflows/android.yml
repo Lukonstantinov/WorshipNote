@@ -36,26 +36,44 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK
-        working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+      # Read version from package.json and inject into build.gradle
+      - name: Inject version from package.json
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BUILD_NUMBER=${{ github.run_number }}
+          # Parse semantic version for versionName
+          echo "App version: $VERSION (build $BUILD_NUMBER)"
+          # Update versionCode (always incrementing) and versionName from package.json
+          sed -i "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"$VERSION\"/" android/app/build.gradle
 
-      - name: Upload APK
+      - name: Build Release APK (unsigned)
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: WorshipHub-debug-build-${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: WorshipHub-v${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 30
 
       - name: Create GitHub Release on master push
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: "Build #${{ github.run_number }}"
+          tag_name: v${{ github.run_number }}
+          name: "WorshipNote v${{ github.run_number }}"
           body: |
-            Automatic debug APK build from commit ${{ github.sha }}
+            ## WorshipNote Release
 
-            **Install:** Download `app-debug.apk`, enable "Install from unknown sources" on your Android device, then open the file.
-          files: android/app/build/outputs/apk/debug/app-debug.apk
-          prerelease: true
+            Built from commit ${{ github.sha }}
+
+            **Install on Android:**
+            1. Download `app-release-unsigned.apk`
+            2. On your Android device, go to **Settings → Security → Install unknown apps** and allow your file manager or browser
+            3. Open the downloaded APK file and tap Install
+
+            > Note: This is an unsigned release APK. It works on all Android devices but requires allowing installs from unknown sources once.
+          files: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          prerelease: false
