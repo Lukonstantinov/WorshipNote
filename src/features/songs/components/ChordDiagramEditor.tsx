@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { X, Save, Trash2 } from 'lucide-react'
 import { Note } from 'tonal'
 import { useSettingsStore } from '../../../store/settingsStore'
-import type { CustomChordDiagram, CustomPianoChordDiagram } from '../types'
+import type { CustomChordDiagram } from '../types'
 import { useTranslation } from 'react-i18next'
 
 interface Props {

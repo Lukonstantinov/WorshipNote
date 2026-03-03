@@ -17,8 +17,6 @@ const ROW_COLORS = [
   '#32d74b', '#0a84ff', '#ff9f0a', '#bf5af2', '#ff453a', '#64d2ff', '#ffd60a', 'transparent',
 ]
 
-const CHORD_REGEX = /^[A-G][#b]?(m|maj|min|dim|aug|sus|add)?[0-9]?(\/[A-G][#b]?)?$/
-
 function parseChordList(input: string): string[] {
   return input
     .split(/[\s,]+/)
