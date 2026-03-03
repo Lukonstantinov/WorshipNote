@@ -6,6 +6,7 @@ import SongEditPage from './pages/SongEditPage'
 import SetlistPage from './pages/SetlistPage'
 import SetlistEditPage from './pages/SetlistEditPage'
 import SettingsPage from './pages/SettingsPage'
+import ChordLibraryPage from './pages/ChordLibraryPage'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/setlists/:id" element={<SetlistPage />} />
           <Route path="/setlists/:id/edit" element={<SetlistEditPage />} />
           <Route path="/setlists/new" element={<SetlistEditPage />} />
+          <Route path="/chords" element={<ChordLibraryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

@@ -55,6 +55,13 @@ export interface ChordRow {
   color?: string;
 }
 
+export interface BarProgressionData {
+  id: string;
+  name: string;
+  bars: { chord: string }[][];
+  beatsPerBar: number;
+}
+
 export interface Song {
   id: string;
   title: string;
@@ -66,6 +73,8 @@ export interface Song {
   structure?: string;
   /** extra chord rows added by the user (beyond auto-parsed chords) */
   chordRows?: ChordRow[];
+  /** bar-by-bar chord progressions saved for this song */
+  barProgressions?: BarProgressionData[];
   created_at: string;
   updated_at: string;
 }

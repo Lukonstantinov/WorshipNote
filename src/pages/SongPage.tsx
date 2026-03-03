@@ -13,6 +13,7 @@ import { Metronome } from '../features/songs/components/Metronome'
 import { SongStructure } from '../features/songs/components/SongStructure'
 import { ChordDiagramPanel } from '../features/songs/components/ChordDiagramPanel'
 import { ChordRowsPanel } from '../features/songs/components/ChordRowsPanel'
+import { BarProgressions } from '../features/songs/components/BarProgressions'
 import { useSettingsStore } from '../store/settingsStore'
 import type { Role } from '../store/settingsStore'
 import type { Instrument } from '../features/songs/types'
@@ -261,6 +262,13 @@ export default function SongPage() {
               songId={song.id}
               chordRows={song.chordRows ?? []}
               onChange={(rows) => updateSong(song.id, { chordRows: rows })}
+            />
+          )}
+          {/* Bar progressions */}
+          {capabilities.showChords && (
+            <BarProgressions
+              progressions={song.barProgressions ?? []}
+              onChange={(progs) => updateSong(song.id, { barProgressions: progs })}
             />
           )}
         </div>

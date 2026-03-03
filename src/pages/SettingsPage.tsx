@@ -7,6 +7,7 @@ import type { Language, ChordDisplayPosition, ChordDiagramMode, CustomRole } fro
 import type { Instrument } from '../features/songs/types'
 import { FONT_SIZE_MIN, FONT_SIZE_MAX } from '../shared/lib/constants'
 import { generateId } from '../shared/lib/storage'
+import { ExportImportPanel } from '../features/songs/components/ExportImportPanel'
 
 const LANGUAGES: { code: Language; label: string; sub: string }[] = [
   { code: 'ru', label: 'Русский',  sub: 'Russian' },
@@ -519,11 +520,14 @@ export default function SettingsPage() {
           </section>
         )}
 
+        {/* Export / Import */}
+        <ExportImportPanel />
+
         {/* App info */}
         <section>
           <div className="p-4 rounded-2xl text-center" style={{ backgroundColor: '#1c1c1e' }}>
             <p className="font-semibold text-white">WorshipNote</p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(235,235,245,0.3)' }}>v0.3.0 · Psalms & Chords</p>
+            <p className="text-xs mt-1" style={{ color: 'rgba(235,235,245,0.3)' }}>v0.5.0 · Psalms & Chords</p>
           </div>
         </section>
 
