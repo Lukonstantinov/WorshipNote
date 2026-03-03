@@ -41,6 +41,10 @@ export default function SettingsPage() {
     tagColors, setTagColor,
     roleLabels, setRoleLabel,
     customRoles, addCustomRole, updateCustomRole, deleteCustomRole,
+    guitarFlipped, setGuitarFlipped,
+    guitarDotColor, setGuitarDotColor,
+    pianoHighlightColor, setPianoHighlightColor,
+    diagramScale, setDiagramScale,
   } = useSettingsStore()
   const { songs } = useSongStore()
 
@@ -273,6 +277,76 @@ export default function SettingsPage() {
                   {label}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Diagram colours */}
+          {chordDisplayPosition !== 'none' && (
+            <div className="rounded-2xl mt-3 overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #2c2c2e' }}>
+                <span className="text-sm text-white">Guitar dot colour</span>
+                <input
+                  type="color"
+                  value={guitarDotColor}
+                  onChange={(e) => setGuitarDotColor(e.target.value)}
+                  className="rounded cursor-pointer"
+                  style={{ width: 36, height: 28, border: 'none', backgroundColor: 'transparent', padding: 0 }}
+                />
+              </div>
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #2c2c2e' }}>
+                <span className="text-sm text-white">Piano key colour</span>
+                <input
+                  type="color"
+                  value={pianoHighlightColor}
+                  onChange={(e) => setPianoHighlightColor(e.target.value)}
+                  className="rounded cursor-pointer"
+                  style={{ width: 36, height: 28, border: 'none', backgroundColor: 'transparent', padding: 0 }}
+                />
+              </div>
+              {/* Flip toggle (guitar/bass) */}
+              <button
+                onClick={() => setGuitarFlipped(!guitarFlipped)}
+                className="w-full flex items-center justify-between px-4 py-3 transition-all"
+                style={{ borderBottom: '1px solid #2c2c2e' }}
+              >
+                <span className="text-sm text-white">Flip guitar frets (mirror)</span>
+                <div
+                  className="rounded-full transition-all"
+                  style={{
+                    width: 44, height: 26, backgroundColor: guitarFlipped ? '#32d74b' : '#2c2c2e',
+                    display: 'flex', alignItems: 'center', padding: '3px',
+                  }}
+                >
+                  <div
+                    className="rounded-full bg-white transition-all"
+                    style={{ width: 20, height: 20, transform: guitarFlipped ? 'translateX(18px)' : 'translateX(0)' }}
+                  />
+                </div>
+              </button>
+              {/* Diagram size */}
+              <div className="px-4 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-white">Diagram size</span>
+                  <span className="text-sm font-semibold" style={{ color: '#32d74b' }}>
+                    {diagramScale === 0.75 ? 'S' : diagramScale === 1 ? 'M' : diagramScale === 1.5 ? 'L' : 'XL'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {([0.75, 1, 1.5, 2] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setDiagramScale(s)}
+                      className="py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
+                      style={{
+                        backgroundColor: diagramScale === s ? '#0a84ff' : '#2c2c2e',
+                        color: diagramScale === s ? '#fff' : 'rgba(235,235,245,0.4)',
+                      }}
+                    >
+                      {s === 0.75 ? 'S' : s === 1 ? 'M' : s === 1.5 ? 'L' : 'XL'}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </section>

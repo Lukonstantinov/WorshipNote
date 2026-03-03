@@ -1,20 +1,28 @@
 import { Chord, Note } from 'tonal'
+import type { CustomPianoChordDiagram } from '../types'
 
 interface Props {
   chord: string
+  customDiagram?: CustomPianoChordDiagram
   size?: number
+  highlightColor?: string
 }
 
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 const BLACK_KEY_POSITIONS = [0.5, 1.5, 3.5, 4.5, 5.5]
 
-export function MiniPianoDiagram({ chord, size = 56 }: Props) {
-  const chordData = Chord.get(chord)
-  const chordNotes: string[] = chordData.notes.length > 0
-    ? chordData.notes
-    : Chord.get(chord.replace('m', 'minor')).notes
+export function MiniPianoDiagram({ chord, customDiagram, size = 56, highlightColor = '#32d74b' }: Props) {
+  let highlightedPCs: Set<string>
 
-  const highlightedPCs = new Set(chordNotes.map((n) => Note.pitchClass(n)).filter(Boolean))
+  if (customDiagram && customDiagram.notes.length > 0) {
+    highlightedPCs = new Set(customDiagram.notes.map((n) => Note.pitchClass(n)).filter(Boolean))
+  } else {
+    const chordData = Chord.get(chord)
+    const chordNotes: string[] = chordData.notes.length > 0
+      ? chordData.notes
+      : Chord.get(chord.replace('m', 'minor')).notes
+    highlightedPCs = new Set(chordNotes.map((n) => Note.pitchClass(n)).filter(Boolean))
+  }
 
   const WHITE_COUNT = 8
   const w = size
@@ -52,7 +60,6 @@ export function MiniPianoDiagram({ chord, size = 56 }: Props) {
     <div className="flex flex-col items-center">
       <span className="text-xs font-bold mb-0.5" style={{ color: '#32d74b', fontSize: 9 }}>{chord}</span>
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-        {/* White keys */}
         {Array.from({ length: WHITE_COUNT }).map((_, i) => {
           const hi = isWhiteHighlighted(i)
           return (
@@ -63,14 +70,13 @@ export function MiniPianoDiagram({ chord, size = 56 }: Props) {
               width={wKeyW - 1}
               height={wKeyH - 1}
               rx={1}
-              fill={hi ? '#32d74b' : '#ffffff'}
+              fill={hi ? highlightColor : '#ffffff'}
               stroke="#333"
               strokeWidth={0.5}
             />
           )
         })}
 
-        {/* Black keys */}
         {BLACK_KEY_POSITIONS.map((pos, bi) => {
           const hi = isBlackHighlighted(pos)
           const x = pos * wKeyW + wKeyW / 2 - bKeyW / 2

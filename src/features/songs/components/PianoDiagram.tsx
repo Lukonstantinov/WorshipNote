@@ -1,25 +1,28 @@
 import { Chord, Note } from 'tonal'
+import type { CustomPianoChordDiagram } from '../types'
 
 interface Props {
   chord: string
+  customDiagram?: CustomPianoChordDiagram
   size?: number
+  highlightColor?: string
 }
 
-// White key note names in one octave (C to B)
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
-// Black key positions relative to white keys (between which whites)
-// Expressed as index of preceding white key + 0.5
 const BLACK_KEY_POSITIONS = [0.5, 1.5, 3.5, 4.5, 5.5] // C#, D#, F#, G#, A#
 
+export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor = '#32d74b' }: Props) {
+  let highlightedPCs: Set<string>
 
-export function PianoDiagram({ chord, size = 120 }: Props) {
-  // Parse chord notes using tonal
-  const chordData = Chord.get(chord)
-  const chordNotes: string[] = chordData.notes.length > 0
-    ? chordData.notes
-    : Chord.get(chord.replace('m', 'minor')).notes
-
-  const highlightedPCs = new Set(chordNotes.map((n) => Note.pitchClass(n)).filter(Boolean))
+  if (customDiagram && customDiagram.notes.length > 0) {
+    highlightedPCs = new Set(customDiagram.notes.map((n) => Note.pitchClass(n)).filter(Boolean))
+  } else {
+    const chordData = Chord.get(chord)
+    const chordNotes: string[] = chordData.notes.length > 0
+      ? chordData.notes
+      : Chord.get(chord.replace('m', 'minor')).notes
+    highlightedPCs = new Set(chordNotes.map((n) => Note.pitchClass(n)).filter(Boolean))
+  }
 
   const WHITE_COUNT = 8 // C to C (one octave + C)
   const w = size
@@ -33,7 +36,6 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
     const noteName = WHITE_KEYS[noteIdx % 7]
     if (!noteName) return false
     return highlightedPCs.has(noteName) ||
-      // check enharmonics
       Array.from(highlightedPCs).some((pc) => {
         const midiA = Note.midi(pc + '4')
         const midiB = Note.midi(noteName + '4')
@@ -42,7 +44,6 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
   }
 
   const isBlackHighlighted = (pos: number) => {
-    // Black key note names: C# D# F# G# A#
     const blackNoteNames = ['C#', 'D#', 'F#', 'G#', 'A#']
     const bIdx = BLACK_KEY_POSITIONS.indexOf(pos)
     const noteName = blackNoteNames[bIdx]
@@ -55,17 +56,12 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
       })
   }
 
+  const commentHeight = customDiagram?.comment ? 14 : 0
+
   return (
-    <svg width={w} height={h + 20} viewBox={`0 0 ${w} ${h + 20}`}>
+    <svg width={w} height={h + 20 + commentHeight} viewBox={`0 0 ${w} ${h + 20 + commentHeight}`}>
       {/* Chord name */}
-      <text
-        x={w / 2} y={13}
-        textAnchor="middle"
-        fontSize={12}
-        fontWeight="700"
-        fill="#ffffff"
-        fontFamily="system-ui, sans-serif"
-      >
+      <text x={w / 2} y={13} textAnchor="middle" fontSize={12} fontWeight="700" fill="#ffffff" fontFamily="system-ui, sans-serif">
         {chord}
       </text>
 
@@ -81,7 +77,7 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
               width={wKeyW - 1}
               height={wKeyH - 1}
               rx={2}
-              fill={hi ? '#32d74b' : '#ffffff'}
+              fill={hi ? highlightColor : '#ffffff'}
               stroke="#333"
               strokeWidth={0.5}
             />
@@ -105,6 +101,20 @@ export function PianoDiagram({ chord, size = 120 }: Props) {
           )
         })}
       </g>
+
+      {/* Comment below diagram */}
+      {customDiagram?.comment && (
+        <text
+          x={w / 2}
+          y={h + 20 + commentHeight - 2}
+          textAnchor="middle"
+          fontSize={9}
+          fill="rgba(235,235,245,0.5)"
+          fontFamily="system-ui, sans-serif"
+        >
+          {customDiagram.comment}
+        </text>
+      )}
     </svg>
   )
 }

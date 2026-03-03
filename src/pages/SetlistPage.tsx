@@ -41,6 +41,11 @@ export default function SetlistPage() {
                       {sl.service_date}
                     </p>
                   )}
+                  {sl.notes && (
+                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(235,235,245,0.5)', whiteSpace: 'pre-wrap' }}>
+                      {sl.notes}
+                    </p>
+                  )}
                 </div>
                 <Link
                   to={`/setlists/${sl.id}/edit`}
@@ -84,7 +89,17 @@ export default function SetlistPage() {
                           >
                             {idx + 1}
                           </span>
-                          <span className="flex-1 text-sm" style={{ color: '#ffffff' }}>{song.title}</span>
+                          <span className="flex-1 text-sm" style={{ color: '#ffffff' }}>
+                            {ss.vocalist && (
+                              <span
+                                className="font-semibold mr-1"
+                                style={{ color: ss.vocalColor ?? '#0a84ff', fontSize: 11 }}
+                              >
+                                ({ss.vocalist})
+                              </span>
+                            )}
+                            {song.title}
+                          </span>
                           {song.original_key && (
                             <span
                               className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"

@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Pencil, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Pencil, ChevronLeft, ChevronRight, FlipHorizontal2 } from 'lucide-react'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { GuitarDiagram } from './GuitarDiagram'
 import { PianoDiagram } from './PianoDiagram'
+import { BassDiagram } from './BassDiagram'
 import { MiniGuitarDiagram } from './MiniGuitarDiagram'
 import { MiniPianoDiagram } from './MiniPianoDiagram'
+import { MiniBassDiagram } from './MiniBassDiagram'
 import { ChordDiagramEditor } from './ChordDiagramEditor'
 import type { ParsedSong } from '../types'
 
@@ -13,7 +15,6 @@ interface Props {
   position: 'side' | 'top'
 }
 
-/** Extract unique chord names from a parsed song */
 function extractChords(parsed: ParsedSong): string[] {
   const seen = new Set<string>()
   for (const line of parsed.lines) {
@@ -27,7 +28,13 @@ function extractChords(parsed: ParsedSong): string[] {
 }
 
 export function ChordDiagramPanel({ parsed, position }: Props) {
-  const { selectedInstrument, instruments, customChords, chordDiagramMode } = useSettingsStore()
+  const {
+    selectedInstrument, instruments,
+    customChords, customPianoChords,
+    chordDiagramMode,
+    guitarFlipped, guitarDotColor, pianoHighlightColor, diagramScale,
+  } = useSettingsStore()
+
   const chords = extractChords(parsed)
   const [activeIdx, setActiveIdx] = useState(0)
   const [editingChord, setEditingChord] = useState<string | null>(null)
@@ -40,95 +47,126 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
   const instrument = instruments.find((i) => i.id === selectedInstrument)
   const instrType = instrument?.type ?? 'guitar'
   const showPiano = instrType === 'piano' || instrType === 'keyboard'
+  const showBass = instrType === 'bass'
 
-  const DiagramComp = showPiano ? PianoDiagram : GuitarDiagram
-  const MiniDiagramComp = showPiano ? MiniPianoDiagram : MiniGuitarDiagram
+  const scale = diagramScale ?? 1
+
+  // Select diagram components based on instrument type
+  const DiagramComp = showPiano
+    ? (props: { chord: string; size?: number }) => (
+        <PianoDiagram
+          chord={props.chord}
+          customDiagram={customPianoChords[props.chord]}
+          size={props.size}
+          highlightColor={pianoHighlightColor}
+        />
+      )
+    : showBass
+    ? (props: { chord: string; size?: number }) => (
+        <BassDiagram
+          chord={props.chord}
+          customDiagram={customChords[props.chord]}
+          size={props.size}
+          dotColor={guitarDotColor}
+          flipped={guitarFlipped}
+        />
+      )
+    : (props: { chord: string; size?: number }) => (
+        <GuitarDiagram
+          chord={props.chord}
+          customDiagram={customChords[props.chord]}
+          size={props.size}
+          dotColor={guitarDotColor}
+          flipped={guitarFlipped}
+        />
+      )
+
+  const MiniComp = showPiano
+    ? (props: { chord: string; size?: number }) => (
+        <MiniPianoDiagram
+          chord={props.chord}
+          customDiagram={customPianoChords[props.chord]}
+          size={props.size}
+          highlightColor={pianoHighlightColor}
+        />
+      )
+    : showBass
+    ? (props: { chord: string; size?: number }) => (
+        <MiniBassDiagram
+          chord={props.chord}
+          customDiagram={customChords[props.chord]}
+          size={props.size}
+          dotColor={guitarDotColor}
+          flipped={guitarFlipped}
+        />
+      )
+    : (props: { chord: string; size?: number }) => (
+        <MiniGuitarDiagram
+          chord={props.chord}
+          customDiagram={customChords[props.chord]}
+          size={props.size}
+          dotColor={guitarDotColor}
+          flipped={guitarFlipped}
+        />
+      )
 
   const mode = chordDiagramMode ?? 'single'
 
-  // === ALL mode: show all diagrams in a scrollable row ===
+  const editBtn = (ch: string, sz: number) => (
+    <button
+      onClick={() => setEditingChord(ch)}
+      className="absolute top-0 right-0 flex items-center justify-center rounded-lg"
+      style={{ backgroundColor: '#2c2c2e', width: sz, height: sz }}
+      title="Edit diagram"
+    >
+      <Pencil size={sz * 0.5} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
+    </button>
+  )
+
+  // ── ALL mode ──
   if (mode === 'all') {
+    const sz = Math.round(90 * scale)
     if (position === 'top') {
       return (
         <>
-          <div
-            className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none"
-            style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}
-          >
+          <div className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}>
             <div className="flex items-center gap-2 min-w-max">
               {chords.map((ch) => (
                 <div key={ch} className="relative flex-shrink-0">
-                  <DiagramComp
-                    chord={ch}
-                    customDiagram={customChords[ch]}
-                    size={90}
-                  />
-                  <button
-                    onClick={() => setEditingChord(ch)}
-                    className="absolute top-0 right-0 flex items-center justify-center rounded-lg"
-                    style={{ backgroundColor: '#2c2c2e', width: 18, height: 18 }}
-                    title="Edit diagram"
-                  >
-                    <Pencil size={8} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
-                  </button>
+                  <DiagramComp chord={ch} size={sz} />
+                  {editBtn(ch, 18)}
                 </div>
               ))}
             </div>
           </div>
-          {editingChord && (
-            <ChordDiagramEditor chordName={editingChord} onClose={() => setEditingChord(null)} />
-          )}
+          {editingChord && <ChordDiagramEditor chordName={editingChord} instrumentType={instrType} onClose={() => setEditingChord(null)} />}
         </>
       )
     }
-
-    // Side panel - all mode: vertical list of all diagrams
     return (
       <>
-        <div
-          className="flex flex-col flex-shrink-0 border-l overflow-y-auto"
-          style={{
-            borderColor: '#1c1c1e',
-            backgroundColor: '#0a0a0a',
-            width: 160,
-          }}
-        >
+        <div className="flex flex-col flex-shrink-0 border-l overflow-y-auto" style={{ borderColor: '#1c1c1e', backgroundColor: '#0a0a0a', width: Math.round(160 * scale) }}>
           <div className="flex flex-col gap-2 p-2">
             {chords.map((ch) => (
               <div key={ch} className="relative flex items-center justify-center">
-                <DiagramComp
-                  chord={ch}
-                  customDiagram={customChords[ch]}
-                  size={120}
-                />
-                <button
-                  onClick={() => setEditingChord(ch)}
-                  className="absolute top-1 right-1 flex items-center justify-center rounded-lg"
-                  style={{ backgroundColor: '#2c2c2e', width: 20, height: 20 }}
-                  title="Edit diagram"
-                >
-                  <Pencil size={9} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
-                </button>
+                <DiagramComp chord={ch} size={Math.round(120 * scale)} />
+                {editBtn(ch, 20)}
               </div>
             ))}
           </div>
         </div>
-        {editingChord && (
-          <ChordDiagramEditor chordName={editingChord} onClose={() => setEditingChord(null)} />
-        )}
+        {editingChord && <ChordDiagramEditor chordName={editingChord} instrumentType={instrType} onClose={() => setEditingChord(null)} />}
       </>
     )
   }
 
-  // === MINI mode: compact mini diagrams in a row ===
+  // ── MINI mode ──
   if (mode === 'mini') {
+    const miniSz = Math.round(56 * scale)
     if (position === 'top') {
       return (
         <>
-          <div
-            className="px-3 py-1.5 border-b flex-shrink-0 overflow-x-auto scrollbar-none"
-            style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}
-          >
+          <div className="px-3 py-1.5 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}>
             <div className="flex items-center gap-1.5 min-w-max">
               {chords.map((ch) => (
                 <div
@@ -137,29 +175,18 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
                   style={{ backgroundColor: ch === activeChord ? '#1c1c1e' : 'transparent' }}
                   onClick={() => setActiveIdx(chords.indexOf(ch))}
                 >
-                  <MiniDiagramComp chord={ch} size={56} />
+                  <MiniComp chord={ch} size={miniSz} />
                 </div>
               ))}
             </div>
           </div>
-          {editingChord && (
-            <ChordDiagramEditor chordName={editingChord} onClose={() => setEditingChord(null)} />
-          )}
+          {editingChord && <ChordDiagramEditor chordName={editingChord} instrumentType={instrType} onClose={() => setEditingChord(null)} />}
         </>
       )
     }
-
-    // Side panel - mini mode: compact vertical list
     return (
       <>
-        <div
-          className="flex flex-col flex-shrink-0 border-l overflow-y-auto"
-          style={{
-            borderColor: '#1c1c1e',
-            backgroundColor: '#0a0a0a',
-            width: 80,
-          }}
-        >
+        <div className="flex flex-col flex-shrink-0 border-l overflow-y-auto" style={{ borderColor: '#1c1c1e', backgroundColor: '#0a0a0a', width: Math.round(80 * scale) }}>
           <div className="flex flex-col gap-1 p-1">
             {chords.map((ch) => (
               <div
@@ -168,30 +195,24 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
                 style={{ backgroundColor: ch === activeChord ? '#1c1c1e' : 'transparent' }}
                 onClick={() => setActiveIdx(chords.indexOf(ch))}
               >
-                <MiniDiagramComp chord={ch} size={60} />
+                <MiniComp chord={ch} size={miniSz} />
               </div>
             ))}
           </div>
         </div>
-        {editingChord && (
-          <ChordDiagramEditor chordName={editingChord} onClose={() => setEditingChord(null)} />
-        )}
+        {editingChord && <ChordDiagramEditor chordName={editingChord} instrumentType={instrType} onClose={() => setEditingChord(null)} />}
       </>
     )
   }
 
-  // === SINGLE mode (default): one chord at a time ===
-  const diagramSize = position === 'top' ? 100 : 130
+  // ── SINGLE mode (default) ──
+  const diagramSize = Math.round((position === 'top' ? 100 : 130) * scale)
 
   if (position === 'top') {
     return (
       <>
-        <div
-          className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none"
-          style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}
-        >
+        <div className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}>
           <div className="flex items-center gap-3 min-w-max">
-            {/* Chord selector chips */}
             <div className="flex items-center gap-1.5">
               {chords.map((ch, i) => (
                 <button
@@ -208,29 +229,13 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
                 </button>
               ))}
             </div>
-
-            {/* Diagram */}
             <div className="relative flex-shrink-0" style={{ marginLeft: 8 }}>
-              <DiagramComp
-                chord={activeChord}
-                customDiagram={customChords[activeChord]}
-                size={diagramSize}
-              />
-              <button
-                onClick={() => setEditingChord(activeChord)}
-                className="absolute top-0 right-0 flex items-center justify-center rounded-lg"
-                style={{ backgroundColor: '#2c2c2e', width: 20, height: 20 }}
-                title="Edit diagram"
-              >
-                <Pencil size={10} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
-              </button>
+              <DiagramComp chord={activeChord} size={diagramSize} />
+              {editBtn(activeChord, 20)}
             </div>
           </div>
         </div>
-
-        {editingChord && (
-          <ChordDiagramEditor chordName={editingChord} onClose={() => setEditingChord(null)} />
-        )}
+        {editingChord && <ChordDiagramEditor chordName={editingChord} instrumentType={instrType} onClose={() => setEditingChord(null)} />}
       </>
     )
   }
@@ -240,13 +245,8 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
     <>
       <div
         className="flex flex-col flex-shrink-0 border-l overflow-y-auto"
-        style={{
-          borderColor: '#1c1c1e',
-          backgroundColor: '#0a0a0a',
-          width: 160,
-        }}
+        style={{ borderColor: '#1c1c1e', backgroundColor: '#0a0a0a', width: Math.round(160 * scale) }}
       >
-        {/* Navigation */}
         <div className="flex items-center justify-between px-2 py-1.5 border-b" style={{ borderColor: '#1c1c1e' }}>
           <button
             onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}
@@ -265,24 +265,29 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
           </button>
         </div>
 
-        {/* Diagram */}
         <div className="flex items-center justify-center py-3 relative">
-          <DiagramComp
-            chord={activeChord}
-            customDiagram={customChords[activeChord]}
-            size={diagramSize}
-          />
-          <button
-            onClick={() => setEditingChord(activeChord)}
-            className="absolute top-2 right-2 flex items-center justify-center rounded-lg"
-            style={{ backgroundColor: '#2c2c2e', width: 22, height: 22 }}
-            title="Edit diagram"
-          >
-            <Pencil size={11} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
-          </button>
+          <DiagramComp chord={activeChord} size={diagramSize} />
+          {editBtn(activeChord, 22)}
         </div>
 
-        {/* Chord list */}
+        {/* Flip button for guitar/bass */}
+        {!showPiano && (
+          <div className="flex justify-center pb-1">
+            <button
+              onClick={() => useSettingsStore.getState().setGuitarFlipped(!guitarFlipped)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all"
+              style={{
+                backgroundColor: guitarFlipped ? '#32d74b22' : 'transparent',
+                color: guitarFlipped ? '#32d74b' : 'rgba(235,235,245,0.3)',
+              }}
+              title="Flip fret diagram"
+            >
+              <FlipHorizontal2 size={12} strokeWidth={2} />
+              flip
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col gap-0.5 px-2 pb-2">
           {chords.map((ch, i) => (
             <button
@@ -300,9 +305,7 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
         </div>
       </div>
 
-      {editingChord && (
-        <ChordDiagramEditor chordName={editingChord} onClose={() => setEditingChord(null)} />
-      )}
+      {editingChord && <ChordDiagramEditor chordName={editingChord} instrumentType={instrType} onClose={() => setEditingChord(null)} />}
     </>
   )
 }

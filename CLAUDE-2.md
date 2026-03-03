@@ -1,5 +1,36 @@
 # CLAUDE.md — WorshipHub Project Instructions
 
+---
+
+## CRITICAL: Version Management (READ FIRST)
+
+**Every code change session MUST bump the version in `package.json`.**
+
+### Version format: `MAJOR.MINOR.PATCH`
+- `PATCH` bump → bug fixes, small tweaks (0.4.0 → 0.4.1)
+- `MINOR` bump → new features (0.4.0 → 0.5.0)
+- `MAJOR` bump → breaking changes or complete redesigns (0.4.0 → 1.0.0)
+
+### How to bump version:
+```bash
+# Edit package.json — change "version" field
+# Example: "0.4.0" → "0.4.1"
+```
+
+### APK builds:
+- The CI/CD pipeline (`android.yml`) **automatically** reads the version from `package.json`
+- It builds a **Release APK** (not debug) — no debug banner, properly optimised
+- `versionCode` = GitHub Actions run number (auto-incrementing, prevents "already installed" errors)
+- `versionName` = version from `package.json` (shown to users in Android Settings)
+- Releases are published automatically on every `master` push
+- **Never** manually edit `versionCode` or `versionName` in `build.gradle` — the CI handles it
+
+### Why this matters:
+Android will reject installing a new APK if its `versionCode` ≤ the installed one.
+The CI's auto-increment guarantees each build is installable over the previous one.
+
+---
+
 ## Repository
 ```
 git clone https://github.com/Lukonstantinov/WorshipNote.git
@@ -96,10 +127,14 @@ Check the repo state first. These tasks may already be complete:
 - [ ] Mobile responsive layout
 - [ ] Keyboard shortcuts (arrows = transpose, space = scroll)
 
-### Phase 5 — FUTURE
+### Phase 5 — FUTURE (v0.5.0)
+- [ ] Chord library — global library of custom chord diagrams with folders + search
+- [ ] Bar progressions — visual per-bar chord grid + saved progressions per psalm
+- [ ] Export psalms as JSON (with folders) + as plain TXT (with/without chords)
+- [ ] Import psalms from JSON
+- [ ] Export/import chord library (JSON)
 - [ ] Supabase Auth (email/password)
 - [ ] PWA + Offline (vite-plugin-pwa + Workbox)
-- [ ] Song import/export (.cho files, PDF)
 
 ---
 

@@ -1,4 +1,3 @@
-import { getGuitarChord } from '../lib/chordData'
 import type { CustomChordDiagram } from '../types'
 
 interface Props {
@@ -9,27 +8,12 @@ interface Props {
   flipped?: boolean
 }
 
-const STRING_COUNT = 6
+const STRING_COUNT = 4
 const FRET_COUNT = 4
 
-export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = '#bf5af2', flipped = false }: Props) {
-  const voicing = customDiagram ?? getGuitarChord(chord)
+export function MiniBassDiagram({ chord, customDiagram, size = 56, dotColor = '#bf5af2', flipped = false }: Props) {
+  const voicing = customDiagram
 
-  if (!voicing) {
-    return (
-      <div
-        className="flex flex-col items-center justify-center rounded-lg"
-        style={{ width: size, height: size + 14, backgroundColor: '#1c1c1e' }}
-      >
-        <span className="text-xs font-bold" style={{ color: '#32d74b', fontSize: 9 }}>{chord}</span>
-      </div>
-    )
-  }
-
-  const rawFrets = voicing.frets
-  const frets = flipped ? [...rawFrets].reverse() : rawFrets
-
-  const { baseFret = 1 } = voicing
   const pad = 6
   const topPad = 14
   const bottomPad = 2
@@ -41,6 +25,10 @@ export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = 
   const fretGap = gridH / FRET_COUNT
   const dotR = Math.min(stringGap, fretGap) * 0.3
 
+  const strings = voicing
+    ? (flipped ? [...voicing.frets].reverse() : voicing.frets)
+    : null
+
   return (
     <div className="flex flex-col items-center">
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
@@ -48,23 +36,21 @@ export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = 
           {chord}
         </text>
 
-        {baseFret === 1 ? (
-          <rect x={pad} y={topPad} width={gridW} height={2} rx={1} fill="rgba(235,235,245,0.5)" />
-        ) : (
-          <text x={pad - 2} y={topPad + fretGap / 2 + 3} textAnchor="end" fontSize={6} fill="rgba(235,235,245,0.4)" fontFamily="system-ui, sans-serif">
-            {baseFret}
-          </text>
-        )}
+        {/* Nut */}
+        <rect x={pad} y={topPad} width={gridW} height={2} rx={1} fill="rgba(235,235,245,0.5)" />
 
+        {/* Fret lines */}
         {Array.from({ length: FRET_COUNT }).map((_, fi) => (
           <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="rgba(235,235,245,0.1)" strokeWidth={0.5} />
         ))}
 
+        {/* String lines */}
         {Array.from({ length: STRING_COUNT }).map((_, si) => (
           <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="rgba(235,235,245,0.15)" strokeWidth={0.5} />
         ))}
 
-        {frets.map((fret, si) => {
+        {/* Finger dots */}
+        {(strings ?? []).map((fret, si) => {
           if (fret <= 0) return null
           const displayFret = Math.min(fret, FRET_COUNT)
           const cx = pad + si * stringGap
@@ -72,7 +58,8 @@ export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = 
           return <circle key={si} cx={cx} cy={cy} r={dotR} fill={dotColor} />
         })}
 
-        {frets.map((fret, si) => {
+        {/* Muted strings */}
+        {(strings ?? []).map((fret, si) => {
           if (fret !== -1) return null
           const cx = pad + si * stringGap
           return (
