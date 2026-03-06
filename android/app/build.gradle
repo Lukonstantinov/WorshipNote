@@ -6,9 +6,9 @@ android {
     signingConfigs {
         release {
             storeFile file("release.keystore")
-            storePassword "android123"
-            keyAlias "worshiphub"
-            keyPassword "android123"
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android123"
+            keyAlias System.getenv("KEY_ALIAS") ?: "worshiphub"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "android123"
         }
     }
     defaultConfig {
@@ -28,7 +28,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            if (file("release.keystore").exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

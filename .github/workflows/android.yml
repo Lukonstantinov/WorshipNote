@@ -45,42 +45,32 @@ jobs:
           sed -i "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
           sed -i "s/versionName \"[^\"]*\"/versionName \"$VERSION\"/" android/app/build.gradle
 
-      - name: Build Release APK
-        working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
-
-      # ── Signing ──────────────────────────────────────────────────────────────
-      # To enable APK signing (fixes "package conflict" on updates):
-      # 1. Generate a keystore: keytool -genkey -v -keystore worshiphub.jks -alias worshiphub -keyalg RSA -keysize 2048 -validity 10000
-      # 2. Base64 encode it: base64 -w 0 worshiphub.jks > worshiphub.jks.b64
-      # 3. Add these GitHub Actions secrets:
-      #    - KEYSTORE_BASE64    → content of worshiphub.jks.b64
-      #    - KEYSTORE_PASSWORD  → the keystore password you chose
-      #    - KEY_ALIAS          → worshiphub  (or the alias you chose)
-      #    - KEY_PASSWORD       → the key password you chose
-      # Once secrets are set, the signed APK will be installed OVER the old one (no uninstall needed).
-      - name: Sign APK (if keystore secret is available)
-        if: env.KEYSTORE_BASE64 != ''
+      # Write keystore from secret before Gradle build so release signing works.
+      # If the secret is absent (e.g. fork PR), the file won't be created and
+      # build.gradle falls back to an unsigned APK automatically.
+      - name: Write release keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+
+      - name: Build Release APK
+        working-directory: android
+        env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/worshiphub.jks
-          BUILD_TOOLS=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
-          "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" sign \
-            --ks /tmp/worshiphub.jks \
-            --ks-pass "pass:$KEYSTORE_PASSWORD" \
-            --ks-key-alias "$KEY_ALIAS" \
-            --key-pass "pass:$KEY_PASSWORD" \
-            --out android/app/build/outputs/apk/release/app-release-signed.apk \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk
-          echo "APK_FILE=android/app/build/outputs/apk/release/app-release-signed.apk" >> $GITHUB_ENV
+        run: ./gradlew assembleRelease --no-daemon
 
-      - name: Set APK path (unsigned fallback)
-        if: env.APK_FILE == ''
-        run: echo "APK_FILE=android/app/build/outputs/apk/release/app-release-unsigned.apk" >> $GITHUB_ENV
+      - name: Locate APK
+        run: |
+          SIGNED=android/app/build/outputs/apk/release/app-release.apk
+          UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if [ -f "$SIGNED" ]; then
+            echo "APK_FILE=$SIGNED" >> $GITHUB_ENV
+          else
+            echo "APK_FILE=$UNSIGNED" >> $GITHUB_ENV
+          fi
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
@@ -103,7 +93,7 @@ jobs:
             ### Install / Update on Android
 
             **First-time install:**
-            1. Download `app-release-*.apk`
+            1. Download `app-release*.apk`
             2. On your Android device go to **Settings → Security → Install unknown apps** and allow your browser or file manager
             3. Open the APK and tap Install
 
