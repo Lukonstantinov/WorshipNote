@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight } from 'lucide-react'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import type { ChordProgression, ChordLibraryFolder } from '../store/chordLibraryStore'
@@ -14,7 +13,6 @@ type Tab = 'progressions' | 'reference'
 const CHORD_COLORS = ['#bf5af2', '#0a84ff', '#32d74b', '#ff9f0a', '#ff453a', '#64d2ff']
 
 export default function ChordLibraryPage() {
-  const { t } = useTranslation()
   const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder } = useChordLibraryStore()
   const { guitarDotColor, guitarFlipped } = useSettingsStore()
 
