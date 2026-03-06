@@ -6,6 +6,7 @@ export type Role = 'musician' | 'singer' | 'congregation'
 export type Language = 'ru' | 'lt' | 'en'
 export type ChordDisplayPosition = 'side' | 'top' | 'none'
 export type ChordDiagramMode = 'single' | 'all' | 'mini'
+export type AppTheme = 'dark' | 'midnight' | 'light' | 'forest'
 
 export interface CustomRole {
   id: string
@@ -42,6 +43,12 @@ interface SettingsStore {
   pianoHighlightColor: string
   /** scale multiplier for chord diagrams (0.75 | 1 | 1.5 | 2) */
   diagramScale: number
+  /** app color theme */
+  theme: AppTheme
+  /** default content template for new songs (ChordPro format) */
+  defaultSongTemplate: string
+  /** last app version the user has seen (for changelog detection) */
+  lastSeenVersion: string
   setRole: (role: Role | string) => void
   setFontSize: (size: number) => void
   setScrollSpeed: (speed: number) => void
@@ -63,6 +70,9 @@ interface SettingsStore {
   setGuitarDotColor: (color: string) => void
   setPianoHighlightColor: (color: string) => void
   setDiagramScale: (scale: number) => void
+  setTheme: (theme: AppTheme) => void
+  setDefaultSongTemplate: (template: string) => void
+  setLastSeenVersion: (version: string) => void
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -85,6 +95,9 @@ export const useSettingsStore = create<SettingsStore>()(
       guitarDotColor: '#bf5af2',
       pianoHighlightColor: '#32d74b',
       diagramScale: 1,
+      theme: 'dark' as AppTheme,
+      defaultSongTemplate: '',
+      lastSeenVersion: '',
       setRole: (role) => set({ role }),
       setFontSize: (fontSize) => set({ fontSize }),
       setScrollSpeed: (scrollSpeed) => set({ scrollSpeed }),
@@ -128,6 +141,9 @@ export const useSettingsStore = create<SettingsStore>()(
       setGuitarDotColor: (guitarDotColor) => set({ guitarDotColor }),
       setPianoHighlightColor: (pianoHighlightColor) => set({ pianoHighlightColor }),
       setDiagramScale: (diagramScale) => set({ diagramScale }),
+      setTheme: (theme) => set({ theme }),
+      setDefaultSongTemplate: (defaultSongTemplate) => set({ defaultSongTemplate }),
+      setLastSeenVersion: (lastSeenVersion) => set({ lastSeenVersion }),
     }),
     { name: 'worshiphub-settings' }
   )

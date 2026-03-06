@@ -41,21 +41,52 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           BUILD_NUMBER=${{ github.run_number }}
-          # Parse semantic version for versionName
           echo "App version: $VERSION (build $BUILD_NUMBER)"
-          # Update versionCode (always incrementing) and versionName from package.json
           sed -i "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
           sed -i "s/versionName \"[^\"]*\"/versionName \"$VERSION\"/" android/app/build.gradle
 
-      - name: Build Release APK (unsigned)
+      - name: Build Release APK
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon
+
+      # ── Signing ──────────────────────────────────────────────────────────────
+      # To enable APK signing (fixes "package conflict" on updates):
+      # 1. Generate a keystore: keytool -genkey -v -keystore worshiphub.jks -alias worshiphub -keyalg RSA -keysize 2048 -validity 10000
+      # 2. Base64 encode it: base64 -w 0 worshiphub.jks > worshiphub.jks.b64
+      # 3. Add these GitHub Actions secrets:
+      #    - KEYSTORE_BASE64    → content of worshiphub.jks.b64
+      #    - KEYSTORE_PASSWORD  → the keystore password you chose
+      #    - KEY_ALIAS          → worshiphub  (or the alias you chose)
+      #    - KEY_PASSWORD       → the key password you chose
+      # Once secrets are set, the signed APK will be installed OVER the old one (no uninstall needed).
+      - name: Sign APK (if keystore secret is available)
+        if: env.KEYSTORE_BASE64 != ''
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/worshiphub.jks
+          BUILD_TOOLS=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" sign \
+            --ks /tmp/worshiphub.jks \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --key-pass "pass:$KEY_PASSWORD" \
+            --out android/app/build/outputs/apk/release/app-release-signed.apk \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
+          echo "APK_FILE=android/app/build/outputs/apk/release/app-release-signed.apk" >> $GITHUB_ENV
+
+      - name: Set APK path (unsigned fallback)
+        if: env.APK_FILE == ''
+        run: echo "APK_FILE=android/app/build/outputs/apk/release/app-release-unsigned.apk" >> $GITHUB_ENV
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: WorshipHub-v${{ github.run_number }}
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          name: WorshipNote-v${{ github.run_number }}
+          path: ${{ env.APK_FILE }}
           retention-days: 30
 
       - name: Create GitHub Release on master push
@@ -69,11 +100,25 @@ jobs:
 
             Built from commit ${{ github.sha }}
 
-            **Install on Android:**
-            1. Download `app-release-unsigned.apk`
-            2. On your Android device, go to **Settings → Security → Install unknown apps** and allow your file manager or browser
-            3. Open the downloaded APK file and tap Install
+            ### Install / Update on Android
 
-            > Note: This is an unsigned release APK. It works on all Android devices but requires allowing installs from unknown sources once.
-          files: android/app/build/outputs/apk/release/app-release-unsigned.apk
+            **First-time install:**
+            1. Download `app-release-*.apk`
+            2. On your Android device go to **Settings → Security → Install unknown apps** and allow your browser or file manager
+            3. Open the APK and tap Install
+
+            **Updating (if keystore signing is configured):**
+            - Download and install the new APK directly over the old one — no uninstall needed!
+            - The app data (songs, settings) is preserved automatically.
+
+            **If you see "Package conflict" error:**
+            - This means the previous APK was unsigned or signed with a different key.
+            - Uninstall the old app first (songs are backed up in your browser's localStorage).
+            - **Export your songs first** via Settings → Export Songs (JSON) to preserve your data.
+            - Then install the new APK.
+            - See the repository README for how to configure keystore signing to avoid this in future.
+
+            ### What's new in this build
+            See [CHANGELOG](../../blob/master/CHANGELOG.md) for details.
+          files: ${{ env.APK_FILE }}
           prerelease: false

@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil } from 'lucide-react'
 import { useSettingsStore } from '../store/settingsStore'
 import { useSongStore } from '../store/songStore'
-import type { Language, ChordDisplayPosition, ChordDiagramMode, CustomRole } from '../store/settingsStore'
+import type { Language, ChordDisplayPosition, ChordDiagramMode, CustomRole, AppTheme } from '../store/settingsStore'
 import type { Instrument } from '../features/songs/types'
 import { FONT_SIZE_MIN, FONT_SIZE_MAX } from '../shared/lib/constants'
 import { generateId } from '../shared/lib/storage'
 import { ExportImportPanel } from '../features/songs/components/ExportImportPanel'
+import { APP_VERSION } from '../shared/lib/version'
 
 const LANGUAGES: { code: Language; label: string; sub: string }[] = [
   { code: 'ru', label: 'Русский',  sub: 'Russian' },
@@ -46,6 +47,8 @@ export default function SettingsPage() {
     guitarDotColor, setGuitarDotColor,
     pianoHighlightColor, setPianoHighlightColor,
     diagramScale, setDiagramScale,
+    theme, setTheme,
+    defaultSongTemplate, setDefaultSongTemplate,
   } = useSettingsStore()
   const { songs } = useSongStore()
 
@@ -520,6 +523,59 @@ export default function SettingsPage() {
           </section>
         )}
 
+        {/* Theme */}
+        <section>
+          <p style={sectionLabel}>Theme</p>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { key: 'dark' as AppTheme, label: 'Dark', dot: '#000000', accent: '#bf5af2' },
+              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: '#0a84ff' },
+              { key: 'light' as AppTheme, label: 'Light', dot: '#f2f2f7', accent: '#bf5af2' },
+              { key: 'forest' as AppTheme, label: 'Forest', dot: '#0a1a0e', accent: '#30d158' },
+            ]).map(({ key, label, dot, accent }) => (
+              <button
+                key={key}
+                onClick={() => setTheme(key)}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
+                style={{
+                  backgroundColor: theme === key ? `${accent}22` : '#1c1c1e',
+                  color: theme === key ? accent : 'rgba(235,235,245,0.5)',
+                  border: `1px solid ${theme === key ? accent + '66' : '#2c2c2e'}`,
+                  minHeight: 50,
+                }}
+              >
+                <div
+                  className="w-6 h-6 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: dot, border: `2px solid ${accent}` }}
+                />
+                {label}
+                {theme === key && <Check size={14} strokeWidth={2.5} className="ml-auto" style={{ color: accent }} />}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Default Song Template */}
+        <section>
+          <p style={sectionLabel}>Default Psalm Template</p>
+          <p className="text-xs mb-2 px-1" style={{ color: 'rgba(235,235,245,0.35)' }}>
+            New psalms start from this template (ChordPro format). Leave blank for an empty psalm.
+          </p>
+          <textarea
+            value={defaultSongTemplate}
+            onChange={(e) => setDefaultSongTemplate(e.target.value)}
+            rows={6}
+            placeholder={`[! VERSE 1]\n[G]Your words[Em] here\n\n[! CHORUS]\n[C]Chorus line`}
+            className="w-full rounded-2xl px-4 py-3 text-sm font-mono resize-none outline-none"
+            style={{
+              backgroundColor: '#1c1c1e',
+              border: '1px solid #2c2c2e',
+              color: 'rgba(235,235,245,0.8)',
+              lineHeight: 1.6,
+            }}
+          />
+        </section>
+
         {/* Export / Import */}
         <ExportImportPanel />
 
@@ -527,7 +583,16 @@ export default function SettingsPage() {
         <section>
           <div className="p-4 rounded-2xl text-center" style={{ backgroundColor: '#1c1c1e' }}>
             <p className="font-semibold text-white">WorshipNote</p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(235,235,245,0.3)' }}>v0.5.0 · Psalms & Chords</p>
+            <p className="text-xs mt-1" style={{ color: 'rgba(235,235,245,0.3)' }}>v{APP_VERSION} · Psalms & Chords</p>
+            <a
+              href="https://github.com/Lukonstantinov/WorshipNote/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-2 text-xs px-3 py-1.5 rounded-lg transition-all"
+              style={{ backgroundColor: '#0a84ff22', color: '#0a84ff' }}
+            >
+              Check for updates
+            </a>
           </div>
         </section>
 

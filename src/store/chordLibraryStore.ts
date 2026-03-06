@@ -8,27 +8,27 @@ export interface ChordLibraryFolder {
   color: string
 }
 
-export interface ChordLibraryEntry {
+/** A named chord progression, e.g. "Worship Chorus: Am–F–C–G" */
+export interface ChordProgression {
   id: string
-  chordName: string
-  instrument: 'guitar' | 'piano'
+  name: string
+  /** Musical key for Roman numeral analysis, e.g. "C", "Am" */
+  key?: string
+  /** Ordered chord names in the progression, e.g. ["Am", "F", "C", "G"] */
+  chords: string[]
+  description?: string
   folderId?: string
-  /** Guitar: fret numbers per string (-1=muted, 0=open, 1-24=fret) */
-  frets?: number[]
-  fingers?: number[]
-  baseFret?: number
-  /** Piano: note names e.g. ['C','E','G'] */
-  notes?: string[]
-  comment?: string
   createdAt: string
 }
 
 interface ChordLibraryStore {
-  entries: ChordLibraryEntry[]
+  progressions: ChordProgression[]
   folders: ChordLibraryFolder[]
-  addEntry: (entry: Omit<ChordLibraryEntry, 'id' | 'createdAt'>) => ChordLibraryEntry
-  updateEntry: (id: string, updates: Partial<ChordLibraryEntry>) => void
-  deleteEntry: (id: string) => void
+  addProgression: (data: Omit<ChordProgression, 'id' | 'createdAt'>) => ChordProgression
+  updateProgression: (id: string, updates: Partial<ChordProgression>) => void
+  deleteProgression: (id: string) => void
+  deleteProgressions: (ids: string[]) => void
+  moveProgressionsToFolder: (ids: string[], folderId: string | undefined) => void
   addFolder: (name: string, color: string) => ChordLibraryFolder
   updateFolder: (id: string, updates: Partial<Pick<ChordLibraryFolder, 'name' | 'color'>>) => void
   deleteFolder: (id: string) => void
@@ -37,23 +37,31 @@ interface ChordLibraryStore {
 export const useChordLibraryStore = create<ChordLibraryStore>()(
   persist(
     (set) => ({
-      entries: [],
+      progressions: [],
       folders: [],
-      addEntry: (data) => {
-        const entry: ChordLibraryEntry = {
+      addProgression: (data) => {
+        const progression: ChordProgression = {
           ...data,
           id: generateId(),
           createdAt: new Date().toISOString(),
         }
-        set((s) => ({ entries: [...s.entries, entry] }))
-        return entry
+        set((s) => ({ progressions: [...s.progressions, progression] }))
+        return progression
       },
-      updateEntry: (id, updates) =>
+      updateProgression: (id, updates) =>
         set((s) => ({
-          entries: s.entries.map((e) => (e.id === id ? { ...e, ...updates } : e)),
+          progressions: s.progressions.map((p) => (p.id === id ? { ...p, ...updates } : p)),
         })),
-      deleteEntry: (id) =>
-        set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
+      deleteProgression: (id) =>
+        set((s) => ({ progressions: s.progressions.filter((p) => p.id !== id) })),
+      deleteProgressions: (ids) =>
+        set((s) => ({ progressions: s.progressions.filter((p) => !ids.includes(p.id)) })),
+      moveProgressionsToFolder: (ids, folderId) =>
+        set((s) => ({
+          progressions: s.progressions.map((p) =>
+            ids.includes(p.id) ? { ...p, folderId } : p
+          ),
+        })),
       addFolder: (name, color) => {
         const folder: ChordLibraryFolder = { id: generateId(), name, color }
         set((s) => ({ folders: [...s.folders, folder] }))
@@ -66,7 +74,7 @@ export const useChordLibraryStore = create<ChordLibraryStore>()(
       deleteFolder: (id) =>
         set((s) => ({
           folders: s.folders.filter((f) => f.id !== id),
-          entries: s.entries.map((e) => (e.folderId === id ? { ...e, folderId: undefined } : e)),
+          progressions: s.progressions.map((p) => (p.folderId === id ? { ...p, folderId: undefined } : p)),
         })),
     }),
     { name: 'worshiphub:chord-library' }
