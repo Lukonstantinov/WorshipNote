@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download, Upload, FileText, FileJson, AlertCircle } from 'lucide-react'
+import { Download, Upload, FileText, FileJson, AlertCircle, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import { useSongStore } from '../../../store/songStore'
 import { useFolderStore } from '../../../store/folderStore'
 import { useSettingsStore } from '../../../store/settingsStore'
@@ -14,6 +14,111 @@ import {
   readFileAsText,
 } from '../lib/exportImport'
 import { generateId } from '../../../shared/lib/storage'
+
+const SONG_JSON_EXAMPLE = `{
+  "version": "1.0",
+  "exportedAt": "2024-01-01T00:00:00.000Z",
+  "songs": [
+    {
+      "id": "unique-id",
+      "title": "Amazing Grace",
+      "original_key": "G",
+      "bpm": 72,
+      "content": "[G]Amazing [C]grace...",
+      "tags": ["worship"],
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "folders": [
+    { "id": "folder-id", "name": "Sunday", "color": "#bf5af2" }
+  ]
+}`
+
+const CHORD_JSON_EXAMPLE = `{
+  "version": "1.0",
+  "exportedAt": "2024-01-01T00:00:00.000Z",
+  "customChords": {
+    "G": {
+      "frets": [3, 2, 0, 0, 0, 3],
+      "fingers": [2, 1, 0, 0, 0, 3],
+      "baseFret": 1
+    }
+  },
+  "customPianoChords": {
+    "C": { "notes": ["C", "E", "G"] }
+  }
+}`
+
+function FormatGuide() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mt-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="w-full flex items-center gap-2 px-4 py-3 transition-all hover:bg-white/5"
+      >
+        <Info size={15} strokeWidth={1.5} style={{ color: '#0a84ff' }} />
+        <span className="flex-1 text-left text-sm" style={{ color: 'rgba(235,235,245,0.7)' }}>
+          File format guide
+        </span>
+        {open
+          ? <ChevronUp size={14} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.3)' }} />
+          : <ChevronDown size={14} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.3)' }} />
+        }
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-4" style={{ borderTop: '1px solid #2c2c2e' }}>
+          <div className="pt-3">
+            <p className="text-xs font-semibold mb-2" style={{ color: '#0a84ff' }}>Songs JSON file</p>
+            <p className="text-xs mb-2" style={{ color: 'rgba(235,235,245,0.45)' }}>
+              Use <strong style={{ color: 'rgba(235,235,245,0.7)' }}>Export Songs (JSON)</strong> to create a file this app can re-import.
+              Required fields per song: <code style={{ color: '#32d74b' }}>id</code>, <code style={{ color: '#32d74b' }}>title</code>, <code style={{ color: '#32d74b' }}>content</code>.
+            </p>
+            <pre
+              className="text-xs rounded-xl p-3 overflow-x-auto"
+              style={{
+                backgroundColor: '#000',
+                color: '#32d74b',
+                border: '1px solid #2c2c2e',
+                fontFamily: 'monospace',
+                fontSize: 10,
+                lineHeight: 1.5,
+              }}
+            >
+              {SONG_JSON_EXAMPLE}
+            </pre>
+          </div>
+          <div>
+            <p className="text-xs font-semibold mb-2" style={{ color: '#bf5af2' }}>Chord Library JSON file</p>
+            <p className="text-xs mb-2" style={{ color: 'rgba(235,235,245,0.45)' }}>
+              Use <strong style={{ color: 'rgba(235,235,245,0.7)' }}>Export Chord Library</strong> to create a compatible file.
+              Guitar frets: 6 numbers (-1 = muted, 0 = open, 1–24 = fret). Piano notes: pitch class names like "C", "E#", "Ab".
+            </p>
+            <pre
+              className="text-xs rounded-xl p-3 overflow-x-auto"
+              style={{
+                backgroundColor: '#000',
+                color: '#bf5af2',
+                border: '1px solid #2c2c2e',
+                fontFamily: 'monospace',
+                fontSize: 10,
+                lineHeight: 1.5,
+              }}
+            >
+              {CHORD_JSON_EXAMPLE}
+            </pre>
+          </div>
+          <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: '#ff9f0a18', border: '1px solid #ff9f0a33' }}>
+            <p className="text-xs" style={{ color: '#ff9f0a' }}>
+              <strong>Note:</strong> The app only imports .json files exported by WorshipNote. TXT exports are for sharing/printing only and cannot be re-imported.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function ExportImportPanel() {
   const { t } = useTranslation()
@@ -97,7 +202,9 @@ export function ExportImportPanel() {
     } catch (err) {
       setImportResult({
         type: 'error',
-        message: err instanceof Error ? err.message : t('importError'),
+        message: err instanceof Error
+          ? `Import failed: ${err.message}. Make sure you are using a .json file exported from WorshipNote.`
+          : t('importError'),
       })
       clearResult()
     }
@@ -130,7 +237,9 @@ export function ExportImportPanel() {
     } catch (err) {
       setImportResult({
         type: 'error',
-        message: err instanceof Error ? err.message : t('importError'),
+        message: err instanceof Error
+          ? `Import failed: ${err.message}. Make sure you are using a chord library .json file exported from WorshipNote.`
+          : t('importError'),
       })
       clearResult()
     }
@@ -164,7 +273,7 @@ export function ExportImportPanel() {
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportJSON')}</div>
             <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
-              {t('exportJSONDesc', { count: songs.length })}
+              {songs.length} songs · reimportable JSON
             </div>
           </div>
           <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
@@ -180,7 +289,7 @@ export function ExportImportPanel() {
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportTXTChords')}</div>
             <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
-              {t('exportTXTChordsDesc')}
+              Plain text with chords · for printing/sharing
             </div>
           </div>
           <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
@@ -196,7 +305,7 @@ export function ExportImportPanel() {
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportTXTLyrics')}</div>
             <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
-              {t('exportTXTLyricsDesc')}
+              Lyrics only · no chords
             </div>
           </div>
           <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
@@ -212,7 +321,7 @@ export function ExportImportPanel() {
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportChordLibrary')}</div>
             <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
-              {t('exportChordLibraryDesc', { count: chordCount })}
+              {chordCount} custom chords · reimportable JSON
             </div>
           </div>
           <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
@@ -230,7 +339,7 @@ export function ExportImportPanel() {
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('importSongs')}</div>
             <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
-              {t('importSongsDesc')}
+              Accepts .json exported by this app
             </div>
           </div>
         </button>
@@ -244,11 +353,14 @@ export function ExportImportPanel() {
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('importChordLibrary')}</div>
             <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
-              {t('importChordLibraryDesc')}
+              Accepts .json exported by this app
             </div>
           </div>
         </button>
       </div>
+
+      {/* Format Guide */}
+      <FormatGuide />
 
       {/* Hidden file inputs */}
       <input ref={songFileRef} type="file" accept=".json" onChange={handleImportSongs} className="hidden" />
@@ -257,13 +369,13 @@ export function ExportImportPanel() {
       {/* Import result toast */}
       {importResult && (
         <div
-          className="flex items-center gap-2 mt-3 px-4 py-3 rounded-2xl text-sm"
+          className="flex items-start gap-2 mt-3 px-4 py-3 rounded-2xl text-sm"
           style={{
             backgroundColor: importResult.type === 'success' ? '#32d74b22' : '#ff453a22',
             color: importResult.type === 'success' ? '#32d74b' : '#ff453a',
           }}
         >
-          {importResult.type === 'error' && <AlertCircle size={16} strokeWidth={1.5} />}
+          {importResult.type === 'error' && <AlertCircle size={16} strokeWidth={1.5} className="flex-shrink-0 mt-0.5" />}
           {importResult.message}
         </div>
       )}

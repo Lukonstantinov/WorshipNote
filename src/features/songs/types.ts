@@ -75,6 +75,11 @@ export interface Song {
   chordRows?: ChordRow[];
   /** bar-by-bar chord progressions saved for this song */
   barProgressions?: BarProgressionData[];
+  /** personal musician notes/comments shown below the song in view mode */
+  musicianComment?: string;
+  /** snapshot of content saved as "original" for restore */
+  snapshotContent?: string;
+  snapshotSavedAt?: string;
   created_at: string;
   updated_at: string;
 }

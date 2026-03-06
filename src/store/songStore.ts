@@ -8,6 +8,8 @@ interface SongStore {
   updateSong: (id: string, updates: Partial<Song>) => void
   deleteSong: (id: string) => void
   getSongById: (id: string) => Song | undefined
+  deleteSongs: (ids: string[]) => void
+  moveSongsToFolder: (ids: string[], folderId: string | undefined) => void
 }
 
 export const useSongStore = create<SongStore>((set, get) => ({
@@ -23,4 +25,12 @@ export const useSongStore = create<SongStore>((set, get) => ({
   deleteSong: (id) =>
     set((state) => ({ songs: state.songs.filter((s) => s.id !== id) })),
   getSongById: (id) => get().songs.find((s) => s.id === id),
+  deleteSongs: (ids) =>
+    set((state) => ({ songs: state.songs.filter((s) => !ids.includes(s.id)) })),
+  moveSongsToFolder: (ids, folderId) =>
+    set((state) => ({
+      songs: state.songs.map((s) =>
+        ids.includes(s.id) ? { ...s, folderId, updated_at: new Date().toISOString() } : s
+      ),
+    })),
 }))

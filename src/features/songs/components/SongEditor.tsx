@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft } from 'lucide-react'
+import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft, Camera, RotateCcw } from 'lucide-react'
 import type { Song } from '../types'
 import { useSongStore } from '../../../store/songStore'
 import { useFolderStore } from '../../../store/folderStore'
+import { useSettingsStore } from '../../../store/settingsStore'
 import { generateId } from '../../../shared/lib/storage'
 import { parseSong } from '../lib/parser'
 import { SongViewer } from './SongViewer'
@@ -19,16 +20,18 @@ export function SongEditor({ song }: Props) {
   const navigate = useNavigate()
   const { addSong, updateSong } = useSongStore()
   const { folders } = useFolderStore()
+  const { defaultSongTemplate } = useSettingsStore()
 
   const [title, setTitle] = useState(song?.title ?? '')
   const [originalKey, setOriginalKey] = useState(song?.original_key ?? '')
   const [bpm, setBpm] = useState<string>(song?.bpm?.toString() ?? '')
-  const [content, setContent] = useState(song?.content ?? '')
+  const [content, setContent] = useState(song?.content ?? (song ? '' : defaultSongTemplate))
   const [tags, setTags] = useState(song?.tags?.join(', ') ?? '')
   const [folderId, setFolderId] = useState<string>(song?.folderId ?? '')
   const [structure, setStructure] = useState(song?.structure ?? '')
   const [showPreview, setShowPreview] = useState(false)
   const [editorMode, setEditorMode] = useState<'simple' | 'advanced'>('advanced')
+  const [snapshotMsg, setSnapshotMsg] = useState<string | null>(null)
 
   const parsed = useMemo(() => parseSong(content), [content])
 
@@ -56,6 +59,20 @@ export function SongEditor({ song }: Props) {
       }
       addSong(newSong)
       navigate(`/songs/${newSong.id}`)
+    }
+  }
+
+  const handleSaveSnapshot = () => {
+    if (!song) return
+    updateSong(song.id, { snapshotContent: content, snapshotSavedAt: new Date().toISOString() })
+    setSnapshotMsg('Saved as original')
+    setTimeout(() => setSnapshotMsg(null), 2000)
+  }
+
+  const handleRestoreSnapshot = () => {
+    if (!song?.snapshotContent) return
+    if (confirm('Restore to saved original? Current content will be replaced.')) {
+      setContent(song.snapshotContent)
     }
   }
 
@@ -226,6 +243,32 @@ export function SongEditor({ song }: Props) {
             />
           )}
         </div>
+
+        {/* Snapshot actions (only for existing songs) */}
+        {song && (
+          <div className="flex gap-2">
+            <button
+              onClick={handleSaveSnapshot}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+              style={{ backgroundColor: '#1c1c1e', color: snapshotMsg ? '#32d74b' : 'rgba(235,235,245,0.5)', border: '1px solid #2c2c2e' }}
+              title="Save current content as the 'original' you can restore to"
+            >
+              <Camera size={13} strokeWidth={1.5} />
+              {snapshotMsg ?? 'Save as original'}
+            </button>
+            {song.snapshotContent && (
+              <button
+                onClick={handleRestoreSnapshot}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+                style={{ backgroundColor: '#1c1c1e', color: '#ff9f0a', border: '1px solid #2c2c2e' }}
+                title={`Restore to snapshot saved on ${song.snapshotSavedAt ? new Date(song.snapshotSavedAt).toLocaleDateString() : 'unknown date'}`}
+              >
+                <RotateCcw size={13} strokeWidth={1.5} />
+                Restore original
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">

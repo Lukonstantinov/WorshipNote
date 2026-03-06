@@ -3,6 +3,34 @@ import { useTranslation } from 'react-i18next'
 import { Plus, ListMusic, Pencil, Trash2, ChevronRight } from 'lucide-react'
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
+import { extractStructure } from '../features/songs/lib/parser'
+
+// Maps section label to a short abbreviation for display
+function abbreviateLabel(lbl: string): string {
+  const u = lbl.toUpperCase()
+  if (u.startsWith('VERSE') || u.startsWith('КУПЛЕТ') || u.startsWith('POSM')) return 'V'
+  if (u.startsWith('CHORUS') || u.startsWith('ПРИПЕВ') || u.startsWith('REF')) return 'C'
+  if (u.startsWith('BRIDGE') || u.startsWith('МОСТ')) return 'B'
+  if (u.startsWith('INTRO')) return 'I'
+  if (u.startsWith('OUTRO')) return 'O'
+  if (u.startsWith('PRE')) return 'P'
+  if (u.startsWith('TAG')) return 'T'
+  if (u.startsWith('SOLO')) return 'S'
+  return lbl.slice(0, 1).toUpperCase()
+}
+
+// Color per section type
+function sectionColor(abbr: string): string {
+  switch (abbr) {
+    case 'V': return '#0a84ff'
+    case 'C': return '#bf5af2'
+    case 'B': return '#ff9f0a'
+    case 'I': return '#32d74b'
+    case 'O': return '#64d2ff'
+    case 'P': return '#ff453a'
+    default: return '#636366'
+  }
+}
 
 export default function SetlistPage() {
   const { t } = useTranslation()
@@ -76,39 +104,64 @@ export default function SetlistPage() {
                     .map((ss, idx) => {
                       const song = getSongById(ss.song_id)
                       if (!song) return null
+
+                      // Extract song structure
+                      const { labels } = extractStructure(song.structure ? song.structure + '\n' + song.content : song.content)
+                      const structureChips = labels.map(abbreviateLabel)
+
                       return (
                         <Link
                           key={ss.id}
                           to={`/songs/${song.id}`}
-                          className="flex items-center gap-3 px-4 py-2.5 transition-all hover:bg-white/5"
+                          className="flex items-start gap-3 px-4 py-2.5 transition-all hover:bg-white/5"
                           style={{ borderTop: idx > 0 ? '1px solid rgba(44,44,46,0.5)' : undefined }}
                         >
                           <span
-                            className="text-xs font-semibold w-5 text-right flex-shrink-0"
+                            className="text-xs font-semibold w-5 text-right flex-shrink-0 mt-1"
                             style={{ color: 'rgba(235,235,245,0.25)' }}
                           >
                             {idx + 1}
                           </span>
-                          <span className="flex-1 text-sm" style={{ color: '#ffffff' }}>
-                            {ss.vocalist && (
-                              <span
-                                className="font-semibold mr-1"
-                                style={{ color: ss.vocalColor ?? '#0a84ff', fontSize: 11 }}
-                              >
-                                ({ss.vocalist})
-                              </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {ss.vocalist && (
+                                <span
+                                  className="font-semibold"
+                                  style={{ color: ss.vocalColor ?? '#0a84ff', fontSize: 11 }}
+                                >
+                                  ({ss.vocalist})
+                                </span>
+                              )}
+                              <span className="text-sm text-white">{song.title}</span>
+                              {song.original_key && (
+                                <span
+                                  className="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                                  style={{ backgroundColor: 'rgba(50,215,75,0.1)', color: '#32d74b' }}
+                                >
+                                  {song.original_key}
+                                </span>
+                              )}
+                            </div>
+                            {/* Song structure chips */}
+                            {structureChips.length > 0 && (
+                              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                {structureChips.map((chip, i) => (
+                                  <span
+                                    key={i}
+                                    className="text-xs px-1.5 py-0.5 rounded font-bold"
+                                    style={{
+                                      backgroundColor: sectionColor(chip) + '22',
+                                      color: sectionColor(chip),
+                                      fontSize: 10,
+                                    }}
+                                  >
+                                    {chip}
+                                  </span>
+                                ))}
+                              </div>
                             )}
-                            {song.title}
-                          </span>
-                          {song.original_key && (
-                            <span
-                              className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                              style={{ backgroundColor: 'rgba(50,215,75,0.12)', color: '#32d74b' }}
-                            >
-                              {song.original_key}
-                            </span>
-                          )}
-                          <ChevronRight size={14} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.2)', flexShrink: 0 }} />
+                          </div>
+                          <ChevronRight size={14} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.2)', flexShrink: 0, marginTop: 4 }} />
                         </Link>
                       )
                     })}
