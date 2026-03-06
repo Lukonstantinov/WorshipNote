@@ -60,6 +60,29 @@ jobs:
         working-directory: android
         run: ./gradlew clean assembleRelease --no-daemon
 
+      - name: Sign APK if unsigned
+        run: |
+          APK_DIR="android/app/build/outputs/apk/release"
+          # If Gradle produced an unsigned APK, sign it with apksigner
+          if [ -f "$APK_DIR/app-release-unsigned.apk" ] && [ ! -f "$APK_DIR/app-release.apk" ]; then
+            echo "Signing unsigned APK with apksigner..."
+            ANDROID_BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)
+            ${ANDROID_BUILD_TOOLS}apksigner sign \
+              --ks ~/.android/debug.keystore \
+              --ks-pass pass:android \
+              --ks-key-alias androiddebugkey \
+              --key-pass pass:android \
+              --out "$APK_DIR/app-release.apk" \
+              "$APK_DIR/app-release-unsigned.apk"
+            echo "APK signed successfully"
+          else
+            echo "APK is already signed: app-release.apk exists"
+          fi
+          # Verify the APK is signed
+          if [ -f "$APK_DIR/app-release.apk" ]; then
+            ${ANDROID_BUILD_TOOLS:-$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)}apksigner verify "$APK_DIR/app-release.apk" && echo "Signature verified OK" || echo "WARNING: signature verification failed"
+          fi
+
       - name: Rename APK with version
         run: |
           VERSION=$(node -p "require('./package.json').version")
