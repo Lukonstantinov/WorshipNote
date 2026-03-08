@@ -8,23 +8,23 @@ interface Props {
 }
 
 const TYPE_COLORS: [string, string][] = [
-  ['КУПЛЕТ', '#0a84ff'],
-  ['VERSE', '#0a84ff'],
-  ['ПРИПЕВ', '#bf5af2'],
-  ['CHORUS', '#bf5af2'],
-  ['РЕФРЕН', '#bf5af2'],
-  ['PRE-CHORUS', '#64d2ff'],
-  ['ПРЕДПРИПЕВ', '#64d2ff'],
-  ['МОСТ', '#ff9f0a'],
-  ['BRIDGE', '#ff9f0a'],
-  ['ВСТУПЛЕНИЕ', '#30d158'],
-  ['INTRO', '#30d158'],
-  ['ИНТРО', '#30d158'],
-  ['ФИНАЛ', '#ff453a'],
-  ['OUTRO', '#ff453a'],
-  ['ENDING', '#ff453a'],
-  ['ОКОНЧАНИЕ', '#ff453a'],
-  ['КОДА', '#ff453a'],
+  ['КУПЛЕТ', 'var(--color-info)'],
+  ['VERSE', 'var(--color-info)'],
+  ['ПРИПЕВ', 'var(--color-accent)'],
+  ['CHORUS', 'var(--color-accent)'],
+  ['РЕФРЕН', 'var(--color-accent)'],
+  ['PRE-CHORUS', 'var(--color-info)'],
+  ['ПРЕДПРИПЕВ', 'var(--color-info)'],
+  ['МОСТ', 'var(--color-warning)'],
+  ['BRIDGE', 'var(--color-warning)'],
+  ['ВСТУПЛЕНИЕ', 'var(--color-chord)'],
+  ['INTRO', 'var(--color-chord)'],
+  ['ИНТРО', 'var(--color-chord)'],
+  ['ФИНАЛ', 'var(--color-error)'],
+  ['OUTRO', 'var(--color-error)'],
+  ['ENDING', 'var(--color-error)'],
+  ['ОКОНЧАНИЕ', 'var(--color-error)'],
+  ['КОДА', 'var(--color-error)'],
   ['ПОВТОР', '#5e5ce6'],
   ['INTERLUDE', '#ff6482'],
   ['ИНТЕРЛЮДИЯ', '#ff6482'],
@@ -32,8 +32,8 @@ const TYPE_COLORS: [string, string][] = [
   ['СОЛО', '#ffd60a'],
   ['TAG', '#5ac8fa'],
   ['ТЕГ', '#5ac8fa'],
-  ['INSTRUMENTAL', '#ff9f0a'],
-  ['ИНСТРУМЕНТАЛ', '#ff9f0a'],
+  ['INSTRUMENTAL', 'var(--color-warning)'],
+  ['ИНСТРУМЕНТАЛ', 'var(--color-warning)'],
 ]
 
 function sectionColor(label: string): string {
@@ -55,10 +55,10 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
   return (
     <div
       className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none"
-      style={{ borderColor: '#1c1c1e', backgroundColor: 'rgba(0,0,0,0.3)' }}
+      style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'rgba(0,0,0,0.3)' }}
     >
       <div className="flex items-center gap-1.5 min-w-max">
-        <span className="text-xs mr-1 flex-shrink-0" style={{ color: 'rgba(235,235,245,0.3)' }}>
+        <span className="text-xs mr-1 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>
           {t('structure')}
         </span>
 
@@ -67,7 +67,7 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
               <span
                 key={i}
                 className="px-2 py-0.5 rounded-lg text-xs font-bold"
-                style={{ backgroundColor: '#2c2c2e', color: '#bf5af2' }}
+                style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-accent)' }}
               >
                 {letter}
               </span>
@@ -78,7 +78,7 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
               return (
                 <div key={i} className="flex items-center gap-1">
                   {i > 0 && (
-                    <span style={{ color: 'rgba(235,235,245,0.15)', fontSize: 10 }}>›</span>
+                    <span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>›</span>
                   )}
                   <span
                     className="px-2 py-0.5 rounded-lg text-xs font-semibold leading-tight"
@@ -115,9 +115,9 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
           }
           return (
             <>
-              <span style={{ color: 'rgba(235,235,245,0.15)', margin: '0 4px' }}>|</span>
+              <span style={{ color: 'var(--color-text-muted)', margin: '0 4px' }}>|</span>
               {unique.map(({ base, color, letter }) => (
-                <span key={base} className="text-xs flex-shrink-0" style={{ color: 'rgba(235,235,245,0.35)' }}>
+                <span key={base} className="text-xs flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>
                   <span style={{ color, fontWeight: 600 }}>{letter}</span>
                   ={base.charAt(0) + base.slice(1).toLowerCase()}
                   {unique.indexOf(unique.find((u) => u.base === base)!) < unique.length - 1 ? ' · ' : ''}

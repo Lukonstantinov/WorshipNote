@@ -53,34 +53,34 @@ const CHORD_JSON_EXAMPLE = `{
 function FormatGuide() {
   const [open, setOpen] = useState(false)
   return (
-    <div className="mt-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+    <div className="mt-3 rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
       <button
         onClick={() => setOpen((p) => !p)}
         className="w-full flex items-center gap-2 px-4 py-3 transition-all hover:bg-white/5"
       >
-        <Info size={15} strokeWidth={1.5} style={{ color: '#0a84ff' }} />
-        <span className="flex-1 text-left text-sm" style={{ color: 'rgba(235,235,245,0.7)' }}>
+        <Info size={15} strokeWidth={1.5} style={{ color: 'var(--color-info)' }} />
+        <span className="flex-1 text-left text-sm" style={{ color: 'var(--color-text-secondary)' }}>
           File format guide
         </span>
         {open
-          ? <ChevronUp size={14} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.3)' }} />
-          : <ChevronDown size={14} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.3)' }} />
+          ? <ChevronUp size={14} strokeWidth={2} style={{ color: 'var(--color-text-muted)' }} />
+          : <ChevronDown size={14} strokeWidth={2} style={{ color: 'var(--color-text-muted)' }} />
         }
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-4" style={{ borderTop: '1px solid #2c2c2e' }}>
+        <div className="px-4 pb-4 space-y-4" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="pt-3">
-            <p className="text-xs font-semibold mb-2" style={{ color: '#0a84ff' }}>Songs JSON file</p>
-            <p className="text-xs mb-2" style={{ color: 'rgba(235,235,245,0.45)' }}>
-              Use <strong style={{ color: 'rgba(235,235,245,0.7)' }}>Export Songs (JSON)</strong> to create a file this app can re-import.
-              Required fields per song: <code style={{ color: '#32d74b' }}>id</code>, <code style={{ color: '#32d74b' }}>title</code>, <code style={{ color: '#32d74b' }}>content</code>.
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--color-info)' }}>Songs JSON file</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
+              Use <strong style={{ color: 'var(--color-text-secondary)' }}>Export Songs (JSON)</strong> to create a file this app can re-import.
+              Required fields per song: <code style={{ color: 'var(--color-chord)' }}>id</code>, <code style={{ color: 'var(--color-chord)' }}>title</code>, <code style={{ color: 'var(--color-chord)' }}>content</code>.
             </p>
             <pre
               className="text-xs rounded-xl p-3 overflow-x-auto"
               style={{
-                backgroundColor: '#000',
-                color: '#32d74b',
-                border: '1px solid #2c2c2e',
+                backgroundColor: 'var(--color-bg)',
+                color: 'var(--color-chord)',
+                border: '1px solid var(--color-border)',
                 fontFamily: 'monospace',
                 fontSize: 10,
                 lineHeight: 1.5,
@@ -90,17 +90,17 @@ function FormatGuide() {
             </pre>
           </div>
           <div>
-            <p className="text-xs font-semibold mb-2" style={{ color: '#bf5af2' }}>Chord Library JSON file</p>
-            <p className="text-xs mb-2" style={{ color: 'rgba(235,235,245,0.45)' }}>
-              Use <strong style={{ color: 'rgba(235,235,245,0.7)' }}>Export Chord Library</strong> to create a compatible file.
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--color-accent)' }}>Chord Library JSON file</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
+              Use <strong style={{ color: 'var(--color-text-secondary)' }}>Export Chord Library</strong> to create a compatible file.
               Guitar frets: 6 numbers (-1 = muted, 0 = open, 1–24 = fret). Piano notes: pitch class names like "C", "E#", "Ab".
             </p>
             <pre
               className="text-xs rounded-xl p-3 overflow-x-auto"
               style={{
-                backgroundColor: '#000',
-                color: '#bf5af2',
-                border: '1px solid #2c2c2e',
+                backgroundColor: 'var(--color-bg)',
+                color: 'var(--color-accent)',
+                border: '1px solid var(--color-border)',
                 fontFamily: 'monospace',
                 fontSize: 10,
                 lineHeight: 1.5,
@@ -110,7 +110,7 @@ function FormatGuide() {
             </pre>
           </div>
           <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: '#ff9f0a18', border: '1px solid #ff9f0a33' }}>
-            <p className="text-xs" style={{ color: '#ff9f0a' }}>
+            <p className="text-xs" style={{ color: 'var(--color-warning)' }}>
               <strong>Note:</strong> The app only imports .json files exported by WorshipNote. TXT exports are for sharing/printing only and cannot be re-imported.
             </p>
           </div>
@@ -252,7 +252,7 @@ export function ExportImportPanel() {
     <section>
       <p style={{
         fontSize: 11,
-        color: 'rgba(235,235,245,0.4)',
+        color: 'var(--color-text-tertiary)',
         textTransform: 'uppercase',
         letterSpacing: '0.06em',
         marginBottom: 8,
@@ -262,83 +262,83 @@ export function ExportImportPanel() {
       </p>
 
       {/* Export buttons */}
-      <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: '#1c1c1e' }}>
+      <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: 'var(--color-card)' }}>
         <button
           onClick={handleExportJSON}
           disabled={songs.length === 0}
           className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
           style={{ minHeight: 50 }}
         >
-          <FileJson size={18} strokeWidth={1.5} style={{ color: '#0a84ff' }} />
+          <FileJson size={18} strokeWidth={1.5} style={{ color: 'var(--color-info)' }} />
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportJSON')}</div>
-            <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
+            <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               {songs.length} songs · reimportable JSON
             </div>
           </div>
-          <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
+          <Download size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
         </button>
 
         <button
           onClick={() => handleExportTXT(true)}
           disabled={songs.length === 0}
           className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
-          style={{ borderTop: '1px solid #2c2c2e', minHeight: 50 }}
+          style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
-          <FileText size={18} strokeWidth={1.5} style={{ color: '#32d74b' }} />
+          <FileText size={18} strokeWidth={1.5} style={{ color: 'var(--color-chord)' }} />
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportTXTChords')}</div>
-            <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
+            <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               Plain text with chords · for printing/sharing
             </div>
           </div>
-          <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
+          <Download size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
         </button>
 
         <button
           onClick={() => handleExportTXT(false)}
           disabled={songs.length === 0}
           className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
-          style={{ borderTop: '1px solid #2c2c2e', minHeight: 50 }}
+          style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
-          <FileText size={18} strokeWidth={1.5} style={{ color: '#ff9f0a' }} />
+          <FileText size={18} strokeWidth={1.5} style={{ color: 'var(--color-warning)' }} />
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportTXTLyrics')}</div>
-            <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
+            <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               Lyrics only · no chords
             </div>
           </div>
-          <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
+          <Download size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
         </button>
 
         <button
           onClick={handleExportChords}
           disabled={chordCount === 0}
           className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
-          style={{ borderTop: '1px solid #2c2c2e', minHeight: 50 }}
+          style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
-          <FileJson size={18} strokeWidth={1.5} style={{ color: '#bf5af2' }} />
+          <FileJson size={18} strokeWidth={1.5} style={{ color: 'var(--color-accent)' }} />
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('exportChordLibrary')}</div>
-            <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
+            <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               {chordCount} custom chords · reimportable JSON
             </div>
           </div>
-          <Download size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
+          <Download size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
         </button>
       </div>
 
       {/* Import buttons */}
-      <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+      <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
         <button
           onClick={() => songFileRef.current?.click()}
           className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5"
           style={{ minHeight: 50 }}
         >
-          <Upload size={18} strokeWidth={1.5} style={{ color: '#0a84ff' }} />
+          <Upload size={18} strokeWidth={1.5} style={{ color: 'var(--color-info)' }} />
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('importSongs')}</div>
-            <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
+            <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               Accepts .json exported by this app
             </div>
           </div>
@@ -347,12 +347,12 @@ export function ExportImportPanel() {
         <button
           onClick={() => chordFileRef.current?.click()}
           className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5"
-          style={{ borderTop: '1px solid #2c2c2e', minHeight: 50 }}
+          style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
-          <Upload size={18} strokeWidth={1.5} style={{ color: '#bf5af2' }} />
+          <Upload size={18} strokeWidth={1.5} style={{ color: 'var(--color-accent)' }} />
           <div className="flex-1 text-left">
             <div className="text-sm font-medium text-white">{t('importChordLibrary')}</div>
-            <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>
+            <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               Accepts .json exported by this app
             </div>
           </div>
@@ -372,7 +372,7 @@ export function ExportImportPanel() {
           className="flex items-start gap-2 mt-3 px-4 py-3 rounded-2xl text-sm"
           style={{
             backgroundColor: importResult.type === 'success' ? '#32d74b22' : '#ff453a22',
-            color: importResult.type === 'success' ? '#32d74b' : '#ff453a',
+            color: importResult.type === 'success' ? 'var(--color-chord)' : 'var(--color-error)',
           }}
         >
           {importResult.type === 'error' && <AlertCircle size={16} strokeWidth={1.5} className="flex-shrink-0 mt-0.5" />}

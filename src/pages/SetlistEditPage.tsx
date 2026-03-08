@@ -15,7 +15,7 @@ import { generateId } from '../shared/lib/storage'
 import type { SetlistSong } from '../store/setlistStore'
 
 const VOCAL_COLORS = [
-  '#0a84ff', '#32d74b', '#ff9f0a', '#ff453a', '#bf5af2', '#64d2ff', '#ffd60a', '#ebebf5',
+  'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-accent)', 'var(--color-info)', '#ffd60a', '#ebebf5',
 ]
 
 interface SortableItemProps {
@@ -31,7 +31,7 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ss.id })
   const [showVocalist, setShowVocalist] = useState(!!(ss.vocalist))
   const [vocalistName, setVocalistName] = useState(ss.vocalist ?? '')
-  const [vocalistColor, setVocalistColor] = useState(ss.vocalColor ?? '#0a84ff')
+  const [vocalistColor, setVocalistColor] = useState(ss.vocalColor ?? 'var(--color-info)')
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -47,43 +47,43 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
 
   return (
     <div ref={setNodeRef} style={style} className="rounded-xl overflow-hidden" >
-      <div className="flex items-center gap-3 p-3" style={{ backgroundColor: '#1c1c1e' }}>
-        <button {...attributes} {...listeners} className="flex items-center justify-center cursor-grab active:cursor-grabbing touch-none" style={{ color: 'rgba(235,235,245,0.2)', minWidth: 32, minHeight: 44 }}>
+      <div className="flex items-center gap-3 p-3" style={{ backgroundColor: 'var(--color-card)' }}>
+        <button {...attributes} {...listeners} className="flex items-center justify-center cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--color-text-muted)', minWidth: 32, minHeight: 44 }}>
           <GripVertical size={18} strokeWidth={1.5} />
         </button>
         <span className="text-xs font-semibold" style={{ color: 'rgba(235,235,245,0.25)', minWidth: 20 }}>{idx + 1}</span>
         <div className="flex-1 min-w-0">
           {ss.vocalist && (
-            <span className="text-xs font-semibold mr-1" style={{ color: ss.vocalColor ?? '#0a84ff' }}>({ss.vocalist})</span>
+            <span className="text-xs font-semibold mr-1" style={{ color: ss.vocalColor ?? 'var(--color-info)' }}>({ss.vocalist})</span>
           )}
-          <span className="text-sm text-white">{songTitle}</span>
+          <span className="text-sm">{songTitle}</span>
         </div>
         {songKey && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ backgroundColor: 'rgba(50,215,75,0.12)', color: '#32d74b' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ backgroundColor: 'rgba(50,215,75,0.12)', color: 'var(--color-chord)' }}>
             {songKey}
           </span>
         )}
         <button
           onClick={() => setShowVocalist((v) => !v)}
           className="flex items-center justify-center rounded-xl transition-all"
-          style={{ minWidth: 34, minHeight: 34, backgroundColor: showVocalist ? '#0a84ff22' : 'transparent', color: showVocalist ? '#0a84ff' : 'rgba(235,235,245,0.3)' }}
+          style={{ minWidth: 34, minHeight: 34, backgroundColor: showVocalist ? '#0a84ff22' : 'transparent', color: showVocalist ? 'var(--color-info)' : 'var(--color-text-muted)' }}
           title="Set vocalist"
         >
           <User size={14} strokeWidth={2} />
         </button>
         <button onClick={() => onRemove(ss.id)} className="flex items-center justify-center rounded-xl transition-all active:scale-95" style={{ minWidth: 40, minHeight: 40 }}>
-          <X size={16} strokeWidth={2} style={{ color: '#ff453a' }} />
+          <X size={16} strokeWidth={2} style={{ color: 'var(--color-error)' }} />
         </button>
       </div>
       {showVocalist && (
-        <div className="px-3 pb-3 pt-1 space-y-2" style={{ backgroundColor: '#151515' }}>
+        <div className="px-3 pb-3 pt-1 space-y-2" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
           <input
             type="text"
             placeholder="Vocalist name..."
             value={vocalistName}
             onChange={(e) => handleVocalistChange(e.target.value, vocalistColor)}
             className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-            style={{ backgroundColor: '#2c2c2e', color: '#fff', border: 'none' }}
+            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-primary)', border: 'none' }}
           />
           <div className="flex gap-2 flex-wrap">
             {VOCAL_COLORS.map((c) => (
@@ -166,40 +166,40 @@ export default function SetlistEditPage() {
       )
     : unusedSongs
 
-  const inputStyle = { backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', color: '#ffffff', minHeight: 44 } as const
+  const inputStyle = { backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', minHeight: 44 } as const
 
   return (
-    <div style={{ backgroundColor: '#000000', minHeight: '100%' }}>
-      <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ backgroundColor: '#111111', borderColor: '#2c2c2e' }}>
-        <button onClick={() => navigate(-1)} className="flex items-center justify-center rounded-xl transition-all" style={{ color: '#bf5af2', minWidth: 44, minHeight: 44 }}>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100%' }}>
+      <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
+        <button onClick={() => navigate(-1)} className="flex items-center justify-center rounded-xl transition-all" style={{ color: 'var(--color-accent)', minWidth: 44, minHeight: 44 }}>
           <ChevronLeft size={22} strokeWidth={2} />
         </button>
-        <h1 className="text-base font-semibold text-white">{existing ? t('edit') : t('newSetlist')}</h1>
+        <h1 className="text-base font-semibold">{existing ? t('edit') : t('newSetlist')}</h1>
       </div>
 
       <div className="p-4 space-y-4 pb-24 max-w-2xl mx-auto">
         <div>
-          <label className="block text-xs mb-1.5" style={{ color: 'rgba(235,235,245,0.4)' }}>{t('title')}</label>
+          <label className="block text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{t('title')}</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 rounded-xl outline-none" style={inputStyle} placeholder="Воскресное богослужение" />
         </div>
 
         <div>
-          <label className="block text-xs mb-1.5" style={{ color: 'rgba(235,235,245,0.4)' }}>{t('date')}</label>
+          <label className="block text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{t('date')}</label>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 rounded-xl outline-none" style={{ ...inputStyle, colorScheme: 'dark' }} />
         </div>
 
         <div>
-          <label className="block text-xs mb-1.5" style={{ color: 'rgba(235,235,245,0.4)' }}>{t('notes')}</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full px-3 py-2 rounded-xl outline-none resize-none" style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', color: '#ffffff' }} />
+          <label className="block text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{t('notes')}</label>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full px-3 py-2 rounded-xl outline-none resize-none" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }} />
         </div>
 
         {/* Selected songs */}
         <div>
-          <h3 className="text-xs mb-2" style={{ color: 'rgba(235,235,245,0.4)' }}>
+          <h3 className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
             ПЕСНИ В СЛУЖЕНИИ ({selectedSongs.length})
           </h3>
           {selectedSongs.length === 0 ? (
-            <p className="text-sm py-4 text-center rounded-xl" style={{ color: 'rgba(235,235,245,0.2)', backgroundColor: '#1c1c1e' }}>Добавьте песни из списка ниже</p>
+            <p className="text-sm py-4 text-center rounded-xl" style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-card)' }}>Добавьте песни из списка ниже</p>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={selectedSongs.map((s) => s.id)} strategy={verticalListSortingStrategy}>
@@ -224,31 +224,31 @@ export default function SetlistEditPage() {
         {/* Add songs with search */}
         {unusedSongs.length > 0 && (
           <div>
-            <h3 className="text-xs mb-2" style={{ color: 'rgba(235,235,245,0.4)' }}>{t('addSong').toUpperCase()}</h3>
+            <h3 className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>{t('addSong').toUpperCase()}</h3>
             {/* Search bar */}
             <div className="relative mb-2">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(235,235,245,0.3)' }} />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-muted)' }} />
               <input
                 type="text" value={songSearch} onChange={(e) => setSongSearch(e.target.value)}
                 placeholder={t('search') + '...'}
                 className="w-full pl-9 pr-3 py-2.5 rounded-xl outline-none text-sm"
-                style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', color: '#fff' }}
+                style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
               />
             </div>
             <div className="space-y-1 max-h-72 overflow-y-auto">
               {filteredSongs.length === 0 ? (
-                <p className="text-sm py-3 text-center" style={{ color: 'rgba(235,235,245,0.3)' }}>No matching songs</p>
+                <p className="text-sm py-3 text-center" style={{ color: 'var(--color-text-muted)' }}>No matching songs</p>
               ) : (
                 filteredSongs.map((song) => (
                   <button
                     key={song.id} onClick={() => addSongToSetlist(song.id)}
                     className="w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all active:scale-[0.99]"
-                    style={{ backgroundColor: '#1c1c1e', minHeight: 44 }}
+                    style={{ backgroundColor: 'var(--color-card)', minHeight: 44 }}
                   >
-                    <Plus size={16} strokeWidth={2} style={{ color: '#32d74b', flexShrink: 0 }} />
-                    <span className="text-sm flex-1" style={{ color: '#ffffff' }}>{song.title}</span>
+                    <Plus size={16} strokeWidth={2} style={{ color: 'var(--color-chord)', flexShrink: 0 }} />
+                    <span className="text-sm flex-1" style={{ color: 'var(--color-text-primary)' }}>{song.title}</span>
                     {song.original_key && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'rgba(50,215,75,0.12)', color: '#32d74b' }}>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'rgba(50,215,75,0.12)', color: 'var(--color-chord)' }}>
                         {song.original_key}
                       </span>
                     )}
@@ -260,10 +260,10 @@ export default function SetlistEditPage() {
         )}
 
         <div className="flex gap-3 pt-2">
-          <button onClick={handleSave} className="flex-1 py-3 rounded-xl font-semibold text-white transition-all active:scale-[0.98]" style={{ backgroundColor: '#bf5af2', minHeight: 44 }}>
+          <button onClick={handleSave} className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]" style={{ backgroundColor: 'var(--color-accent)', minHeight: 44 }}>
             {t('save')}
           </button>
-          <button onClick={() => navigate(-1)} className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]" style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.5)', minHeight: 44 }}>
+          <button onClick={() => navigate(-1)} className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]" style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)', minHeight: 44 }}>
             {t('cancel')}
           </button>
         </div>

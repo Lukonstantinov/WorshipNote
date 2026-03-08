@@ -10,8 +10,8 @@ export function FontSizeSlider() {
         onClick={() => setFontSize(Math.max(FONT_SIZE_MIN, fontSize - 2))}
         className="flex items-center justify-center rounded-xl font-semibold transition-all"
         style={{
-          backgroundColor: '#2c2c2e',
-          color: 'rgba(235,235,245,0.6)',
+          backgroundColor: 'var(--color-card-raised)',
+          color: 'var(--color-text-secondary)',
           minWidth: 44,
           minHeight: 44,
           fontSize: 13,
@@ -24,8 +24,8 @@ export function FontSizeSlider() {
         onClick={() => setFontSize(Math.min(FONT_SIZE_MAX, fontSize + 2))}
         className="flex items-center justify-center rounded-xl font-semibold transition-all"
         style={{
-          backgroundColor: '#2c2c2e',
-          color: 'rgba(235,235,245,0.6)',
+          backgroundColor: 'var(--color-card-raised)',
+          color: 'var(--color-text-secondary)',
           minWidth: 44,
           minHeight: 44,
           fontSize: 17,

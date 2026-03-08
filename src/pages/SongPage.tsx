@@ -99,8 +99,8 @@ export default function SongPage() {
   if (!song) {
     return (
       <div className="p-8 text-center">
-        <p style={{ color: 'rgba(235,235,245,0.4)' }}>Song not found</p>
-        <Link to="/library" className="mt-4 block" style={{ color: '#bf5af2' }}>← Library</Link>
+        <p style={{ color: 'var(--color-text-tertiary)' }}>Song not found</p>
+        <Link to="/library" className="mt-4 block" style={{ color: 'var(--color-accent)' }}>← Library</Link>
       </div>
     )
   }
@@ -118,23 +118,23 @@ export default function SongPage() {
   // Role selector overlay
   if (showRoleSelector) {
     return (
-      <div className="flex flex-col h-full" style={{ backgroundColor: '#000000' }}>
+      <div className="flex flex-col h-full" style={{ backgroundColor: 'var(--color-bg)' }}>
         {/* Header */}
         <div
           className="flex items-center gap-2 px-3 py-2 border-b flex-shrink-0"
-          style={{ backgroundColor: '#111111', borderColor: '#2c2c2e' }}
+          style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
         >
           <button
             onClick={() => navigate(-1)}
             className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-            style={{ color: '#bf5af2', minWidth: 44, minHeight: 44 }}
+            style={{ color: 'var(--color-accent)', minWidth: 44, minHeight: 44 }}
           >
             <ChevronLeft size={22} strokeWidth={2} />
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-white text-base truncate leading-tight">{song.title}</h1>
+            <h1 className="font-semibold text-base truncate leading-tight">{song.title}</h1>
             {song.original_key && (
-              <p className="text-xs" style={{ color: '#32d74b' }}>
+              <p className="text-xs" style={{ color: 'var(--color-chord)' }}>
                 {song.original_key}{song.bpm ? ` · ${song.bpm} BPM` : ''}
               </p>
             )}
@@ -142,10 +142,10 @@ export default function SongPage() {
           <Link
             to={`/songs/${song.id}/edit`}
             className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-            style={{ backgroundColor: '#2c2c2e', minWidth: 44, minHeight: 44 }}
+            style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
             title={t('edit')}
           >
-            <Pencil size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.7)' }} />
+            <Pencil size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
           </Link>
           <button
             onClick={() => {
@@ -155,16 +155,16 @@ export default function SongPage() {
               }
             }}
             className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-            style={{ backgroundColor: '#2c2c2e', minWidth: 44, minHeight: 44 }}
+            style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
             title={t('delete')}
           >
-            <Trash2 size={16} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+            <Trash2 size={16} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
           </button>
         </div>
 
         {/* Role selector */}
         <div className="flex flex-col items-center justify-center flex-1 px-6 gap-4">
-          <p className="text-sm font-medium mb-2" style={{ color: 'rgba(235,235,245,0.4)' }}>
+          <p className="text-sm font-medium mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
             {t('selectRole') || 'Select your role'}
           </p>
           {allRoles.map((r) => (
@@ -173,9 +173,9 @@ export default function SongPage() {
               onClick={() => { setRole(r.id); setShowRoleSelector(false) }}
               className="w-full max-w-xs py-4 rounded-2xl text-lg font-semibold transition-all active:scale-95"
               style={{
-                backgroundColor: role === r.id ? '#bf5af2' : '#1c1c1e',
-                color: role === r.id ? '#fff' : 'rgba(235,235,245,0.8)',
-                border: `1px solid ${role === r.id ? '#bf5af2' : '#2c2c2e'}`,
+                backgroundColor: role === r.id ? 'var(--color-accent)' : 'var(--color-card)',
+                color: role === r.id ? '#fff' : 'var(--color-text-secondary)',
+                border: `1px solid ${role === r.id ? 'var(--color-accent)' : 'var(--color-card-raised)'}`,
               }}
             >
               {r.label}
@@ -184,7 +184,7 @@ export default function SongPage() {
           <button
             onClick={() => setShowRoleSelector(false)}
             className="mt-2 py-3 px-8 rounded-2xl text-base font-medium transition-all active:scale-95"
-            style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.6)' }}
+            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
           >
             {t('continue') || 'Continue'}
           </button>
@@ -194,24 +194,24 @@ export default function SongPage() {
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: '#000000' }}>
+    <div className="flex flex-col h-full" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Top bar */}
       <div
         className="flex items-center gap-2 px-3 py-2 border-b flex-shrink-0"
-        style={{ backgroundColor: '#111111', borderColor: '#2c2c2e' }}
+        style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
       >
         <button
           onClick={() => navigate(-1)}
           className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ color: '#bf5af2', minWidth: 44, minHeight: 44 }}
+          style={{ color: 'var(--color-accent)', minWidth: 44, minHeight: 44 }}
           title="Back (Esc)"
         >
           <ChevronLeft size={22} strokeWidth={2} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="font-semibold text-white text-base truncate leading-tight">{song.title}</h1>
+          <h1 className="font-semibold text-base truncate leading-tight">{song.title}</h1>
           {song.original_key && (
-            <p className="text-xs" style={{ color: '#32d74b' }}>
+            <p className="text-xs" style={{ color: 'var(--color-chord)' }}>
               {song.original_key}{song.bpm ? ` · ${song.bpm} BPM` : ''}
             </p>
           )}
@@ -220,7 +220,7 @@ export default function SongPage() {
         <button
           onClick={() => setShowRoleSelector(true)}
           className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
-          style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.6)', minHeight: 44 }}
+          style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', minHeight: 44 }}
           title="Change role"
         >
           {allRoles.find((r) => r.id === role)?.label ?? role}
@@ -229,21 +229,21 @@ export default function SongPage() {
         <button
           onClick={() => setShowControls((p) => !p)}
           className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: '#2c2c2e', minWidth: 44, minHeight: 44 }}
+          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
           title="Controls"
         >
           {showControls
-            ? <ChevronUp size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.7)' }} />
-            : <ChevronDown size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.7)' }} />
+            ? <ChevronUp size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
+            : <ChevronDown size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
           }
         </button>
         <Link
           to={`/songs/${song.id}/edit`}
           className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: '#2c2c2e', minWidth: 44, minHeight: 44 }}
+          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
           title={t('edit')}
         >
-          <Pencil size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.7)' }} />
+          <Pencil size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
         </Link>
         <button
           onClick={() => {
@@ -253,10 +253,10 @@ export default function SongPage() {
             }
           }}
           className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: '#2c2c2e', minWidth: 44, minHeight: 44 }}
+          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
           title={t('delete')}
         >
-          <Trash2 size={16} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+          <Trash2 size={16} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
         </button>
       </div>
 
@@ -264,7 +264,7 @@ export default function SongPage() {
       {showControls && (
         <div
           className="px-3 py-2 space-y-2 flex-shrink-0 border-b"
-          style={{ backgroundColor: '#000000', borderColor: '#1c1c1e' }}
+          style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border-subtle)' }}
         >
           <TransposeControls
             steps={steps}
@@ -281,10 +281,10 @@ export default function SongPage() {
                   onClick={() => setShowInstrumentMenu((p) => !p)}
                   className="flex items-center gap-1.5 px-3 rounded-xl text-xs font-medium transition-all"
                   style={{
-                    backgroundColor: '#1c1c1e',
-                    color: 'rgba(235,235,245,0.7)',
+                    backgroundColor: 'var(--color-card)',
+                    color: 'var(--color-text-secondary)',
                     minHeight: 44,
-                    border: '1px solid #2c2c2e',
+                    border: '1px solid var(--color-border)',
                   }}
                 >
                   {activeInstrument && <span style={{ opacity: 0.7 }}>{INSTRUMENT_ICONS[activeInstrument.type]}</span>}
@@ -294,14 +294,14 @@ export default function SongPage() {
                 {showInstrumentMenu && (
                   <div
                     className="absolute top-12 left-0 rounded-xl shadow-xl z-20 overflow-hidden"
-                    style={{ backgroundColor: '#2c2c2e', minWidth: 140 }}
+                    style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 140 }}
                   >
                     {instruments.map((inst) => (
                       <button
                         key={inst.id}
                         onClick={() => { setSelectedInstrument(inst.id); setShowInstrumentMenu(false) }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:bg-white/10"
-                        style={{ color: selectedInstrument === inst.id ? '#32d74b' : 'rgba(235,235,245,0.8)' }}
+                        style={{ color: selectedInstrument === inst.id ? 'var(--color-chord)' : 'var(--color-text-secondary)' }}
                       >
                         <span style={{ opacity: 0.7 }}>{INSTRUMENT_ICONS[inst.type]}</span>
                         {inst.name}
@@ -390,7 +390,7 @@ function MusicianComment({ value, onChange }: { value: string; onChange: (v: str
       <button
         onClick={() => setExpanded((p) => !p)}
         className="flex items-center gap-2 text-xs font-medium mb-2 transition-all"
-        style={{ color: 'rgba(235,235,245,0.35)' }}
+        style={{ color: 'var(--color-text-tertiary)' }}
       >
         {expanded ? <ChevronUp size={13} strokeWidth={2} /> : <ChevronDown size={13} strokeWidth={2} />}
         My notes
@@ -404,9 +404,9 @@ function MusicianComment({ value, onChange }: { value: string; onChange: (v: str
           placeholder="Write your notes here…"
           className="w-full rounded-xl px-3 py-2.5 text-sm resize-none outline-none"
           style={{
-            backgroundColor: '#1c1c1e',
-            border: '1px solid #2c2c2e',
-            color: 'rgba(235,235,245,0.8)',
+            backgroundColor: 'var(--color-card)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-secondary)',
           }}
         />
       )}

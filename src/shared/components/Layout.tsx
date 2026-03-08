@@ -44,12 +44,10 @@ export function Layout() {
     html.classList.add(`theme-${theme}`)
   }, [theme])
 
-  const bgColor = theme === 'light' ? '#f2f2f7' : theme === 'midnight' ? '#080c14' : theme === 'forest' ? '#0a1a0e' : '#000000'
-
   return (
-    <div className="flex h-full" style={{ backgroundColor: bgColor }}>
+    <div className="flex h-full" style={{ backgroundColor: 'var(--color-bg)' }}>
       <Sidebar />
-      <main className="flex-1 overflow-auto" style={{ backgroundColor: bgColor }}>
+      <main className="flex-1 overflow-auto" style={{ backgroundColor: 'var(--color-bg)' }}>
         <Outlet />
       </main>
     </div>

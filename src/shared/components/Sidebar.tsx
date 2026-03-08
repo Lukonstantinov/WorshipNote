@@ -17,13 +17,13 @@ export function Sidebar() {
       {/* Desktop sidebar */}
       <nav
         className="hidden md:flex flex-col w-56 h-full border-r"
-        style={{ backgroundColor: '#111111', borderColor: '#2c2c2e' }}
+        style={{ backgroundColor: 'var(--color-nav-bg)', borderColor: 'var(--color-border)' }}
       >
-        <div className="px-5 py-5 border-b" style={{ borderColor: '#2c2c2e' }}>
-          <h1 className="text-base font-semibold tracking-tight" style={{ color: '#ffffff' }}>
+        <div className="px-5 py-5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+          <h1 className="text-base font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
             WorshipHub
           </h1>
-          <p className="text-xs mt-0.5" style={{ color: 'rgba(235,235,245,0.4)' }}>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
             Псалмы и аккорды
           </p>
         </div>
@@ -34,11 +34,13 @@ export function Sidebar() {
               to={to}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all mx-2 rounded-xl ${
-                  isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  isActive ? '' : 'hover:opacity-80'
                 }`
               }
               style={({ isActive }) =>
-                isActive ? { backgroundColor: '#2c2c2e', color: '#ffffff' } : {}
+                isActive
+                  ? { backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-primary)' }
+                  : { color: 'var(--color-text-tertiary)' }
               }
             >
               {({ isActive }) => (
@@ -46,7 +48,7 @@ export function Sidebar() {
                   <Icon
                     size={18}
                     strokeWidth={isActive ? 2 : 1.5}
-                    style={{ color: isActive ? '#bf5af2' : 'rgba(235,235,245,0.5)' }}
+                    style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
                   />
                   <span>{t(label)}</span>
                 </>
@@ -60,8 +62,8 @@ export function Sidebar() {
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 flex border-t z-50"
         style={{
-          backgroundColor: 'rgba(17,17,17,0.92)',
-          borderColor: '#2c2c2e',
+          backgroundColor: 'var(--color-nav-blur-bg)',
+          borderColor: 'var(--color-border)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
@@ -72,7 +74,7 @@ export function Sidebar() {
             to={to}
             className={({ isActive }) =>
               `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-all ${
-                isActive ? 'text-white' : 'text-gray-500'
+                isActive ? '' : ''
               }`
             }
           >
@@ -81,9 +83,9 @@ export function Sidebar() {
                 <Icon
                   size={22}
                   strokeWidth={isActive ? 2 : 1.5}
-                  style={{ color: isActive ? '#bf5af2' : 'rgba(235,235,245,0.4)' }}
+                  style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-tertiary)' }}
                 />
-                <span style={{ color: isActive ? '#bf5af2' : 'rgba(235,235,245,0.4)', fontSize: 10 }}>
+                <span style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-tertiary)', fontSize: 10 }}>
                   {t(label)}
                 </span>
               </>

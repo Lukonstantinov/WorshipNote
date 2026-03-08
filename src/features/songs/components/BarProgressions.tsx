@@ -76,15 +76,15 @@ export function BarProgressions({ progressions, onChange }: Props) {
     `${progId}-${barIdx}-${beatIdx}`
 
   return (
-    <div className="border-t" style={{ borderColor: '#1c1c1e' }}>
+    <div className="border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
       <div className="px-4 py-3 flex items-center justify-between">
-        <p className="text-xs font-semibold" style={{ color: 'rgba(235,235,245,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <p className="text-xs font-semibold" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           {t('barProgressions')}
         </p>
         <button
           onClick={addProgression}
           className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all active:scale-95"
-          style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.6)' }}
+          style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
         >
           <Plus size={12} strokeWidth={2.5} />
           {t('addProgression')}
@@ -94,13 +94,13 @@ export function BarProgressions({ progressions, onChange }: Props) {
       {progressions.map((prog) => {
         const isExpanded = expandedId === prog.id
         return (
-          <div key={prog.id} className="mx-4 mb-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+          <div key={prog.id} className="mx-4 mb-3 rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
             {/* Header */}
             <button
               onClick={() => setExpandedId(isExpanded ? null : prog.id)}
               className="w-full flex items-center gap-2 px-4 py-3 transition-all hover:bg-white/5"
             >
-              <GripVertical size={14} style={{ color: 'rgba(235,235,245,0.2)' }} />
+              <GripVertical size={14} style={{ color: 'var(--color-text-muted)' }} />
               <input
                 value={prog.name}
                 onChange={(e) => updateProgression(prog.id, { name: e.target.value })}
@@ -111,12 +111,12 @@ export function BarProgressions({ progressions, onChange }: Props) {
                 onClick={(e) => { e.stopPropagation(); deleteProgression(prog.id) }}
                 className="p-1"
               >
-                <Trash2 size={13} style={{ color: '#ff453a' }} />
+                <Trash2 size={13} style={{ color: 'var(--color-error)' }} />
               </button>
               {isExpanded ? (
-                <ChevronUp size={14} style={{ color: 'rgba(235,235,245,0.4)' }} />
+                <ChevronUp size={14} style={{ color: 'var(--color-text-tertiary)' }} />
               ) : (
-                <ChevronDown size={14} style={{ color: 'rgba(235,235,245,0.4)' }} />
+                <ChevronDown size={14} style={{ color: 'var(--color-text-tertiary)' }} />
               )}
             </button>
 
@@ -125,7 +125,7 @@ export function BarProgressions({ progressions, onChange }: Props) {
               <div className="px-4 pb-4">
                 {/* Beats per bar selector */}
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs" style={{ color: 'rgba(235,235,245,0.4)' }}>
+                  <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                     {t('beatsPerBar')}
                   </span>
                   <div className="flex gap-1">
@@ -142,8 +142,8 @@ export function BarProgressions({ progressions, onChange }: Props) {
                         }}
                         className="px-2 py-1 rounded text-xs font-semibold transition-all"
                         style={{
-                          backgroundColor: prog.beatsPerBar === b ? '#0a84ff' : '#2c2c2e',
-                          color: prog.beatsPerBar === b ? '#fff' : 'rgba(235,235,245,0.4)',
+                          backgroundColor: prog.beatsPerBar === b ? 'var(--color-info)' : 'var(--color-card-raised)',
+                          color: prog.beatsPerBar === b ? '#fff' : 'var(--color-text-tertiary)',
                         }}
                       >
                         {b}
@@ -156,7 +156,7 @@ export function BarProgressions({ progressions, onChange }: Props) {
                 <div className="space-y-2">
                   {prog.bars.map((bar, barIdx) => (
                     <div key={barIdx} className="flex items-center gap-1">
-                      <span className="text-xs w-5 text-right flex-shrink-0" style={{ color: 'rgba(235,235,245,0.2)' }}>
+                      <span className="text-xs w-5 text-right flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>
                         {barIdx + 1}
                       </span>
                       <div
@@ -171,7 +171,7 @@ export function BarProgressions({ progressions, onChange }: Props) {
                               key={beatIdx}
                               className="rounded-lg flex items-center justify-center transition-all cursor-pointer"
                               style={{
-                                backgroundColor: cell.chord ? '#32d74b15' : '#2c2c2e',
+                                backgroundColor: cell.chord ? '#32d74b15' : 'var(--color-card-raised)',
                                 border: isEditing ? '1px solid #32d74b' : '1px solid transparent',
                                 minHeight: 40,
                               }}
@@ -211,13 +211,13 @@ export function BarProgressions({ progressions, onChange }: Props) {
                                     }
                                   }}
                                   className="w-full h-full bg-transparent text-center text-sm font-semibold outline-none"
-                                  style={{ color: '#32d74b' }}
+                                  style={{ color: 'var(--color-chord)' }}
                                   autoFocus
                                 />
                               ) : (
                                 <span
                                   className="text-sm font-semibold"
-                                  style={{ color: cell.chord ? '#32d74b' : 'rgba(235,235,245,0.15)' }}
+                                  style={{ color: cell.chord ? 'var(--color-chord)' : 'var(--color-text-muted)' }}
                                 >
                                   {cell.chord || '·'}
                                 </span>
@@ -231,7 +231,7 @@ export function BarProgressions({ progressions, onChange }: Props) {
                         className="p-1 flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity"
                         disabled={prog.bars.length <= 1}
                       >
-                        <Trash2 size={11} style={{ color: '#ff453a' }} />
+                        <Trash2 size={11} style={{ color: 'var(--color-error)' }} />
                       </button>
                     </div>
                   ))}
@@ -241,7 +241,7 @@ export function BarProgressions({ progressions, onChange }: Props) {
                 <button
                   onClick={() => addBar(prog.id)}
                   className="w-full mt-2 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
-                  style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.4)' }}
+                  style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)' }}
                 >
                   <Plus size={12} strokeWidth={2.5} className="inline mr-1" style={{ verticalAlign: 'middle' }} />
                   {t('addBar')}

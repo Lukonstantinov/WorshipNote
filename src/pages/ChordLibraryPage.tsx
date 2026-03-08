@@ -1,22 +1,61 @@
 import { useState, useMemo } from 'react'
-import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight } from 'lucide-react'
+import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight, ChevronDown } from 'lucide-react'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import type { ChordProgression, ChordLibraryFolder } from '../store/chordLibraryStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { GuitarDiagram } from '../features/songs/components/GuitarDiagram'
+import { MiniGuitarDiagram } from '../features/songs/components/MiniGuitarDiagram'
+import { MiniPianoDiagram } from '../features/songs/components/MiniPianoDiagram'
+import { MiniBassDiagram } from '../features/songs/components/MiniBassDiagram'
 import { ChordLibraryFolderManager } from '../features/chordLibrary/components/ChordLibraryFolderManager'
 import { ProgressionBuilder } from '../features/chordLibrary/components/ProgressionBuilder'
 import { getAllChordNames, getGuitarChord } from '../features/songs/lib/chordData'
 
 type Tab = 'progressions' | 'reference'
 
-const CHORD_COLORS = ['#bf5af2', '#0a84ff', '#32d74b', '#ff9f0a', '#ff453a', '#64d2ff']
+const CHORD_COLORS = ['var(--color-accent)', 'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-info)']
+
+function ProgressionDiagrams({ chords }: { chords: string[] }) {
+  const {
+    selectedInstrument, instruments,
+    customChords, customPianoChords,
+    guitarDotColor, pianoHighlightColor, guitarFlipped, diagramScale,
+  } = useSettingsStore()
+
+  const instrument = instruments.find((i) => i.id === selectedInstrument)
+  const instrType = instrument?.type ?? 'guitar'
+  const showPiano = instrType === 'piano' || instrType === 'keyboard'
+  const showBass = instrType === 'bass'
+  const scale = diagramScale ?? 1
+  const miniSz = Math.round(64 * scale)
+
+  return (
+    <div
+      className="flex gap-2 px-4 pb-4 overflow-x-auto scrollbar-none"
+      style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+    >
+      {chords.map((chord, i) => (
+        <div key={`${chord}-${i}`} className="flex-shrink-0 flex flex-col items-center gap-1 pt-3">
+          {showPiano ? (
+            <MiniPianoDiagram chord={chord} customDiagram={customPianoChords[chord]} size={miniSz} highlightColor={pianoHighlightColor} />
+          ) : showBass ? (
+            <MiniBassDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
+          ) : (
+            <MiniGuitarDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
+          )}
+          <span className="text-xs font-semibold" style={{ color: 'var(--color-chord)' }}>{chord}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function ChordLibraryPage() {
   const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder } = useChordLibraryStore()
   const { guitarDotColor, guitarFlipped } = useSettingsStore()
 
   const [tab, setTab] = useState<Tab>('progressions')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null)
   const [showFolderManager, setShowFolderManager] = useState(false)
@@ -80,7 +119,7 @@ export default function ChordLibraryPage() {
     <div className="p-4 pb-28 md:pb-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-white tracking-tight">Chord Library</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Chord Library</h2>
         <div className="flex items-center gap-2">
           {tab === 'progressions' && (
             <>
@@ -88,10 +127,10 @@ export default function ChordLibraryPage() {
                 onClick={() => { setSelectMode((p) => !p); if (selectMode) exitSelectMode() }}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95"
                 style={{
-                  backgroundColor: selectMode ? '#bf5af2' : '#1c1c1e',
-                  color: selectMode ? '#fff' : 'rgba(235,235,245,0.5)',
+                  backgroundColor: selectMode ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: selectMode ? '#fff' : 'var(--color-text-tertiary)',
                   minHeight: 44,
-                  border: '1px solid #2c2c2e',
+                  border: '1px solid var(--color-border)',
                 }}
               >
                 <CheckSquare size={15} strokeWidth={1.5} />
@@ -99,7 +138,7 @@ export default function ChordLibraryPage() {
               <button
                 onClick={handleAdd}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-                style={{ backgroundColor: '#bf5af2', color: '#fff', minHeight: 44 }}
+                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)', minHeight: 44 }}
               >
                 <Plus size={16} strokeWidth={2.5} />
                 New
@@ -110,7 +149,7 @@ export default function ChordLibraryPage() {
       </div>
 
       {/* Tab switcher */}
-      <div className="flex gap-1 mb-4 rounded-2xl p-1" style={{ backgroundColor: '#1c1c1e' }}>
+      <div className="flex gap-1 mb-4 rounded-2xl p-1" style={{ backgroundColor: 'var(--color-card)' }}>
         {([
           { key: 'progressions' as Tab, label: 'Progressions', icon: <Music2 size={14} strokeWidth={1.5} /> },
           { key: 'reference' as Tab, label: 'Chord Reference', icon: <Guitar size={14} strokeWidth={1.5} /> },
@@ -120,8 +159,8 @@ export default function ChordLibraryPage() {
             onClick={() => setTab(key)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-all"
             style={{
-              backgroundColor: tab === key ? '#2c2c2e' : 'transparent',
-              color: tab === key ? '#ffffff' : 'rgba(235,235,245,0.4)',
+              backgroundColor: tab === key ? 'var(--color-card-raised)' : 'transparent',
+              color: tab === key ? '#ffffff' : 'var(--color-text-tertiary)',
             }}
           >
             {icon}
@@ -136,45 +175,45 @@ export default function ChordLibraryPage() {
           {selectMode && (
             <div
               className="flex items-center gap-2 mb-3 px-3 py-2 rounded-2xl flex-wrap"
-              style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e' }}
+              style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
             >
               <button
                 onClick={() => selected.size === filtered.length
                   ? setSelected(new Set())
                   : setSelected(new Set(filtered.map((p) => p.id)))}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium"
-                style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.7)' }}
+                style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
               >
                 {selected.size === filtered.length ? <Square size={12} /> : <CheckSquare size={12} />}
                 {selected.size === filtered.length ? 'Deselect all' : 'Select all'}
               </button>
-              <span className="text-xs" style={{ color: 'rgba(235,235,245,0.4)' }}>{selected.size} selected</span>
+              <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{selected.size} selected</span>
               <div className="flex items-center gap-2 ml-auto">
                 <div className="relative">
                   <button
                     onClick={() => setShowFolderPicker((p) => !p)}
                     disabled={selected.size === 0}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40"
-                    style={{ backgroundColor: '#0a84ff22', color: '#0a84ff' }}
+                    style={{ backgroundColor: '#0a84ff22', color: 'var(--color-info)' }}
                   >
                     <FolderInput size={13} /> Move
                   </button>
                   {showFolderPicker && (
-                    <div className="absolute right-0 top-10 rounded-xl shadow-xl z-30 overflow-hidden" style={{ backgroundColor: '#2c2c2e', minWidth: 160 }}>
-                      <button onClick={() => handleMoveToFolder(undefined)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-white/10" style={{ color: 'rgba(235,235,245,0.5)' }}>— No folder —</button>
+                    <div className="absolute right-0 top-10 rounded-xl shadow-xl z-30 overflow-hidden" style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 160 }}>
+                      <button onClick={() => handleMoveToFolder(undefined)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-white/10" style={{ color: 'var(--color-text-tertiary)' }}>— No folder —</button>
                       {folders.map((f) => (
-                        <button key={f.id} onClick={() => handleMoveToFolder(f.id)} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-white/10" style={{ color: 'rgba(235,235,245,0.8)' }}>
+                        <button key={f.id} onClick={() => handleMoveToFolder(f.id)} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-white/10" style={{ color: 'var(--color-text-secondary)' }}>
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: f.color }} />{f.name}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
-                <button onClick={handleDeleteSelected} disabled={selected.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40" style={{ backgroundColor: '#ff453a22', color: '#ff453a' }}>
+                <button onClick={handleDeleteSelected} disabled={selected.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40" style={{ backgroundColor: '#ff453a22', color: 'var(--color-error)' }}>
                   <Trash2 size={13} /> Delete
                 </button>
-                <button onClick={exitSelectMode} className="p-1.5 rounded-xl" style={{ backgroundColor: '#2c2c2e' }}>
-                  <X size={13} style={{ color: 'rgba(235,235,245,0.5)' }} />
+                <button onClick={exitSelectMode} className="p-1.5 rounded-xl" style={{ backgroundColor: 'var(--color-card-raised)' }}>
+                  <X size={13} style={{ color: 'var(--color-text-tertiary)' }} />
                 </button>
               </div>
             </div>
@@ -182,35 +221,35 @@ export default function ChordLibraryPage() {
 
           {/* Search */}
           <div className="flex gap-2 mb-3">
-            <div className="flex-1 flex items-center gap-2 px-3 rounded-xl" style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minHeight: 44 }}>
-              <Search size={15} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)', flexShrink: 0 }} />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} className="flex-1 bg-transparent text-white outline-none text-sm" placeholder="Search progressions…" />
+            <div className="flex-1 flex items-center gap-2 px-3 rounded-xl" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}>
+              <Search size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} className="flex-1 bg-transparent outline-none text-sm" placeholder="Search progressions…" />
             </div>
           </div>
 
           {/* Folder chips */}
           {folders.length > 0 && (
             <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-3 scrollbar-none">
-              <button onClick={() => setActiveFolderId(null)} className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: activeFolderId === null ? '#bf5af2' : '#1c1c1e', color: activeFolderId === null ? '#fff' : 'rgba(235,235,245,0.4)', border: '1px solid #2c2c2e' }}>
+              <button onClick={() => setActiveFolderId(null)} className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: activeFolderId === null ? 'var(--color-accent)' : 'var(--color-card)', color: activeFolderId === null ? '#fff' : 'var(--color-text-tertiary)', border: '1px solid var(--color-border)' }}>
                 All
               </button>
               {folders.map((folder: ChordLibraryFolder) => {
                 const isActive = activeFolderId === folder.id
                 return (
-                  <button key={folder.id} onClick={() => setActiveFolderId(isActive ? null : folder.id)} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: isActive ? `${folder.color}33` : '#1c1c1e', color: isActive ? folder.color : 'rgba(235,235,245,0.5)', border: `1px solid ${isActive ? folder.color + '66' : '#2c2c2e'}` }}>
+                  <button key={folder.id} onClick={() => setActiveFolderId(isActive ? null : folder.id)} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: isActive ? `${folder.color}33` : 'var(--color-card)', color: isActive ? folder.color : 'var(--color-text-tertiary)', border: `1px solid ${isActive ? folder.color + '66' : 'var(--color-card-raised)'}` }}>
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: folder.color }} />
                     {folder.name}
                   </button>
                 )
               })}
-              <button onClick={() => setShowFolderManager(true)} className="flex-shrink-0 flex items-center justify-center rounded-full" style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minWidth: 28, minHeight: 28 }}>
-                <Settings2 size={12} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.4)' }} />
+              <button onClick={() => setShowFolderManager(true)} className="flex-shrink-0 flex items-center justify-center rounded-full" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minWidth: 28, minHeight: 28 }}>
+                <Settings2 size={12} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
               </button>
             </div>
           )}
 
           {folders.length === 0 && (
-            <button onClick={() => setShowFolderManager(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs mb-3" style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.3)', border: '1px dashed #3c3c3e' }}>
+            <button onClick={() => setShowFolderManager(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs mb-3" style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-muted)', border: '1px dashed var(--color-border)' }}>
               <FolderOpen size={12} strokeWidth={1.5} /> Add folder
             </button>
           )}
@@ -218,8 +257,8 @@ export default function ChordLibraryPage() {
           {/* Progressions list */}
           {filtered.length === 0 ? (
             <div className="text-center mt-20">
-              <Music2 size={40} strokeWidth={1} style={{ color: 'rgba(235,235,245,0.15)', margin: '0 auto 12px' }} />
-              <p style={{ color: 'rgba(235,235,245,0.35)', fontSize: 15 }}>
+              <Music2 size={40} strokeWidth={1} style={{ color: 'var(--color-text-muted)', margin: '0 auto 12px' }} />
+              <p style={{ color: 'var(--color-text-tertiary)', fontSize: 15 }}>
                 {progressions.length === 0 ? 'No progressions yet. Tap "New" to create one.' : 'No progressions match your search.'}
               </p>
             </div>
@@ -228,31 +267,32 @@ export default function ChordLibraryPage() {
               {filtered.map((p) => {
                 const folder = p.folderId ? folders.find((f) => f.id === p.folderId) : undefined
                 const isSelected = selected.has(p.id)
+                const isExpanded = expandedId === p.id
                 return (
                   <div
                     key={p.id}
-                    className="rounded-2xl p-4 transition-all"
+                    className="rounded-2xl transition-all overflow-hidden"
                     style={{
-                      backgroundColor: isSelected ? '#bf5af222' : '#1c1c1e',
-                      border: isSelected ? '1px solid #bf5af266' : '1px solid transparent',
-                      borderLeft: folder ? `3px solid ${folder.color}` : isSelected ? '3px solid #bf5af2' : undefined,
+                      backgroundColor: isSelected ? 'var(--color-accent-dim)' : 'var(--color-card)',
+                      border: isSelected ? '1px solid var(--color-accent)' : '1px solid transparent',
+                      borderLeft: folder ? `3px solid ${folder.color}` : isSelected ? '3px solid var(--color-accent)' : undefined,
                     }}
                     onClick={selectMode ? () => toggleSelect(p.id) : undefined}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 p-4">
                       {selectMode && (
                         <div className="flex-shrink-0 mt-0.5">
                           {isSelected
-                            ? <CheckSquare size={18} strokeWidth={1.5} style={{ color: '#bf5af2' }} />
-                            : <Square size={18} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
+                            ? <CheckSquare size={18} strokeWidth={1.5} style={{ color: 'var(--color-accent)' }} />
+                            : <Square size={18} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
                           }
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="font-semibold text-white text-sm">{p.name}</span>
+                          <span className="font-semibold text-sm">{p.name}</span>
                           {p.key && (
-                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#bf5af222', color: '#bf5af2' }}>
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}>
                               {p.key}
                             </span>
                           )}
@@ -274,26 +314,46 @@ export default function ChordLibraryPage() {
                                 {chord}
                               </span>
                               {i < p.chords.length - 1 && (
-                                <span style={{ color: 'rgba(235,235,245,0.2)', fontSize: 12 }}>→</span>
+                                <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>→</span>
                               )}
                             </span>
                           ))}
                         </div>
                         {p.description && (
-                          <p className="text-xs mt-1.5" style={{ color: 'rgba(235,235,245,0.35)' }}>{p.description}</p>
+                          <p className="text-xs mt-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{p.description}</p>
                         )}
                       </div>
                       {!selectMode && (
                         <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                            className="p-2 rounded-xl hover:bg-white/5 transition-transform"
+                            title={isExpanded ? 'Collapse' : 'Show chord diagrams'}
+                          >
+                            <ChevronDown
+                              size={16}
+                              strokeWidth={1.5}
+                              style={{
+                                color: isExpanded ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease',
+                              }}
+                            />
+                          </button>
                           <button onClick={() => handleEdit(p)} className="p-2 rounded-xl hover:bg-white/5" title="Edit">
-                            <ChevronRight size={16} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
+                            <ChevronRight size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
                           </button>
                           <button onClick={() => { if (confirm('Delete this progression?')) deleteProgression(p.id) }} className="p-2 rounded-xl hover:bg-white/5">
-                            <Trash2 size={14} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+                            <Trash2 size={14} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
                           </button>
                         </div>
                       )}
                     </div>
+
+                    {/* Expanded chord diagrams */}
+                    {isExpanded && p.chords.length > 0 && (
+                      <ProgressionDiagrams chords={p.chords} />
+                    )}
                   </div>
                 )
               })}
@@ -305,11 +365,11 @@ export default function ChordLibraryPage() {
       {tab === 'reference' && (
         <>
           {/* Reference search */}
-          <div className="flex items-center gap-2 px-3 rounded-xl mb-4" style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minHeight: 44 }}>
-            <Search size={15} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)', flexShrink: 0 }} />
-            <input value={refQuery} onChange={(e) => setRefQuery(e.target.value)} className="flex-1 bg-transparent text-white outline-none text-sm" placeholder="Search chords (e.g. Am, F#m, Cmaj7)…" />
+          <div className="flex items-center gap-2 px-3 rounded-xl mb-4" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}>
+            <Search size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+            <input value={refQuery} onChange={(e) => setRefQuery(e.target.value)} className="flex-1 bg-transparent outline-none text-sm" placeholder="Search chords (e.g. Am, F#m, Cmaj7)…" />
           </div>
-          <p className="text-xs mb-3 px-1" style={{ color: 'rgba(235,235,245,0.3)' }}>
+          <p className="text-xs mb-3 px-1" style={{ color: 'var(--color-text-muted)' }}>
             Built-in guitar chord reference · {filteredRefChords.length} chords
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
@@ -317,7 +377,7 @@ export default function ChordLibraryPage() {
               const voicing = getGuitarChord(name)
               if (!voicing) return null
               return (
-                <div key={name} className="flex flex-col items-center rounded-2xl p-3" style={{ backgroundColor: '#1c1c1e' }}>
+                <div key={name} className="flex flex-col items-center rounded-2xl p-3" style={{ backgroundColor: 'var(--color-card)' }}>
                   <GuitarDiagram
                     chord={name}
                     customDiagram={voicing}
@@ -325,7 +385,7 @@ export default function ChordLibraryPage() {
                     dotColor={guitarDotColor}
                     flipped={guitarFlipped}
                   />
-                  <span className="text-xs font-semibold text-white mt-1">{name}</span>
+                  <span className="text-xs font-semibold mt-1">{name}</span>
                 </div>
               )
             })}

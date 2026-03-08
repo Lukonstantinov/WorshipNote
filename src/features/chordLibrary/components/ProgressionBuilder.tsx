@@ -89,9 +89,9 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
   }
 
   const inputStyle: React.CSSProperties = {
-    backgroundColor: '#1c1c1e',
-    border: '1px solid #2c2c2e',
-    color: '#ffffff',
+    backgroundColor: 'var(--color-card)',
+    border: '1px solid var(--color-border)',
+    color: 'var(--color-text-primary)',
     borderRadius: 12,
     outline: 'none',
     width: '100%',
@@ -108,27 +108,27 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      style={{ backgroundColor: 'var(--color-overlay)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
         className="w-full max-w-lg rounded-t-3xl md:rounded-3xl overflow-hidden flex flex-col"
-        style={{ backgroundColor: '#111111', maxHeight: '90vh' }}
+        style={{ backgroundColor: 'var(--color-bg-secondary)', maxHeight: '90vh' }}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: '#2c2c2e' }}>
-          <h2 className="flex-1 font-bold text-white text-lg">
+        <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
+          <h2 className="flex-1 font-bold text-lg">
             {progression ? 'Edit Progression' : 'New Progression'}
           </h2>
-          <button onClick={onClose} className="p-2 rounded-xl" style={{ backgroundColor: '#2c2c2e' }}>
-            <X size={18} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.6)' }} />
+          <button onClick={onClose} className="p-2 rounded-xl" style={{ backgroundColor: 'var(--color-card-raised)' }}>
+            <X size={18} strokeWidth={2} style={{ color: 'var(--color-text-secondary)' }} />
           </button>
         </div>
 
         <div className="overflow-auto flex-1 p-5 space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(235,235,245,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Name
             </label>
             <input
@@ -142,7 +142,7 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
           {/* Key + Folder */}
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(235,235,245,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Key (optional)
               </label>
               <select
@@ -150,14 +150,14 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
                 onChange={(e) => setKey(e.target.value)}
                 style={{ ...inputStyle, cursor: 'pointer' }}
               >
-                <option value="" style={{ backgroundColor: '#1c1c1e' }}>— No key —</option>
-                {NOTES.map((n) => <option key={n} value={n} style={{ backgroundColor: '#1c1c1e' }}>{n} major</option>)}
-                {MINOR_NOTES.map((n) => <option key={n} value={n} style={{ backgroundColor: '#1c1c1e' }}>{n} minor</option>)}
+                <option value="" style={{ backgroundColor: 'var(--color-card)' }}>— No key —</option>
+                {NOTES.map((n) => <option key={n} value={n} style={{ backgroundColor: 'var(--color-card)' }}>{n} major</option>)}
+                {MINOR_NOTES.map((n) => <option key={n} value={n} style={{ backgroundColor: 'var(--color-card)' }}>{n} minor</option>)}
               </select>
             </div>
             {folders.length > 0 && (
               <div className="flex-1">
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(235,235,245,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Folder
                 </label>
                 <select
@@ -165,9 +165,9 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
                   onChange={(e) => setFolderId(e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}
                 >
-                  <option value="" style={{ backgroundColor: '#1c1c1e' }}>— None —</option>
+                  <option value="" style={{ backgroundColor: 'var(--color-card)' }}>— None —</option>
                   {folders.map((f) => (
-                    <option key={f.id} value={f.id} style={{ backgroundColor: '#1c1c1e' }}>{f.name}</option>
+                    <option key={f.id} value={f.id} style={{ backgroundColor: 'var(--color-card)' }}>{f.name}</option>
                   ))}
                 </select>
               </div>
@@ -176,7 +176,7 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(235,235,245,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Notes (optional)
             </label>
             <input
@@ -189,15 +189,15 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
 
           {/* Chord sequence display */}
           <div>
-            <label className="block text-xs font-medium mb-2" style={{ color: 'rgba(235,235,245,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label className="block text-xs font-medium mb-2" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Chord Sequence
             </label>
             {chords.length === 0 ? (
-              <p className="text-sm py-3 text-center rounded-xl" style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.3)' }}>
+              <p className="text-sm py-3 text-center rounded-xl" style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-muted)' }}>
                 No chords yet. Add chords below.
               </p>
             ) : (
-              <div className="flex flex-wrap gap-2 p-3 rounded-xl" style={{ backgroundColor: '#1c1c1e' }}>
+              <div className="flex flex-wrap gap-2 p-3 rounded-xl" style={{ backgroundColor: 'var(--color-card)' }}>
                 {chords.map((chord, idx) => {
                   const roman = key && keyRoot ? getRomanNumeral(chord, keyRoot, isMinorKey) : ''
                   return (
@@ -206,28 +206,28 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
                       className="flex flex-col items-center gap-0.5"
                     >
                       {roman && (
-                        <span className="text-xs font-medium" style={{ color: '#bf5af2', fontSize: 9, letterSpacing: '0.04em' }}>
+                        <span className="text-xs font-medium" style={{ color: 'var(--color-accent)', fontSize: 9, letterSpacing: '0.04em' }}>
                           {roman}
                         </span>
                       )}
                       <div
                         className="flex items-center gap-1 px-3 py-1.5 rounded-xl"
-                        style={{ backgroundColor: '#2c2c2e' }}
+                        style={{ backgroundColor: 'var(--color-card-raised)' }}
                       >
                         <button
                           onClick={() => idx > 0 && moveChord(idx, idx - 1)}
                           disabled={idx === 0}
                           className="opacity-30 hover:opacity-70 disabled:opacity-10"
                         >
-                          <GripVertical size={12} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.6)' }} />
+                          <GripVertical size={12} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
                         </button>
-                        <span className="text-sm font-semibold text-white">{chord}</span>
+                        <span className="text-sm font-semibold">{chord}</span>
                         <button onClick={() => removeChord(idx)} className="opacity-40 hover:opacity-80">
-                          <X size={12} strokeWidth={2.5} style={{ color: '#ff453a' }} />
+                          <X size={12} strokeWidth={2.5} style={{ color: 'var(--color-error)' }} />
                         </button>
                       </div>
                       {idx < chords.length - 1 && (
-                        <span style={{ color: 'rgba(235,235,245,0.2)', fontSize: 10 }}>→</span>
+                        <span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>→</span>
                       )}
                     </div>
                   )
@@ -251,8 +251,8 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
                 disabled={!newChord.trim()}
                 className="flex items-center justify-center rounded-xl transition-all active:scale-95"
                 style={{
-                  backgroundColor: newChord.trim() ? '#bf5af2' : '#1c1c1e',
-                  color: newChord.trim() ? '#fff' : 'rgba(235,235,245,0.3)',
+                  backgroundColor: newChord.trim() ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: newChord.trim() ? '#fff' : 'var(--color-text-muted)',
                   minWidth: 44, minHeight: 44,
                 }}
               >
@@ -266,7 +266,7 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
                   key={c}
                   onClick={() => setChords((prev) => [...prev, c])}
                   className="px-2 py-1 rounded-lg text-xs font-medium transition-all active:scale-95"
-                  style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.6)', border: '1px solid #2c2c2e' }}
+                  style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
                 >
                   {c}
                 </button>
@@ -276,19 +276,19 @@ export function ProgressionBuilder({ progression, onClose }: Props) {
         </div>
 
         {/* Footer actions */}
-        <div className="flex gap-3 px-5 py-4 border-t" style={{ borderColor: '#2c2c2e' }}>
+        <div className="flex gap-3 px-5 py-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
           <button
             onClick={handleSave}
             disabled={!name.trim()}
-            className="flex-1 py-3 rounded-xl font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-40"
-            style={{ backgroundColor: '#bf5af2', minHeight: 44 }}
+            className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98] disabled:opacity-40"
+            style={{ backgroundColor: 'var(--color-accent)', minHeight: 44 }}
           >
             Save Progression
           </button>
           <button
             onClick={onClose}
             className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]"
-            style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.5)', minHeight: 44 }}
+            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)', minHeight: 44 }}
           >
             Cancel
           </button>

@@ -22,13 +22,13 @@ function abbreviateLabel(lbl: string): string {
 // Color per section type
 function sectionColor(abbr: string): string {
   switch (abbr) {
-    case 'V': return '#0a84ff'
-    case 'C': return '#bf5af2'
-    case 'B': return '#ff9f0a'
-    case 'I': return '#32d74b'
-    case 'O': return '#64d2ff'
-    case 'P': return '#ff453a'
-    default: return '#636366'
+    case 'V': return 'var(--color-info)'
+    case 'C': return 'var(--color-accent)'
+    case 'B': return 'var(--color-warning)'
+    case 'I': return 'var(--color-chord)'
+    case 'O': return 'var(--color-info)'
+    case 'P': return 'var(--color-error)'
+    default: return 'var(--color-text-tertiary)'
   }
 }
 
@@ -40,11 +40,11 @@ export default function SetlistPage() {
   return (
     <div className="p-4 pb-28 md:pb-4">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-white tracking-tight">{t('setlists')}</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('setlists')}</h2>
         <Link
           to="/setlists/new"
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-          style={{ backgroundColor: '#bf5af2', color: '#fff', minHeight: 44 }}
+          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)', minHeight: 44 }}
         >
           <Plus size={16} strokeWidth={2.5} />
           {t('newSetlist')}
@@ -53,24 +53,24 @@ export default function SetlistPage() {
 
       {setlists.length === 0 ? (
         <div className="text-center mt-20">
-          <ListMusic size={40} strokeWidth={1} style={{ color: 'rgba(235,235,245,0.15)', margin: '0 auto 12px' }} />
-          <p style={{ color: 'rgba(235,235,245,0.35)', fontSize: 15 }}>{t('noSetlists')}</p>
+          <ListMusic size={40} strokeWidth={1} style={{ color: 'var(--color-text-muted)', margin: '0 auto 12px' }} />
+          <p style={{ color: 'var(--color-text-tertiary)', fontSize: 15 }}>{t('noSetlists')}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {setlists.map((sl) => (
-            <div key={sl.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+            <div key={sl.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
               {/* Setlist header */}
               <div className="flex items-center gap-3 px-4 py-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white">{sl.title}</h3>
+                  <h3 className="font-semibold">{sl.title}</h3>
                   {sl.service_date && (
-                    <p className="text-xs mt-0.5" style={{ color: 'rgba(235,235,245,0.35)' }}>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
                       {sl.service_date}
                     </p>
                   )}
                   {sl.notes && (
-                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(235,235,245,0.5)', whiteSpace: 'pre-wrap' }}>
+                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-text-tertiary)', whiteSpace: 'pre-wrap' }}>
                       {sl.notes}
                     </p>
                   )}
@@ -78,26 +78,26 @@ export default function SetlistPage() {
                 <Link
                   to={`/setlists/${sl.id}/edit`}
                   className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-                  style={{ backgroundColor: '#2c2c2e', minWidth: 40, minHeight: 40 }}
+                  style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 40, minHeight: 40 }}
                   title={t('edit')}
                 >
-                  <Pencil size={15} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.6)' }} />
+                  <Pencil size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
                 </Link>
                 <button
                   onClick={() => {
                     if (confirm(t('confirmDelete'))) deleteSetlist(sl.id)
                   }}
                   className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-                  style={{ backgroundColor: '#2c2c2e', minWidth: 40, minHeight: 40 }}
+                  style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 40, minHeight: 40 }}
                   title={t('delete')}
                 >
-                  <Trash2 size={15} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+                  <Trash2 size={15} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
                 </button>
               </div>
 
               {/* Song list */}
               {sl.songs.length > 0 && (
-                <div style={{ borderTop: '1px solid #2c2c2e' }}>
+                <div style={{ borderTop: '1px solid var(--color-border)' }}>
                   {sl.songs
                     .slice()
                     .sort((a, b) => a.sort_order - b.sort_order)
@@ -127,16 +127,16 @@ export default function SetlistPage() {
                               {ss.vocalist && (
                                 <span
                                   className="font-semibold"
-                                  style={{ color: ss.vocalColor ?? '#0a84ff', fontSize: 11 }}
+                                  style={{ color: ss.vocalColor ?? 'var(--color-info)', fontSize: 11 }}
                                 >
                                   ({ss.vocalist})
                                 </span>
                               )}
-                              <span className="text-sm text-white">{song.title}</span>
+                              <span className="text-sm">{song.title}</span>
                               {song.original_key && (
                                 <span
                                   className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                                  style={{ backgroundColor: 'rgba(50,215,75,0.1)', color: '#32d74b' }}
+                                  style={{ backgroundColor: 'rgba(50,215,75,0.1)', color: 'var(--color-chord)' }}
                                 >
                                   {song.original_key}
                                 </span>
@@ -161,7 +161,7 @@ export default function SetlistPage() {
                               </div>
                             )}
                           </div>
-                          <ChevronRight size={14} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.2)', flexShrink: 0, marginTop: 4 }} />
+                          <ChevronRight size={14} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0, marginTop: 4 }} />
                         </Link>
                       )
                     })}
