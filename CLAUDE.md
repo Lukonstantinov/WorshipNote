@@ -22,6 +22,19 @@ npm run build        # Production build
 npx cap sync         # Sync Capacitor native projects
 ```
 
+### Android Signed APK (local build)
+
+```bash
+npm run build
+npx cap sync android
+cd android && ./gradlew assembleRelease
+# Output: android/app/build/outputs/apk/release/app-release.apk
+```
+
+- **Keystore:** `android/app/worshiphub-release.jks` (alias: `worshiphub`, password: `worshiphub123`)
+- **Signing config:** Embedded in `android/app/build.gradle` → `signingConfigs.release`
+- **CI:** GitHub Actions workflow (`.github/workflows/android.yml`) builds and uploads the signed APK automatically. Pushes to `master` also create a GitHub Release.
+
 ## Project Structure
 
 ```
