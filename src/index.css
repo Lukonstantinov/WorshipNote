@@ -39,3 +39,8 @@ button {
 textarea, input {
   font-family: inherit;
 }
+
+/* Theme-aware hover background — replaces hover:bg-white/10 */
+.hover-bg:hover {
+  background-color: var(--color-hover);
+}

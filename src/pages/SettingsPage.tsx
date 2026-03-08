@@ -128,8 +128,8 @@ export default function SettingsPage() {
               <button
                 key={code}
                 onClick={() => handleLanguage(code)}
-                className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5"
-                style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined, minHeight: 50 }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover-bg"
+                style={{ borderTop: idx > 0 ? '1px solid var(--color-border-subtle)' : undefined, minHeight: 50 }}
               >
                 <div className="flex-1 text-left">
                   <div className="text-sm font-medium">{label}</div>
@@ -196,7 +196,7 @@ export default function SettingsPage() {
               <div
                 key={instr.id}
                 className="flex items-center gap-3 px-4 py-3"
-                style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
+                style={{ borderTop: idx > 0 ? '1px solid var(--color-border-subtle)' : undefined }}
               >
                 <span style={{ color: 'var(--color-text-tertiary)' }}>{INSTRUMENT_ICONS[instr.type]}</span>
                 <div className="flex-1">
@@ -368,7 +368,7 @@ export default function SettingsPage() {
                 <div
                   key={roleId}
                   className="flex items-center gap-3 px-4 py-3"
-                  style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
+                  style={{ borderTop: idx > 0 ? '1px solid var(--color-border-subtle)' : undefined }}
                 >
                   {isEditing ? (
                     <input
@@ -413,7 +413,7 @@ export default function SettingsPage() {
                 <div
                   key={cr.id}
                   className="px-4 py-3"
-                  style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
+                  style={{ borderTop: idx > 0 ? '1px solid var(--color-border-subtle)' : undefined }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm flex-1">{cr.name}</span>
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                   <div
                     key={tag}
                     className="flex items-center gap-3 px-4 py-3"
-                    style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
+                    style={{ borderTop: idx > 0 ? '1px solid var(--color-border-subtle)' : undefined }}
                   >
                     <span
                       className="text-sm flex-1"
@@ -576,6 +576,9 @@ export default function SettingsPage() {
           />
         </section>
 
+        {/* Song Presets */}
+        <SongPresetsSection />
+
         {/* Export / Import */}
         <ExportImportPanel />
 
@@ -598,5 +601,226 @@ export default function SettingsPage() {
 
       </div>
     </div>
+  )
+}
+
+const PRESET_COLORS = [
+  '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#0a84ff', '#bf5af2', '#ff6482', '#64d2ff',
+]
+
+function SongPresetsSection() {
+  const { t } = useTranslation()
+  const { songPresets, addSongPreset, updateSongPreset, deleteSongPreset, setDefaultPreset } = useSettingsStore()
+  const [adding, setAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [color, setColor] = useState(PRESET_COLORS[0])
+  const [presetContent, setPresetContent] = useState('')
+  const [presetKey, setPresetKey] = useState('')
+  const [presetBpm, setPresetBpm] = useState('')
+  const [presetTags, setPresetTags] = useState('')
+
+  const startAdd = () => {
+    setAdding(true)
+    setEditingId(null)
+    setName('')
+    setColor(PRESET_COLORS[0])
+    setPresetContent('')
+    setPresetKey('')
+    setPresetBpm('')
+    setPresetTags('')
+  }
+
+  const startEdit = (id: string) => {
+    const p = songPresets.find((x) => x.id === id)
+    if (!p) return
+    setEditingId(id)
+    setAdding(false)
+    setName(p.name)
+    setColor(p.color)
+    setPresetContent(p.content)
+    setPresetKey(p.key ?? '')
+    setPresetBpm(p.bpm ? String(p.bpm) : '')
+    setPresetTags(p.tags?.join(', ') ?? '')
+  }
+
+  const handleSave = () => {
+    if (!name.trim()) return
+    const data = {
+      name: name.trim(),
+      color,
+      content: presetContent,
+      key: presetKey || undefined,
+      bpm: presetBpm ? parseInt(presetBpm) : undefined,
+      tags: presetTags ? presetTags.split(',').map((t) => t.trim()).filter(Boolean) : undefined,
+    }
+    if (editingId) {
+      updateSongPreset(editingId, data)
+      setEditingId(null)
+    } else {
+      addSongPreset({ id: generateId(), ...data })
+      setAdding(false)
+    }
+    setName('')
+    setPresetContent('')
+  }
+
+  const sectionLabel: React.CSSProperties = {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    color: 'var(--color-text-tertiary)',
+    marginBottom: 8,
+  }
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-2">
+        <p style={sectionLabel}>{t('presets')}</p>
+        <button
+          onClick={startAdd}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium transition-all active:scale-95"
+          style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-tertiary)', border: '1px solid var(--color-border)' }}
+        >
+          <Plus size={12} strokeWidth={2} /> {t('addPreset')}
+        </button>
+      </div>
+
+      <p className="text-xs mb-3 px-1" style={{ color: 'var(--color-text-muted)' }}>
+        Presets auto-fill content, key, BPM, tags when creating new songs.
+      </p>
+
+      {/* Preset list */}
+      {songPresets.length > 0 && (
+        <div className="space-y-2 mb-3">
+          {songPresets.map((preset) => (
+            <div
+              key={preset.id}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+              style={{
+                backgroundColor: 'var(--color-card)',
+                border: `1px solid ${preset.color}33`,
+              }}
+            >
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: preset.color }} />
+              <span className="flex-1 text-sm font-medium" style={{ color: preset.color }}>
+                {preset.name}
+              </span>
+              {preset.isDefault && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${preset.color}22`, color: preset.color }}>
+                  {t('defaultPreset')}
+                </span>
+              )}
+              <button
+                onClick={() => setDefaultPreset(preset.id)}
+                className="text-xs px-2 py-0.5 rounded-lg transition-all"
+                style={{
+                  backgroundColor: preset.isDefault ? 'var(--color-accent-dim)' : 'transparent',
+                  color: preset.isDefault ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                }}
+              >
+                {preset.isDefault ? '★' : '☆'}
+              </button>
+              <button
+                onClick={() => startEdit(preset.id)}
+                className="p-1 rounded-lg"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                <Pencil size={12} strokeWidth={2} />
+              </button>
+              <button
+                onClick={() => { if (confirm(t('deletePreset') + '?')) deleteSongPreset(preset.id) }}
+                className="p-1 rounded-lg"
+                style={{ color: 'var(--color-error)', opacity: 0.5 }}
+              >
+                <Trash2 size={12} strokeWidth={2} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add / Edit form */}
+      {(adding || editingId) && (
+        <div
+          className="p-3 rounded-2xl space-y-2"
+          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+        >
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('presetName')}
+            className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+            style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}
+          />
+          {/* Color picker */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Color:</span>
+            {PRESET_COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => setColor(c)}
+                className="rounded-full flex-shrink-0"
+                style={{
+                  width: 20, height: 20,
+                  backgroundColor: c,
+                  outline: color === c ? '2px solid var(--color-text-primary)' : '2px solid transparent',
+                  outlineOffset: 1,
+                }}
+              />
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={presetKey}
+              onChange={(e) => setPresetKey(e.target.value)}
+              placeholder="Key (G, Am…)"
+              className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
+              style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}
+            />
+            <input
+              value={presetBpm}
+              onChange={(e) => setPresetBpm(e.target.value)}
+              placeholder="BPM"
+              type="number"
+              className="w-20 rounded-xl px-3 py-2 text-sm outline-none"
+              style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}
+            />
+          </div>
+          <input
+            value={presetTags}
+            onChange={(e) => setPresetTags(e.target.value)}
+            placeholder="Tags (comma-separated)"
+            className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+            style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}
+          />
+          <textarea
+            value={presetContent}
+            onChange={(e) => setPresetContent(e.target.value)}
+            placeholder="Template content (ChordPro format)"
+            rows={4}
+            className="w-full rounded-xl px-3 py-2 text-sm font-mono resize-none outline-none"
+            style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', lineHeight: 1.5 }}
+          />
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={handleSave}
+              disabled={!name.trim()}
+              className="flex-1 py-2 rounded-xl text-sm font-medium transition-all active:scale-95 disabled:opacity-30"
+              style={{ backgroundColor: color, color: '#fff' }}
+            >
+              {t('save')}
+            </button>
+            <button
+              onClick={() => { setAdding(false); setEditingId(null) }}
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)' }}
+            >
+              {t('cancel')}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   )
 }

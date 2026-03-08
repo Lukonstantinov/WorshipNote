@@ -70,8 +70,8 @@ export function MiniPianoDiagram({ chord, customDiagram, size = 56, highlightCol
               width={wKeyW - 1}
               height={wKeyH - 1}
               rx={1}
-              fill={hi ? highlightColor : '#ffffff'}
-              stroke="#333"
+              fill={hi ? highlightColor : 'var(--color-piano-white)'}
+              stroke="var(--color-piano-stroke)"
               strokeWidth={0.5}
             />
           )

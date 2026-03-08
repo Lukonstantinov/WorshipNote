@@ -56,7 +56,7 @@ function FormatGuide() {
     <div className="mt-3 rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
       <button
         onClick={() => setOpen((p) => !p)}
-        className="w-full flex items-center gap-2 px-4 py-3 transition-all hover:bg-white/5"
+        className="w-full flex items-center gap-2 px-4 py-3 transition-all hover-bg"
       >
         <Info size={15} strokeWidth={1.5} style={{ color: 'var(--color-info)' }} />
         <span className="flex-1 text-left text-sm" style={{ color: 'var(--color-text-secondary)' }}>
@@ -266,7 +266,7 @@ export function ExportImportPanel() {
         <button
           onClick={handleExportJSON}
           disabled={songs.length === 0}
-          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
+          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover-bg disabled:opacity-30"
           style={{ minHeight: 50 }}
         >
           <FileJson size={18} strokeWidth={1.5} style={{ color: 'var(--color-info)' }} />
@@ -282,7 +282,7 @@ export function ExportImportPanel() {
         <button
           onClick={() => handleExportTXT(true)}
           disabled={songs.length === 0}
-          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
+          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover-bg disabled:opacity-30"
           style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
           <FileText size={18} strokeWidth={1.5} style={{ color: 'var(--color-chord)' }} />
@@ -298,7 +298,7 @@ export function ExportImportPanel() {
         <button
           onClick={() => handleExportTXT(false)}
           disabled={songs.length === 0}
-          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
+          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover-bg disabled:opacity-30"
           style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
           <FileText size={18} strokeWidth={1.5} style={{ color: 'var(--color-warning)' }} />
@@ -314,7 +314,7 @@ export function ExportImportPanel() {
         <button
           onClick={handleExportChords}
           disabled={chordCount === 0}
-          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5 disabled:opacity-30"
+          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover-bg disabled:opacity-30"
           style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
           <FileJson size={18} strokeWidth={1.5} style={{ color: 'var(--color-accent)' }} />
@@ -332,7 +332,7 @@ export function ExportImportPanel() {
       <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
         <button
           onClick={() => songFileRef.current?.click()}
-          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5"
+          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover-bg"
           style={{ minHeight: 50 }}
         >
           <Upload size={18} strokeWidth={1.5} style={{ color: 'var(--color-info)' }} />
@@ -346,7 +346,7 @@ export function ExportImportPanel() {
 
         <button
           onClick={() => chordFileRef.current?.click()}
-          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover:bg-white/5"
+          className="w-full flex items-center gap-3 px-4 py-3.5 transition-all hover-bg"
           style={{ borderTop: '1px solid var(--color-border)', minHeight: 50 }}
         >
           <Upload size={18} strokeWidth={1.5} style={{ color: 'var(--color-accent)' }} />

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Mic, MicOff, Settings2, Music2, Guitar } from 'lucide-react'
+import { Mic, MicOff, Settings2, Music2, Guitar, ShieldAlert } from 'lucide-react'
 import { usePitchStore } from '../store/pitchStore'
 import { usePitchDetection } from '../features/pitch/hooks/usePitchDetection'
 import { useChordDetection } from '../features/pitch/hooks/useChordDetection'
@@ -10,11 +10,58 @@ import { ChordDisplay } from '../features/pitch/components/ChordDisplay'
 import { MicControls } from '../features/pitch/components/MicControls'
 import { PianoRollTimeline } from '../features/pitch/components/PianoRollTimeline'
 
+type MicPermission = 'unknown' | 'granted' | 'denied' | 'prompt'
+
 export default function PitchPage() {
   const { t } = useTranslation()
   const { micGain, noiseThreshold, deviceId, mode, setMicGain, setNoiseThreshold, setDeviceId, setMode } = usePitchStore()
   const [listening, setListening] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [micPermission, setMicPermission] = useState<MicPermission>('unknown')
+
+  // Check mic permission on mount
+  useEffect(() => {
+    async function checkPermission() {
+      try {
+        if (navigator.permissions) {
+          const result = await navigator.permissions.query({ name: 'microphone' as PermissionName })
+          setMicPermission(result.state as MicPermission)
+          result.onchange = () => setMicPermission(result.state as MicPermission)
+        }
+      } catch {
+        // permissions API not available (some browsers), that's OK
+      }
+    }
+    checkPermission()
+  }, [])
+
+  const requestMicPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      stream.getTracks().forEach((t) => t.stop())
+      setMicPermission('granted')
+      setListening(true)
+    } catch {
+      setMicPermission('denied')
+    }
+  }
+
+  const handleMicToggle = async () => {
+    if (listening) {
+      setListening(false)
+      return
+    }
+    // If permission unknown or prompt, request it first
+    if (micPermission === 'denied') {
+      // Can't re-request, show help
+      return
+    }
+    if (micPermission !== 'granted') {
+      await requestMicPermission()
+    } else {
+      setListening(true)
+    }
+  }
 
   const pitchResult = usePitchDetection({
     enabled: listening && mode === 'note',
@@ -31,6 +78,14 @@ export default function PitchPage() {
   })
 
   const error = mode === 'note' ? pitchResult.error : chordResult.error
+
+  // If hook reports error, update permission state
+  useEffect(() => {
+    if (error && (error.includes('denied') || error.includes('Permission') || error.includes('NotAllowed'))) {
+      setMicPermission('denied')
+      setListening(false)
+    }
+  }, [error])
 
   return (
     <div className="flex flex-col h-full" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -91,10 +146,18 @@ export default function PitchPage() {
         </div>
       )}
 
-      {/* Error */}
-      {error && (
-        <div className="mx-4 mt-4 px-4 py-3 rounded-xl" style={{ backgroundColor: 'var(--color-error)22', color: 'var(--color-error)' }}>
-          <p className="text-sm">{error}</p>
+      {/* Permission denied message */}
+      {micPermission === 'denied' && (
+        <div className="mx-4 mt-4 px-4 py-4 rounded-2xl flex items-start gap-3" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
+          <ShieldAlert size={20} style={{ color: 'var(--color-warning)', flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              {t('pitchMicDenied')}
+            </p>
+            <p className="text-xs mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
+              {t('pitchMicDeniedHint')}
+            </p>
+          </div>
         </div>
       )}
 
@@ -120,13 +183,18 @@ export default function PitchPage() {
       {/* Big mic button */}
       <div className="flex justify-center pb-8 pt-4">
         <button
-          onClick={() => setListening((p) => !p)}
+          onClick={handleMicToggle}
           className="rounded-full flex items-center justify-center transition-all active:scale-95"
           style={{
             width: 80,
             height: 80,
-            backgroundColor: listening ? 'var(--color-error)' : 'var(--color-accent)',
-            boxShadow: listening ? '0 0 30px var(--color-error)44' : '0 0 30px var(--color-accent)44',
+            backgroundColor: micPermission === 'denied'
+              ? 'var(--color-text-muted)'
+              : listening
+                ? 'var(--color-error)'
+                : 'var(--color-accent)',
+            boxShadow: listening ? '0 0 30px var(--color-error)44' : 'none',
+            opacity: micPermission === 'denied' ? 0.5 : 1,
           }}
         >
           {listening

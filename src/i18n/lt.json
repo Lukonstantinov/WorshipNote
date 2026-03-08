@@ -134,5 +134,13 @@
   "pitchDevice": "Įvesties įrenginys",
   "pitchDefaultDevice": "Numatytasis mikrofonas",
   "addFromLibrary": "Iš bibliotekos",
-  "chordRowsLabel": "Akordų eilutės"
+  "chordRowsLabel": "Akordų eilutės",
+  "pitchMicDenied": "Mikrofono prieiga uždrausta",
+  "pitchMicDeniedHint": "Atidarykite įrenginio nustatymus ir leiskite prieigą prie mikrofono šiai programai.",
+  "presets": "Šablonai",
+  "addPreset": "Pridėti šabloną",
+  "presetName": "Šablono pavadinimas",
+  "defaultPreset": "Numatytasis",
+  "applyPreset": "Taikyti",
+  "deletePreset": "Ištrinti šabloną"
 }

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft, Camera, RotateCcw } from 'lucide-react'
+import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft, Camera, RotateCcw, Sparkles } from 'lucide-react'
 import type { Song } from '../types'
 import { useSongStore } from '../../../store/songStore'
 import { useFolderStore } from '../../../store/folderStore'
@@ -20,12 +20,13 @@ export function SongEditor({ song }: Props) {
   const navigate = useNavigate()
   const { addSong, updateSong } = useSongStore()
   const { folders } = useFolderStore()
-  const { defaultSongTemplate } = useSettingsStore()
+  const { defaultSongTemplate, songPresets } = useSettingsStore()
 
   const [title, setTitle] = useState(song?.title ?? '')
   const [originalKey, setOriginalKey] = useState(song?.original_key ?? '')
   const [bpm, setBpm] = useState<string>(song?.bpm?.toString() ?? '')
-  const [content, setContent] = useState(song?.content ?? (song ? '' : defaultSongTemplate))
+  const defaultPreset = songPresets.find((p) => p.isDefault)
+  const [content, setContent] = useState(song?.content ?? defaultPreset?.content ?? defaultSongTemplate)
   const [tags, setTags] = useState(song?.tags?.join(', ') ?? '')
   const [folderId, setFolderId] = useState<string>(song?.folderId ?? '')
   const [structure, setStructure] = useState(song?.structure ?? '')
@@ -103,6 +104,41 @@ export function SongEditor({ song }: Props) {
         className="flex flex-col p-4 space-y-4 overflow-auto pb-24 md:pb-6"
         style={{ flex: 1, minWidth: 0 }}
       >
+        {/* Preset picker — only for new songs */}
+        {!song && songPresets.length > 0 && (
+          <div>
+            <label style={labelStyle}>
+              <Sparkles size={10} strokeWidth={2} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+              {t('presets')}
+            </label>
+            <div className="flex gap-2 flex-wrap">
+              {songPresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    setContent(preset.content)
+                    if (preset.key) setOriginalKey(preset.key)
+                    if (preset.bpm) setBpm(String(preset.bpm))
+                    if (preset.tags?.length) setTags(preset.tags.join(', '))
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
+                  style={{
+                    backgroundColor: `${preset.color}22`,
+                    color: preset.color,
+                    border: `1px solid ${preset.color}44`,
+                  }}
+                >
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: preset.color }} />
+                  {preset.name}
+                  {preset.isDefault && (
+                    <span className="text-[9px] opacity-60 ml-0.5">*</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Title */}
         <div>
           <label style={labelStyle}>{t('title')}</label>

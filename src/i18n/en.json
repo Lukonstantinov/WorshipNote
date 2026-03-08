@@ -134,5 +134,13 @@
   "pitchDevice": "Input Device",
   "pitchDefaultDevice": "Default microphone",
   "addFromLibrary": "From library",
-  "chordRowsLabel": "Chord rows"
+  "chordRowsLabel": "Chord rows",
+  "pitchMicDenied": "Microphone access denied",
+  "pitchMicDeniedHint": "Open your device settings and allow microphone access for this app, then try again.",
+  "presets": "Presets",
+  "addPreset": "Add Preset",
+  "presetName": "Preset name",
+  "defaultPreset": "Default",
+  "applyPreset": "Apply",
+  "deletePreset": "Delete preset"
 }

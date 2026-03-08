@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Pencil, Trash2, ChevronDown, Guitar, Piano, Music2, Drum, ChevronUp } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, ChevronDown, Guitar, Piano, Music2, Drum, ChevronUp, Plus } from 'lucide-react'
 import { useSongStore } from '../store/songStore'
 import { parseSong, extractStructure } from '../features/songs/lib/parser'
 import { transposeSong } from '../features/songs/lib/transposer'
@@ -50,6 +50,7 @@ export default function SongPage() {
   const [capo, setCapo] = useState(0)
   const [showInstrumentMenu, setShowInstrumentMenu] = useState(false)
   const [showControls, setShowControls] = useState(false)
+  const [showChordRows, setShowChordRows] = useState(false)
   // Show role selector overlay on first open
   const [showRoleSelector, setShowRoleSelector] = useState(true)
 
@@ -300,7 +301,7 @@ export default function SongPage() {
                       <button
                         key={inst.id}
                         onClick={() => { setSelectedInstrument(inst.id); setShowInstrumentMenu(false) }}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:bg-white/10"
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover-bg"
                         style={{ color: selectedInstrument === inst.id ? 'var(--color-chord)' : 'var(--color-text-secondary)' }}
                       >
                         <span style={{ opacity: 0.7 }}>{INSTRUMENT_ICONS[inst.type]}</span>
@@ -335,6 +336,30 @@ export default function SongPage() {
         />
       )}
 
+      {/* Chord rows — collapsible, at the top */}
+      {capabilities.showDiagrams && (
+        <div className="flex-shrink-0 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
+          <button
+            onClick={() => setShowChordRows((p) => !p)}
+            className="flex items-center gap-1.5 w-full px-3 py-1.5 text-xs font-medium transition-all"
+            style={{ color: 'var(--color-text-tertiary)', backgroundColor: 'var(--color-bg-secondary)' }}
+          >
+            {showChordRows
+              ? <ChevronUp size={12} strokeWidth={2} />
+              : <Plus size={12} strokeWidth={2} />
+            }
+            <span>{t('chordRowsLabel') || 'Chord rows'}{(song.chordRows?.length ?? 0) > 0 ? ` (${song.chordRows!.length})` : ''}</span>
+          </button>
+          {showChordRows && (
+            <ChordRowsPanel
+              songId={song.id}
+              chordRows={song.chordRows ?? []}
+              onChange={(rows) => updateSong(song.id, { chordRows: rows })}
+            />
+          )}
+        </div>
+      )}
+
       {/* Main area: content + optional side chord panel */}
       <div className="flex flex-1 min-h-0">
         {/* Song content */}
@@ -342,14 +367,6 @@ export default function SongPage() {
           <div className="p-4 md:p-8">
             <SongViewer parsed={parsed} />
           </div>
-          {/* Chord rows panel */}
-          {capabilities.showDiagrams && (
-            <ChordRowsPanel
-              songId={song.id}
-              chordRows={song.chordRows ?? []}
-              onChange={(rows) => updateSong(song.id, { chordRows: rows })}
-            />
-          )}
           {/* Bar progressions */}
           {capabilities.showChords && (
             <BarProgressions

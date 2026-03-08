@@ -44,24 +44,24 @@ export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = 
   return (
     <div className="flex flex-col items-center">
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-        <text x={w / 2} y={10} textAnchor="middle" fontSize={9} fontWeight="700" fill="#32d74b" fontFamily="system-ui, sans-serif">
+        <text x={w / 2} y={10} textAnchor="middle" fontSize={9} fontWeight="700" fill="var(--color-chord)" fontFamily="system-ui, sans-serif">
           {chord}
         </text>
 
         {baseFret === 1 ? (
-          <rect x={pad} y={topPad} width={gridW} height={2} rx={1} fill="rgba(235,235,245,0.5)" />
+          <rect x={pad} y={topPad} width={gridW} height={2} rx={1} fill="var(--color-text-secondary)" />
         ) : (
-          <text x={pad - 2} y={topPad + fretGap / 2 + 3} textAnchor="end" fontSize={6} fill="rgba(235,235,245,0.4)" fontFamily="system-ui, sans-serif">
+          <text x={pad - 2} y={topPad + fretGap / 2 + 3} textAnchor="end" fontSize={6} fill="var(--color-text-tertiary)" fontFamily="system-ui, sans-serif">
             {baseFret}
           </text>
         )}
 
         {Array.from({ length: FRET_COUNT }).map((_, fi) => (
-          <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="rgba(235,235,245,0.1)" strokeWidth={0.5} />
+          <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="var(--color-diagram-stroke)" strokeWidth={0.5} />
         ))}
 
         {Array.from({ length: STRING_COUNT }).map((_, si) => (
-          <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="rgba(235,235,245,0.15)" strokeWidth={0.5} />
+          <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="var(--color-diagram-stroke)" strokeWidth={0.5} />
         ))}
 
         {frets.map((fret, si) => {
@@ -77,8 +77,8 @@ export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = 
           const cx = pad + si * stringGap
           return (
             <g key={si}>
-              <line x1={cx - 2} y1={topPad - 5} x2={cx + 2} y2={topPad - 1} stroke="rgba(235,235,245,0.3)" strokeWidth={1} strokeLinecap="round" />
-              <line x1={cx + 2} y1={topPad - 5} x2={cx - 2} y2={topPad - 1} stroke="rgba(235,235,245,0.3)" strokeWidth={1} strokeLinecap="round" />
+              <line x1={cx - 2} y1={topPad - 5} x2={cx + 2} y2={topPad - 1} stroke="var(--color-diagram-fret)" strokeWidth={1} strokeLinecap="round" />
+              <line x1={cx + 2} y1={topPad - 5} x2={cx - 2} y2={topPad - 1} stroke="var(--color-diagram-fret)" strokeWidth={1} strokeLinecap="round" />
             </g>
           )
         })}

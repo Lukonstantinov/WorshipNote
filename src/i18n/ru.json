@@ -134,5 +134,13 @@
   "pitchDevice": "Устройство ввода",
   "pitchDefaultDevice": "Микрофон по умолчанию",
   "addFromLibrary": "Из библиотеки",
-  "chordRowsLabel": "Аккордовые ряды"
+  "chordRowsLabel": "Аккордовые ряды",
+  "pitchMicDenied": "Доступ к микрофону запрещён",
+  "pitchMicDeniedHint": "Откройте настройки устройства и разрешите доступ к микрофону для этого приложения.",
+  "presets": "Шаблоны",
+  "addPreset": "Добавить шаблон",
+  "presetName": "Название шаблона",
+  "defaultPreset": "По умолчанию",
+  "applyPreset": "Применить",
+  "deletePreset": "Удалить шаблон"
 }
