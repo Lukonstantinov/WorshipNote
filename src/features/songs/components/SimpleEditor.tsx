@@ -42,13 +42,13 @@ function ChordPicker({ onPick, onClear, onClose, current }: ChordPickerProps) {
   return (
     <div
       className="absolute z-30 rounded-2xl shadow-2xl p-3"
-      style={{ backgroundColor: '#2c2c2e', minWidth: 220, top: '100%', left: 0 }}
+      style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 220, top: '100%', left: 0 }}
     >
       <div className="flex items-center gap-2 mb-2">
         <input
           value={custom}
           onChange={(e) => setCustom(e.target.value)}
-          className="flex-1 bg-transparent text-white text-sm outline-none"
+          className="flex-1 bg-transparent text-sm outline-none"
           placeholder="Custom chord…"
           autoFocus
           onKeyDown={(e) => {
@@ -58,7 +58,7 @@ function ChordPicker({ onPick, onClear, onClose, current }: ChordPickerProps) {
         />
         {current && (
           <button onClick={() => { onClear(); onClose() }}>
-            <X size={14} strokeWidth={2} style={{ color: '#ff453a' }} />
+            <X size={14} strokeWidth={2} style={{ color: 'var(--color-error)' }} />
           </button>
         )}
       </div>
@@ -69,8 +69,8 @@ function ChordPicker({ onPick, onClear, onClose, current }: ChordPickerProps) {
             onClick={() => { onPick(ch); onClose() }}
             className="py-1 rounded-lg text-xs font-semibold transition-all active:scale-95"
             style={{
-              backgroundColor: current === ch ? '#32d74b22' : '#1c1c1e',
-              color: current === ch ? '#32d74b' : 'rgba(235,235,245,0.8)',
+              backgroundColor: current === ch ? '#32d74b22' : 'var(--color-card)',
+              color: current === ch ? 'var(--color-chord)' : 'var(--color-text-secondary)',
               border: current === ch ? '1px solid #32d74b44' : '1px solid transparent',
             }}
           >
@@ -107,7 +107,7 @@ function Word({ word, onChange }: WordProps) {
         onClick={() => setShowPicker((p) => !p)}
         className="text-xs font-semibold leading-tight px-1 rounded"
         style={{
-          color: word.chord ? '#32d74b' : 'rgba(235,235,245,0.2)',
+          color: word.chord ? 'var(--color-chord)' : 'var(--color-text-muted)',
           fontFamily: 'monospace',
           minHeight: 16,
           backgroundColor: word.chord ? 'rgba(50,215,75,0.1)' : 'transparent',
@@ -116,7 +116,7 @@ function Word({ word, onChange }: WordProps) {
         {word.chord ?? '+'}
       </button>
       {/* Word text */}
-      <span className="text-sm text-white leading-snug">{word.text}</span>
+      <span className="text-sm leading-snug">{word.text}</span>
 
       {showPicker && (
         <ChordPicker
@@ -158,10 +158,10 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
   }
 
   return (
-    <div className="rounded-2xl p-3 mb-3" style={{ backgroundColor: '#1c1c1e' }}>
+    <div className="rounded-2xl p-3 mb-3" style={{ backgroundColor: 'var(--color-card)' }}>
       {/* Section header */}
       <div className="flex items-center gap-2 mb-2">
-        <GripVertical size={14} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.2)' }} />
+        <GripVertical size={14} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
         {editingLabel ? (
           <input
             value={customLabel}
@@ -178,7 +178,7 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
               if (e.key === 'Escape') { setCustomLabel(section.label); setEditingLabel(false) }
             }}
             className="flex-1 bg-transparent text-xs font-semibold outline-none px-1 rounded"
-            style={{ color: '#bf5af2', backgroundColor: '#2c2c2e' }}
+            style={{ color: 'var(--color-accent)', backgroundColor: 'var(--color-card-raised)' }}
             placeholder="Custom label..."
             autoFocus
           />
@@ -194,30 +194,30 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
               }
             }}
             className="flex-1 bg-transparent text-xs font-semibold outline-none"
-            style={{ color: '#bf5af2' }}
+            style={{ color: 'var(--color-accent)' }}
           >
             {SECTION_PRESETS.map((p) => (
-              <option key={p.label} value={p.label} style={{ backgroundColor: '#2c2c2e' }}>{p.display}</option>
+              <option key={p.label} value={p.label} style={{ backgroundColor: 'var(--color-card-raised)' }}>{p.display}</option>
             ))}
             {!SECTION_PRESETS.find((p) => p.label === section.label) && (
-              <option value="__custom__" style={{ backgroundColor: '#2c2c2e' }}>{section.label}</option>
+              <option value="__custom__" style={{ backgroundColor: 'var(--color-card-raised)' }}>{section.label}</option>
             )}
-            <option value="__custom__" style={{ backgroundColor: '#2c2c2e' }}>Custom...</option>
+            <option value="__custom__" style={{ backgroundColor: 'var(--color-card-raised)' }}>Custom...</option>
           </select>
         )}
         <div className="flex items-center gap-1 ml-auto">
           {!isFirst && (
             <button onClick={() => onMove(-1)}>
-              <ChevronUp size={14} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.4)' }} />
+              <ChevronUp size={14} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
             </button>
           )}
           {!isLast && (
             <button onClick={() => onMove(1)}>
-              <ChevronDown size={14} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.4)' }} />
+              <ChevronDown size={14} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
             </button>
           )}
           <button onClick={onDelete}>
-            <X size={14} strokeWidth={2} style={{ color: '#ff453a' }} />
+            <X size={14} strokeWidth={2} style={{ color: 'var(--color-error)' }} />
           </button>
         </div>
       </div>
@@ -229,8 +229,8 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={3}
-            className="w-full text-sm rounded-xl px-3 py-2 resize-none outline-none text-white font-mono"
-            style={{ backgroundColor: '#2c2c2e' }}
+            className="w-full text-sm rounded-xl px-3 py-2 resize-none outline-none font-mono"
+            style={{ backgroundColor: 'var(--color-card-raised)' }}
             placeholder={t('tapToAddChord')}
             autoFocus
           />
@@ -238,14 +238,14 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
             <button
               onClick={commitText}
               className="flex-1 py-2 rounded-xl text-xs font-semibold"
-              style={{ backgroundColor: '#bf5af2', color: '#fff' }}
+              style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)' }}
             >
               {t('save')}
             </button>
             <button
               onClick={() => setEditing(false)}
               className="flex-1 py-2 rounded-xl text-xs font-semibold"
-              style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.5)' }}
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)' }}
             >
               {t('cancel')}
             </button>
@@ -257,7 +257,7 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
             <button
               onClick={() => setEditing(true)}
               className="w-full py-3 rounded-xl text-sm text-center"
-              style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.3)', border: '1px dashed #3c3c3e' }}
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-muted)', border: '1px dashed var(--color-border)' }}
             >
               {t('tapToAddChord')} ›
             </button>
@@ -280,7 +280,7 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
               <button
                 onClick={() => setEditing(true)}
                 className="text-xs px-2 py-1 rounded-lg ml-1"
-                style={{ color: 'rgba(235,235,245,0.3)', backgroundColor: '#2c2c2e' }}
+                style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-card-raised)' }}
               >
                 ✎
               </button>
@@ -314,7 +314,7 @@ function MoreSectionsMenu({ onAdd }: { onAdd: (label: string) => void }) {
       <button
         onClick={() => setOpen((p) => !p)}
         className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
-        style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.5)', border: '1px dashed #3c3c3e' }}
+        style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-tertiary)', border: '1px dashed var(--color-border)' }}
       >
         <Plus size={12} strokeWidth={2.5} />
         {t('more')}...
@@ -322,26 +322,26 @@ function MoreSectionsMenu({ onAdd }: { onAdd: (label: string) => void }) {
       {open && (
         <div
           className="absolute bottom-full mb-1 left-0 rounded-xl shadow-2xl z-20 overflow-hidden py-1"
-          style={{ backgroundColor: '#2c2c2e', minWidth: 180 }}
+          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 180 }}
         >
           {extraPresets.map((p) => (
             <button
               key={p.label}
               onClick={() => { onAdd(p.label); setOpen(false) }}
               className="w-full text-left px-4 py-2 text-xs font-medium transition-all hover:bg-white/10"
-              style={{ color: 'rgba(235,235,245,0.8)' }}
+              style={{ color: 'var(--color-text-secondary)' }}
             >
               + {p.display}
             </button>
           ))}
           <div
             className="px-3 py-2 flex gap-2"
-            style={{ borderTop: '1px solid #3c3c3e' }}
+            style={{ borderTop: '1px solid var(--color-border)' }}
           >
             <input
               value={customInput}
               onChange={(e) => setCustomInput(e.target.value)}
-              className="flex-1 bg-transparent text-white text-xs outline-none"
+              className="flex-1 bg-transparent text-xs outline-none"
               placeholder={t('customSection')}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && customInput.trim()) {
@@ -360,7 +360,7 @@ function MoreSectionsMenu({ onAdd }: { onAdd: (label: string) => void }) {
                 }
               }}
               className="text-xs font-semibold px-2 py-1 rounded"
-              style={{ color: customInput.trim() ? '#32d74b' : 'rgba(235,235,245,0.3)' }}
+              style={{ color: customInput.trim() ? 'var(--color-chord)' : 'var(--color-text-muted)' }}
             >
               +
             </button>
@@ -424,7 +424,7 @@ export function SimpleEditor({ content, onChange }: Props) {
             key={preset.label}
             onClick={() => addSection(preset)}
             className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
-            style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.5)', border: '1px dashed #3c3c3e' }}
+            style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-tertiary)', border: '1px dashed var(--color-border)' }}
           >
             <Plus size={12} strokeWidth={2.5} />
             {t(`add${preset.display.replace(/\s/g, '')}` as 'addVerse') ?? preset.display}

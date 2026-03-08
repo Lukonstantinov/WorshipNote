@@ -116,10 +116,10 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
     <button
       onClick={() => setEditingChord(ch)}
       className="absolute top-0 right-0 flex items-center justify-center rounded-lg"
-      style={{ backgroundColor: '#2c2c2e', width: sz, height: sz }}
+      style={{ backgroundColor: 'var(--color-card-raised)', width: sz, height: sz }}
       title="Edit diagram"
     >
-      <Pencil size={sz * 0.5} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
+      <Pencil size={sz * 0.5} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
     </button>
   )
 
@@ -129,7 +129,7 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
     if (position === 'top') {
       return (
         <>
-          <div className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}>
+          <div className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg)' }}>
             <div className="flex items-center gap-2 min-w-max">
               {chords.map((ch) => (
                 <div key={ch} className="relative flex-shrink-0">
@@ -145,7 +145,7 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
     }
     return (
       <>
-        <div className="flex flex-col flex-shrink-0 border-l overflow-y-auto" style={{ borderColor: '#1c1c1e', backgroundColor: '#0a0a0a', width: Math.round(160 * scale) }}>
+        <div className="flex flex-col flex-shrink-0 border-l overflow-y-auto" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-secondary)', width: Math.round(160 * scale) }}>
           <div className="flex flex-col gap-2 p-2">
             {chords.map((ch) => (
               <div key={ch} className="relative flex items-center justify-center">
@@ -166,13 +166,13 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
     if (position === 'top') {
       return (
         <>
-          <div className="px-3 py-1.5 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}>
+          <div className="px-3 py-1.5 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg)' }}>
             <div className="flex items-center gap-1.5 min-w-max">
               {chords.map((ch) => (
                 <div
                   key={ch}
                   className="flex-shrink-0 cursor-pointer rounded-lg p-0.5 transition-all"
-                  style={{ backgroundColor: ch === activeChord ? '#1c1c1e' : 'transparent' }}
+                  style={{ backgroundColor: ch === activeChord ? 'var(--color-card)' : 'transparent' }}
                   onClick={() => setActiveIdx(chords.indexOf(ch))}
                 >
                   <MiniComp chord={ch} size={miniSz} />
@@ -186,13 +186,13 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
     }
     return (
       <>
-        <div className="flex flex-col flex-shrink-0 border-l overflow-y-auto" style={{ borderColor: '#1c1c1e', backgroundColor: '#0a0a0a', width: Math.round(80 * scale) }}>
+        <div className="flex flex-col flex-shrink-0 border-l overflow-y-auto" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-secondary)', width: Math.round(80 * scale) }}>
           <div className="flex flex-col gap-1 p-1">
             {chords.map((ch) => (
               <div
                 key={ch}
                 className="flex items-center justify-center rounded-lg p-0.5 transition-all cursor-pointer"
-                style={{ backgroundColor: ch === activeChord ? '#1c1c1e' : 'transparent' }}
+                style={{ backgroundColor: ch === activeChord ? 'var(--color-card)' : 'transparent' }}
                 onClick={() => setActiveIdx(chords.indexOf(ch))}
               >
                 <MiniComp chord={ch} size={miniSz} />
@@ -211,7 +211,7 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
   if (position === 'top') {
     return (
       <>
-        <div className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: '#1c1c1e', backgroundColor: '#000' }}>
+        <div className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg)' }}>
           <div className="flex items-center gap-3 min-w-max">
             <div className="flex items-center gap-1.5">
               {chords.map((ch, i) => (
@@ -220,8 +220,8 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
                   onClick={() => setActiveIdx(i)}
                   className="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all"
                   style={{
-                    backgroundColor: i === safeIdx ? '#32d74b22' : '#1c1c1e',
-                    color: i === safeIdx ? '#32d74b' : 'rgba(235,235,245,0.4)',
+                    backgroundColor: i === safeIdx ? '#32d74b22' : 'var(--color-card)',
+                    color: i === safeIdx ? 'var(--color-chord)' : 'var(--color-text-tertiary)',
                     border: i === safeIdx ? '1px solid #32d74b44' : '1px solid transparent',
                   }}
                 >
@@ -245,21 +245,21 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
     <>
       <div
         className="flex flex-col flex-shrink-0 border-l overflow-y-auto"
-        style={{ borderColor: '#1c1c1e', backgroundColor: '#0a0a0a', width: Math.round(160 * scale) }}
+        style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-secondary)', width: Math.round(160 * scale) }}
       >
-        <div className="flex items-center justify-between px-2 py-1.5 border-b" style={{ borderColor: '#1c1c1e' }}>
+        <div className="flex items-center justify-between px-2 py-1.5 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
           <button
             onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}
             disabled={safeIdx === 0}
-            style={{ color: safeIdx === 0 ? 'rgba(235,235,245,0.15)' : 'rgba(235,235,245,0.5)' }}
+            style={{ color: safeIdx === 0 ? 'var(--color-text-muted)' : 'var(--color-text-tertiary)' }}
           >
             <ChevronLeft size={16} strokeWidth={2} />
           </button>
-          <span className="text-xs font-semibold" style={{ color: '#32d74b' }}>{activeChord}</span>
+          <span className="text-xs font-semibold" style={{ color: 'var(--color-chord)' }}>{activeChord}</span>
           <button
             onClick={() => setActiveIdx((i) => Math.min(chords.length - 1, i + 1))}
             disabled={safeIdx === chords.length - 1}
-            style={{ color: safeIdx === chords.length - 1 ? 'rgba(235,235,245,0.15)' : 'rgba(235,235,245,0.5)' }}
+            style={{ color: safeIdx === chords.length - 1 ? 'var(--color-text-muted)' : 'var(--color-text-tertiary)' }}
           >
             <ChevronRight size={16} strokeWidth={2} />
           </button>
@@ -278,7 +278,7 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all"
               style={{
                 backgroundColor: guitarFlipped ? '#32d74b22' : 'transparent',
-                color: guitarFlipped ? '#32d74b' : 'rgba(235,235,245,0.3)',
+                color: guitarFlipped ? 'var(--color-chord)' : 'var(--color-text-muted)',
               }}
               title="Flip fret diagram"
             >
@@ -296,7 +296,7 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
               className="w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
               style={{
                 backgroundColor: i === safeIdx ? '#32d74b1a' : 'transparent',
-                color: i === safeIdx ? '#32d74b' : 'rgba(235,235,245,0.4)',
+                color: i === safeIdx ? 'var(--color-chord)' : 'var(--color-text-tertiary)',
               }}
             >
               {ch}

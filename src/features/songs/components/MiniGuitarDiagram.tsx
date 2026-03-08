@@ -12,16 +12,16 @@ interface Props {
 const STRING_COUNT = 6
 const FRET_COUNT = 4
 
-export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = '#bf5af2', flipped = false }: Props) {
+export function MiniGuitarDiagram({ chord, customDiagram, size = 56, dotColor = 'var(--color-accent)', flipped = false }: Props) {
   const voicing = customDiagram ?? getGuitarChord(chord)
 
   if (!voicing) {
     return (
       <div
         className="flex flex-col items-center justify-center rounded-lg"
-        style={{ width: size, height: size + 14, backgroundColor: '#1c1c1e' }}
+        style={{ width: size, height: size + 14, backgroundColor: 'var(--color-card)' }}
       >
-        <span className="text-xs font-bold" style={{ color: '#32d74b', fontSize: 9 }}>{chord}</span>
+        <span className="text-xs font-bold" style={{ color: 'var(--color-chord)', fontSize: 9 }}>{chord}</span>
       </div>
     )
   }

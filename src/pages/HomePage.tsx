@@ -97,16 +97,16 @@ export default function HomePage() {
     <div className="p-4 pb-28 md:pb-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-white tracking-tight">{t('library')}</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('library')}</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setSelectMode((p) => !p); if (selectMode) exitSelectMode() }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95"
             style={{
-              backgroundColor: selectMode ? '#bf5af2' : '#1c1c1e',
-              color: selectMode ? '#fff' : 'rgba(235,235,245,0.5)',
+              backgroundColor: selectMode ? 'var(--color-accent)' : 'var(--color-card)',
+              color: selectMode ? '#fff' : 'var(--color-text-tertiary)',
               minHeight: 44,
-              border: '1px solid #2c2c2e',
+              border: '1px solid var(--color-border)',
             }}
           >
             <CheckSquare size={15} strokeWidth={1.5} />
@@ -115,7 +115,7 @@ export default function HomePage() {
           <Link
             to="/songs/new"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-            style={{ backgroundColor: '#bf5af2', color: '#fff', minHeight: 44 }}
+            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)', minHeight: 44 }}
           >
             <Plus size={16} strokeWidth={2.5} />
             {t('newSong')}
@@ -127,12 +127,12 @@ export default function HomePage() {
       {selectMode && (
         <div
           className="flex items-center gap-2 mb-3 px-3 py-2 rounded-2xl flex-wrap"
-          style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e' }}
+          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
         >
           <button
             onClick={selected.size === filtered.length ? deselectAll : selectAll}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
-            style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.7)' }}
+            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
           >
             {selected.size === filtered.length
               ? <Square size={12} strokeWidth={2} />
@@ -140,7 +140,7 @@ export default function HomePage() {
             }
             {selected.size === filtered.length ? 'Deselect all' : 'Select all'}
           </button>
-          <span className="text-xs" style={{ color: 'rgba(235,235,245,0.4)' }}>
+          <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
             {selected.size} selected
           </span>
           <div className="flex items-center gap-2 ml-auto">
@@ -149,7 +149,7 @@ export default function HomePage() {
                 onClick={() => setShowFolderPicker((p) => !p)}
                 disabled={selected.size === 0}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
-                style={{ backgroundColor: '#0a84ff22', color: '#0a84ff' }}
+                style={{ backgroundColor: '#0a84ff22', color: 'var(--color-info)' }}
               >
                 <FolderInput size={13} strokeWidth={1.5} />
                 Move to folder
@@ -157,12 +157,12 @@ export default function HomePage() {
               {showFolderPicker && (
                 <div
                   className="absolute right-0 top-10 rounded-xl shadow-xl z-30 overflow-hidden"
-                  style={{ backgroundColor: '#2c2c2e', minWidth: 180 }}
+                  style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 180 }}
                 >
                   <button
                     onClick={() => handleMoveToFolder(undefined)}
                     className="w-full text-left px-4 py-2.5 text-sm transition-all hover:bg-white/10"
-                    style={{ color: 'rgba(235,235,245,0.6)' }}
+                    style={{ color: 'var(--color-text-secondary)' }}
                   >
                     — No folder —
                   </button>
@@ -171,7 +171,7 @@ export default function HomePage() {
                       key={f.id}
                       onClick={() => handleMoveToFolder(f.id)}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:bg-white/10"
-                      style={{ color: 'rgba(235,235,245,0.8)' }}
+                      style={{ color: 'var(--color-text-secondary)' }}
                     >
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: f.color }} />
                       {f.name}
@@ -184,13 +184,13 @@ export default function HomePage() {
               onClick={handleDeleteSelected}
               disabled={selected.size === 0}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
-              style={{ backgroundColor: '#ff453a22', color: '#ff453a' }}
+              style={{ backgroundColor: '#ff453a22', color: 'var(--color-error)' }}
             >
               <Trash2 size={13} strokeWidth={1.5} />
               Delete
             </button>
-            <button onClick={exitSelectMode} className="p-1.5 rounded-xl" style={{ backgroundColor: '#2c2c2e' }}>
-              <X size={13} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
+            <button onClick={exitSelectMode} className="p-1.5 rounded-xl" style={{ backgroundColor: 'var(--color-card-raised)' }}>
+              <X size={13} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
             </button>
           </div>
         </div>
@@ -200,13 +200,13 @@ export default function HomePage() {
       <div className="flex gap-2 mb-3">
         <div
           className="flex-1 flex items-center gap-2 px-3 rounded-xl"
-          style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minHeight: 44 }}
+          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}
         >
-          <Search size={15} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)', flexShrink: 0 }} />
+          <Search size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-white outline-none text-sm"
+            className="flex-1 bg-transparent outline-none text-sm"
             placeholder={t('search') + '…'}
           />
         </div>
@@ -215,9 +215,9 @@ export default function HomePage() {
             onClick={() => setShowSort((p) => !p)}
             className="flex items-center gap-1.5 px-3 rounded-xl text-sm font-medium transition-all"
             style={{
-              backgroundColor: '#1c1c1e',
-              border: '1px solid #2c2c2e',
-              color: 'rgba(235,235,245,0.6)',
+              backgroundColor: 'var(--color-card)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-secondary)',
               minHeight: 44,
               minWidth: 44,
             }}
@@ -228,14 +228,14 @@ export default function HomePage() {
           {showSort && (
             <div
               className="absolute right-0 top-12 rounded-xl shadow-xl z-20 overflow-hidden"
-              style={{ backgroundColor: '#2c2c2e', minWidth: 140 }}
+              style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 140 }}
             >
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.key}
                   onClick={() => { setSort(opt.key); setShowSort(false) }}
                   className="w-full text-left px-4 py-2.5 text-sm transition-all hover:bg-white/10"
-                  style={{ color: sort === opt.key ? '#bf5af2' : 'rgba(235,235,245,0.8)' }}
+                  style={{ color: sort === opt.key ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
                 >
                   {opt.label}
                 </button>
@@ -252,9 +252,9 @@ export default function HomePage() {
             onClick={() => setActiveFolderId(null)}
             className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all"
             style={{
-              backgroundColor: activeFolderId === null ? '#bf5af2' : '#1c1c1e',
-              color: activeFolderId === null ? '#fff' : 'rgba(235,235,245,0.4)',
-              border: '1px solid #2c2c2e',
+              backgroundColor: activeFolderId === null ? 'var(--color-accent)' : 'var(--color-card)',
+              color: activeFolderId === null ? '#fff' : 'var(--color-text-tertiary)',
+              border: '1px solid var(--color-border)',
             }}
           >
             {t('allFolders')}
@@ -267,9 +267,9 @@ export default function HomePage() {
                 onClick={() => setActiveFolderId(isActive ? null : folder.id)}
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all"
                 style={{
-                  backgroundColor: isActive ? `${folder.color}33` : '#1c1c1e',
-                  color: isActive ? folder.color : 'rgba(235,235,245,0.5)',
-                  border: `1px solid ${isActive ? folder.color + '66' : '#2c2c2e'}`,
+                  backgroundColor: isActive ? `${folder.color}33` : 'var(--color-card)',
+                  color: isActive ? folder.color : 'var(--color-text-tertiary)',
+                  border: `1px solid ${isActive ? folder.color + '66' : 'var(--color-card-raised)'}`,
                 }}
               >
                 <div
@@ -283,10 +283,10 @@ export default function HomePage() {
           <button
             onClick={() => setShowFolderManager(true)}
             className="flex-shrink-0 flex items-center justify-center rounded-full"
-            style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minWidth: 28, minHeight: 28 }}
+            style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minWidth: 28, minHeight: 28 }}
             title={t('folders')}
           >
-            <Settings2 size={12} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.4)' }} />
+            <Settings2 size={12} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
           </button>
         </div>
       )}
@@ -296,7 +296,7 @@ export default function HomePage() {
         <button
           onClick={() => setShowFolderManager(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs mb-2 transition-all"
-          style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.3)', border: '1px dashed #3c3c3e' }}
+          style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-muted)', border: '1px dashed var(--color-border)' }}
         >
           <FolderOpen size={12} strokeWidth={1.5} />
           {t('addFolder')}
@@ -310,8 +310,8 @@ export default function HomePage() {
             onClick={() => setActiveTag(null)}
             className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
             style={{
-              backgroundColor: activeTag === null ? '#bf5af2' : '#2c2c2e',
-              color: activeTag === null ? '#fff' : 'rgba(235,235,245,0.5)',
+              backgroundColor: activeTag === null ? 'var(--color-accent)' : 'var(--color-card-raised)',
+              color: activeTag === null ? '#fff' : 'var(--color-text-tertiary)',
             }}
           >
             {t('allFolders').split(' ')[0]}
@@ -326,13 +326,13 @@ export default function HomePage() {
                 className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
                 style={{
                   backgroundColor: isActive
-                    ? (customColor ?? '#bf5af2')
+                    ? (customColor ?? 'var(--color-accent)')
                     : customColor
                       ? `${customColor}22`
-                      : '#2c2c2e',
+                      : 'var(--color-card-raised)',
                   color: isActive
                     ? '#fff'
-                    : customColor ?? 'rgba(235,235,245,0.5)',
+                    : customColor ?? 'var(--color-text-tertiary)',
                 }}
               >
                 {tag}
@@ -345,8 +345,8 @@ export default function HomePage() {
       {/* Song list */}
       {filtered.length === 0 ? (
         <div className="text-center mt-20">
-          <Music2 size={40} strokeWidth={1} style={{ color: 'rgba(235,235,245,0.15)', margin: '0 auto 12px' }} />
-          <p style={{ color: 'rgba(235,235,245,0.35)', fontSize: 15 }}>{t('noSongs')}</p>
+          <Music2 size={40} strokeWidth={1} style={{ color: 'var(--color-text-muted)', margin: '0 auto 12px' }} />
+          <p style={{ color: 'var(--color-text-tertiary)', fontSize: 15 }}>{t('noSongs')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -390,7 +390,7 @@ function SongCard({
     <div
       className="block p-4 rounded-2xl transition-all"
       style={{
-        backgroundColor: selected ? '#bf5af222' : '#1c1c1e',
+        backgroundColor: selected ? '#bf5af222' : 'var(--color-card)',
         borderLeft: folder ? `3px solid ${folder.color}` : selected ? '3px solid #bf5af2' : undefined,
         border: selected ? '1px solid #bf5af266' : undefined,
       }}
@@ -399,13 +399,13 @@ function SongCard({
         {selectMode && (
           <div className="flex-shrink-0 mr-1">
             {selected
-              ? <CheckSquare size={18} strokeWidth={1.5} style={{ color: '#bf5af2' }} />
-              : <Square size={18} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.3)' }} />
+              ? <CheckSquare size={18} strokeWidth={1.5} style={{ color: 'var(--color-accent)' }} />
+              : <Square size={18} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
             }
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white text-base leading-snug truncate">{song.title}</h3>
+          <h3 className="font-semibold text-base leading-snug truncate">{song.title}</h3>
           {folder && (
             <div className="flex items-center gap-1 mt-0.5">
               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: folder.color }} />
@@ -417,7 +417,7 @@ function SongCard({
           {song.original_key && (
             <span
               className="px-2 py-0.5 rounded-full font-semibold"
-              style={{ backgroundColor: 'rgba(50,215,75,0.15)', color: '#32d74b' }}
+              style={{ backgroundColor: 'rgba(50,215,75,0.15)', color: 'var(--color-chord)' }}
             >
               {song.original_key}
             </span>
@@ -425,7 +425,7 @@ function SongCard({
           {song.bpm && (
             <span
               className="px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.4)' }}
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)' }}
             >
               {song.bpm} {t('bpm')}
             </span>
@@ -441,8 +441,8 @@ function SongCard({
                 key={tag}
                 className="text-xs px-2 py-0.5 rounded-full"
                 style={{
-                  backgroundColor: color ? `${color}22` : '#2c2c2e',
-                  color: color ?? 'rgba(235,235,245,0.35)',
+                  backgroundColor: color ? `${color}22` : 'var(--color-card-raised)',
+                  color: color ?? 'var(--color-text-tertiary)',
                 }}
               >
                 {tag}

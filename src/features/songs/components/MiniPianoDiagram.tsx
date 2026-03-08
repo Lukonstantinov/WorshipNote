@@ -11,7 +11,7 @@ interface Props {
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 const BLACK_KEY_POSITIONS = [0.5, 1.5, 3.5, 4.5, 5.5]
 
-export function MiniPianoDiagram({ chord, customDiagram, size = 56, highlightColor = '#32d74b' }: Props) {
+export function MiniPianoDiagram({ chord, customDiagram, size = 56, highlightColor = 'var(--color-chord)' }: Props) {
   let highlightedPCs: Set<string>
 
   if (customDiagram && customDiagram.notes.length > 0) {
@@ -58,7 +58,7 @@ export function MiniPianoDiagram({ chord, customDiagram, size = 56, highlightCol
 
   return (
     <div className="flex flex-col items-center">
-      <span className="text-xs font-bold mb-0.5" style={{ color: '#32d74b', fontSize: 9 }}>{chord}</span>
+      <span className="text-xs font-bold mb-0.5" style={{ color: 'var(--color-chord)', fontSize: 9 }}>{chord}</span>
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
         {Array.from({ length: WHITE_COUNT }).map((_, i) => {
           const hi = isWhiteHighlighted(i)
@@ -88,7 +88,7 @@ export function MiniPianoDiagram({ chord, customDiagram, size = 56, highlightCol
               width={bKeyW}
               height={bKeyH}
               rx={1}
-              fill={hi ? '#0a84ff' : '#111111'}
+              fill={hi ? 'var(--color-info)' : 'var(--color-bg-secondary)'}
             />
           )
         })}

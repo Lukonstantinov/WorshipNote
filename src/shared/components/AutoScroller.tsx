@@ -45,8 +45,8 @@ export function AutoScroller({ scrollRef }: Props) {
       onClick={() => setIsScrolling((p) => !p)}
       className="flex items-center justify-center rounded-xl transition-all"
       style={{
-        backgroundColor: isScrolling ? '#32d74b' : '#2c2c2e',
-        color: isScrolling ? '#000000' : 'rgba(235,235,245,0.6)',
+        backgroundColor: isScrolling ? 'var(--color-chord)' : 'var(--color-card-raised)',
+        color: isScrolling ? 'var(--color-bg)' : 'var(--color-text-secondary)',
         minHeight: 44,
         minWidth: 44,
         width: 44,

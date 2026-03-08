@@ -11,7 +11,7 @@ interface Props {
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 const BLACK_KEY_POSITIONS = [0.5, 1.5, 3.5, 4.5, 5.5] // C#, D#, F#, G#, A#
 
-export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor = '#32d74b' }: Props) {
+export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor = 'var(--color-chord)' }: Props) {
   let highlightedPCs: Set<string>
 
   if (customDiagram && customDiagram.notes.length > 0) {
@@ -96,7 +96,7 @@ export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor 
               width={bKeyW}
               height={bKeyH}
               rx={2}
-              fill={hi ? '#0a84ff' : '#111111'}
+              fill={hi ? 'var(--color-info)' : 'var(--color-bg-secondary)'}
             />
           )
         })}

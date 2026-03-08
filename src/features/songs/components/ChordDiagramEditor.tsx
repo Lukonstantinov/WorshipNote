@@ -49,14 +49,14 @@ function FretEditor({ chordName, stringCount, onClose }: { chordName: string; st
 
   return (
     <>
-      <p className="text-xs mb-2" style={{ color: 'rgba(235,235,245,0.4)' }}>
+      <p className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
         Tap dots to set frets. Top icons: X = muted, O = open.
       </p>
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs" style={{ color: 'rgba(235,235,245,0.4)' }}>Start fret:</span>
-        <button onClick={() => setBaseFret((b) => Math.max(1, b - 1))} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: '#2c2c2e', color: '#fff' }}>−</button>
+        <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>Start fret:</span>
+        <button onClick={() => setBaseFret((b) => Math.max(1, b - 1))} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-primary)' }}>−</button>
         <span className="text-white text-sm font-semibold w-4 text-center">{baseFret}</span>
-        <button onClick={() => setBaseFret((b) => Math.min(12, b + 1))} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: '#2c2c2e', color: '#fff' }}>+</button>
+        <button onClick={() => setBaseFret((b) => Math.min(12, b + 1))} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-primary)' }}>+</button>
       </div>
       <svg width={w} height={h} className="mx-auto block" style={{ cursor: 'pointer' }}>
         <rect x={pad} y={topPad} width={gridW} height={3} rx={1.5} fill="rgba(235,235,245,0.6)" />
@@ -101,15 +101,15 @@ function FretEditor({ chordName, stringCount, onClose }: { chordName: string; st
         type="text" placeholder="Comment (optional)" value={comment}
         onChange={(e) => setComment(e.target.value)}
         className="w-full rounded-xl px-3 py-2 text-xs mt-3"
-        style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.8)', border: 'none', outline: 'none' }}
+        style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', border: 'none', outline: 'none' }}
       />
       <div className="flex gap-2 mt-3">
-        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: '#bf5af2', color: '#fff' }}>
+        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)' }}>
           <Save size={14} strokeWidth={2} />{t('save')}
         </button>
         {existing && (
-          <button onClick={remove} className="flex items-center justify-center rounded-xl transition-all active:scale-95" style={{ backgroundColor: '#2c2c2e', minWidth: 44 }}>
-            <Trash2 size={16} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+          <button onClick={remove} className="flex items-center justify-center rounded-xl transition-all active:scale-95" style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44 }}>
+            <Trash2 size={16} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
           </button>
         )}
       </div>
@@ -153,7 +153,7 @@ function PianoEditor({ chordName, onClose }: { chordName: string; onClose: () =>
 
   return (
     <>
-      <p className="text-xs mb-3" style={{ color: 'rgba(235,235,245,0.4)' }}>
+      <p className="text-xs mb-3" style={{ color: 'var(--color-text-tertiary)' }}>
         Tap keys to highlight notes for this chord.
       </p>
       <svg width={w} height={h} className="mx-auto block">
@@ -164,25 +164,25 @@ function PianoEditor({ chordName, onClose }: { chordName: string; onClose: () =>
         {blackPositions.map((pos, bi) => {
           const noteName = BLACK_KEY_NAMES[bi % BLACK_KEY_NAMES.length]; const hi = isHighlighted(noteName)
           const x = pos * wKeyW + wKeyW / 2 - bKeyW / 2
-          return <rect key={bi} x={x} y={0} width={bKeyW} height={bKeyH} rx={2} fill={hi ? '#0a84ff' : '#111111'} onClick={() => toggleNote(noteName)} style={{ cursor: 'pointer' }} />
+          return <rect key={bi} x={x} y={0} width={bKeyW} height={bKeyH} rx={2} fill={hi ? 'var(--color-info)' : 'var(--color-bg-secondary)'} onClick={() => toggleNote(noteName)} style={{ cursor: 'pointer' }} />
         })}
       </svg>
       {selectedNotes.length > 0 && (
-        <p className="text-xs text-center mt-1" style={{ color: 'rgba(235,235,245,0.4)' }}>{selectedNotes.join(' · ')}</p>
+        <p className="text-xs text-center mt-1" style={{ color: 'var(--color-text-tertiary)' }}>{selectedNotes.join(' · ')}</p>
       )}
       <input
         type="text" placeholder="Comment (optional)" value={comment}
         onChange={(e) => setComment(e.target.value)}
         className="w-full rounded-xl px-3 py-2 text-xs mt-3"
-        style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.8)', border: 'none', outline: 'none' }}
+        style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', border: 'none', outline: 'none' }}
       />
       <div className="flex gap-2 mt-3">
-        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: '#bf5af2', color: '#fff' }}>
+        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)' }}>
           <Save size={14} strokeWidth={2} />{t('save')}
         </button>
         {existing && (
-          <button onClick={remove} className="flex items-center justify-center rounded-xl transition-all active:scale-95" style={{ backgroundColor: '#2c2c2e', minWidth: 44 }}>
-            <Trash2 size={16} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+          <button onClick={remove} className="flex items-center justify-center rounded-xl transition-all active:scale-95" style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44 }}>
+            <Trash2 size={16} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
           </button>
         )}
       </div>
@@ -201,15 +201,15 @@ export function ChordDiagramEditor({ chordName, instrumentType = 'guitar', onClo
       style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="rounded-2xl p-4 w-72" style={{ backgroundColor: '#1c1c1e' }}>
+      <div className="rounded-2xl p-4 w-72" style={{ backgroundColor: 'var(--color-card)' }}>
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-white text-sm">
             {t('editChordDiagram')}: {chordName}
-            {isPiano && <span className="ml-1 text-xs" style={{ color: 'rgba(235,235,245,0.4)' }}>(piano)</span>}
-            {isBass && <span className="ml-1 text-xs" style={{ color: 'rgba(235,235,245,0.4)' }}>(bass)</span>}
+            {isPiano && <span className="ml-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>(piano)</span>}
+            {isBass && <span className="ml-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>(bass)</span>}
           </h3>
           <button onClick={onClose}>
-            <X size={16} strokeWidth={2} style={{ color: 'rgba(235,235,245,0.5)' }} />
+            <X size={16} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
           </button>
         </div>
         {isPiano ? (

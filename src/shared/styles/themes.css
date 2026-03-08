@@ -22,6 +22,10 @@
   --color-chord: #32d74b;
   --color-nav-bg: #111111;
   --color-nav-active: #bf5af2;
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-input-bg: #1c1c1e;
+  --color-nav-blur-bg: rgba(17, 17, 17, 0.92);
+  --color-overlay: rgba(0, 0, 0, 0.7);
 }
 
 /* Midnight — deep navy blue */
@@ -45,29 +49,37 @@
   --color-chord: #64d2ff;
   --color-nav-bg: #0d1320;
   --color-nav-active: #0a84ff;
+  --color-shadow: rgba(0, 0, 0, 0.4);
+  --color-input-bg: #131a2e;
+  --color-nav-blur-bg: rgba(13, 19, 32, 0.92);
+  --color-overlay: rgba(0, 0, 0, 0.7);
 }
 
-/* Light — clean white */
+/* Light — Apple-inspired clean white */
 .theme-light {
-  --color-bg: #f2f2f7;
+  --color-bg: #f5f5f7;
   --color-bg-secondary: #ffffff;
   --color-card: #ffffff;
-  --color-card-raised: #e5e5ea;
-  --color-border: #d1d1d6;
-  --color-border-subtle: rgba(209, 209, 214, 0.5);
-  --color-accent: #bf5af2;
-  --color-accent-dim: rgba(191, 90, 242, 0.12);
-  --color-success: #30d158;
-  --color-warning: #ff9f0a;
+  --color-card-raised: #f0f0f5;
+  --color-border: #e5e5ea;
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+  --color-accent: #8e44ad;
+  --color-accent-dim: rgba(142, 68, 173, 0.1);
+  --color-success: #34c759;
+  --color-warning: #ff9500;
   --color-error: #ff3b30;
   --color-info: #007aff;
-  --color-text-primary: #000000;
-  --color-text-secondary: rgba(0, 0, 0, 0.65);
-  --color-text-tertiary: rgba(0, 0, 0, 0.4);
-  --color-text-muted: rgba(0, 0, 0, 0.18);
-  --color-chord: #30d158;
-  --color-nav-bg: #ffffff;
-  --color-nav-active: #bf5af2;
+  --color-text-primary: #1c1c1e;
+  --color-text-secondary: rgba(60, 60, 67, 0.7);
+  --color-text-tertiary: rgba(60, 60, 67, 0.4);
+  --color-text-muted: rgba(60, 60, 67, 0.18);
+  --color-chord: #248f3f;
+  --color-nav-bg: rgba(255, 255, 255, 0.85);
+  --color-nav-active: #8e44ad;
+  --color-shadow: rgba(0, 0, 0, 0.06);
+  --color-input-bg: #f0f0f5;
+  --color-nav-blur-bg: rgba(255, 255, 255, 0.85);
+  --color-overlay: rgba(0, 0, 0, 0.3);
 }
 
 /* Forest — deep green */
@@ -91,4 +103,8 @@
   --color-chord: #30d158;
   --color-nav-bg: #0d2012;
   --color-nav-active: #30d158;
+  --color-shadow: rgba(0, 0, 0, 0.4);
+  --color-input-bg: #122618;
+  --color-nav-blur-bg: rgba(13, 32, 18, 0.92);
+  --color-overlay: rgba(0, 0, 0, 0.7);
 }

@@ -17,8 +17,8 @@ const LANGUAGES: { code: Language; label: string; sub: string }[] = [
 ]
 
 const TAG_COLORS = [
-  '#ff453a', '#ff9f0a', '#ffd60a', '#30d158',
-  '#0a84ff', '#bf5af2', '#64d2ff', '#ebebf5',
+  'var(--color-error)', 'var(--color-warning)', '#ffd60a', 'var(--color-chord)',
+  'var(--color-info)', 'var(--color-accent)', 'var(--color-info)', '#ebebf5',
 ]
 
 const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
@@ -91,7 +91,7 @@ export default function SettingsPage() {
 
   const sectionLabel: React.CSSProperties = {
     fontSize: 11,
-    color: 'rgba(235,235,245,0.4)',
+    color: 'var(--color-text-tertiary)',
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
     marginBottom: 8,
@@ -113,9 +113,9 @@ export default function SettingsPage() {
   const INSTR_TYPES: Instrument['type'][] = ['guitar', 'piano', 'keyboard', 'bass', 'ukulele', 'drums', 'other']
 
   return (
-    <div style={{ backgroundColor: '#000000', minHeight: '100%' }}>
-      <div className="px-4 py-4 border-b" style={{ borderColor: '#1c1c1e' }}>
-        <h1 className="text-2xl font-bold text-white tracking-tight">{t('settings')}</h1>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100%' }}>
+      <div className="px-4 py-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
+        <h1 className="text-2xl font-bold tracking-tight">{t('settings')}</h1>
       </div>
 
       <div className="p-4 space-y-8 pb-28 max-w-md mx-auto">
@@ -123,7 +123,7 @@ export default function SettingsPage() {
         {/* Language */}
         <section>
           <p style={sectionLabel}>{t('language')}</p>
-          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
             {LANGUAGES.map(({ code, label, sub }, idx) => (
               <button
                 key={code}
@@ -132,10 +132,10 @@ export default function SettingsPage() {
                 style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined, minHeight: 50 }}
               >
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-white">{label}</div>
-                  <div className="text-xs" style={{ color: 'rgba(235,235,245,0.3)' }}>{sub}</div>
+                  <div className="text-sm font-medium">{label}</div>
+                  <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{sub}</div>
                 </div>
-                {language === code && <Check size={18} strokeWidth={2.5} style={{ color: '#bf5af2' }} />}
+                {language === code && <Check size={18} strokeWidth={2.5} style={{ color: 'var(--color-accent)' }} />}
               </button>
             ))}
           </div>
@@ -144,20 +144,20 @@ export default function SettingsPage() {
         {/* Font size */}
         <section>
           <p style={sectionLabel}>{t('fontSize')}</p>
-          <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ backgroundColor: '#1c1c1e' }}>
+          <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ backgroundColor: 'var(--color-card)' }}>
             <button
               onClick={() => setFontSize(Math.max(FONT_SIZE_MIN, fontSize - 2))}
               className="flex items-center justify-center w-12 h-12 rounded-xl font-semibold transition-all active:scale-95"
-              style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.7)', fontSize: 13 }}
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', fontSize: 13 }}
             >A−</button>
             <div className="flex-1 text-center">
-              <span className="text-3xl font-bold text-white">{fontSize}</span>
-              <span className="text-sm ml-1" style={{ color: 'rgba(235,235,245,0.3)' }}>px</span>
+              <span className="text-3xl font-bold">{fontSize}</span>
+              <span className="text-sm ml-1" style={{ color: 'var(--color-text-muted)' }}>px</span>
             </div>
             <button
               onClick={() => setFontSize(Math.min(FONT_SIZE_MAX, fontSize + 2))}
               className="flex items-center justify-center w-12 h-12 rounded-xl font-semibold transition-all active:scale-95"
-              style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.7)', fontSize: 19 }}
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', fontSize: 19 }}
             >A+</button>
           </div>
         </section>
@@ -172,8 +172,8 @@ export default function SettingsPage() {
                 onClick={() => setScrollSpeed(speed)}
                 className="py-3 rounded-2xl font-semibold text-sm transition-all active:scale-95"
                 style={{
-                  backgroundColor: scrollSpeed === speed ? '#bf5af2' : '#1c1c1e',
-                  color: scrollSpeed === speed ? '#fff' : 'rgba(235,235,245,0.4)',
+                  backgroundColor: scrollSpeed === speed ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: scrollSpeed === speed ? '#fff' : 'var(--color-text-tertiary)',
                   minHeight: 50,
                 }}
               >
@@ -186,9 +186,9 @@ export default function SettingsPage() {
         {/* Instruments */}
         <section>
           <p style={sectionLabel}>{t('instruments')}</p>
-          <div className="rounded-2xl overflow-hidden mb-2" style={{ backgroundColor: '#1c1c1e' }}>
+          <div className="rounded-2xl overflow-hidden mb-2" style={{ backgroundColor: 'var(--color-card)' }}>
             {instruments.length === 0 && (
-              <p className="px-4 py-3 text-sm" style={{ color: 'rgba(235,235,245,0.3)' }}>
+              <p className="px-4 py-3 text-sm" style={{ color: 'var(--color-text-muted)' }}>
                 {t('noInstruments')}
               </p>
             )}
@@ -198,13 +198,13 @@ export default function SettingsPage() {
                 className="flex items-center gap-3 px-4 py-3"
                 style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
               >
-                <span style={{ color: 'rgba(235,235,245,0.5)' }}>{INSTRUMENT_ICONS[instr.type]}</span>
+                <span style={{ color: 'var(--color-text-tertiary)' }}>{INSTRUMENT_ICONS[instr.type]}</span>
                 <div className="flex-1">
-                  <span className="text-sm text-white">{instr.name}</span>
-                  <span className="text-xs ml-2" style={{ color: 'rgba(235,235,245,0.3)' }}>{instr.type}</span>
+                  <span className="text-sm">{instr.name}</span>
+                  <span className="text-xs ml-2" style={{ color: 'var(--color-text-muted)' }}>{instr.type}</span>
                 </div>
                 <button onClick={() => deleteInstrument(instr.id)}>
-                  <Trash2 size={15} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+                  <Trash2 size={15} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
                 </button>
               </div>
             ))}
@@ -215,17 +215,17 @@ export default function SettingsPage() {
               value={newInstrType}
               onChange={(e) => setNewInstrType(e.target.value as Instrument['type'])}
               className="rounded-xl px-2 text-xs outline-none"
-              style={{ backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.7)', border: '1px solid #2c2c2e', minHeight: 44 }}
+              style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', minHeight: 44 }}
             >
               {INSTR_TYPES.map((type) => (
-                <option key={type} value={type} style={{ backgroundColor: '#1c1c1e' }}>{type}</option>
+                <option key={type} value={type} style={{ backgroundColor: 'var(--color-card)' }}>{type}</option>
               ))}
             </select>
             <input
               value={newInstrName}
               onChange={(e) => setNewInstrName(e.target.value)}
-              className="flex-1 rounded-xl px-3 text-sm outline-none text-white"
-              style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minHeight: 44 }}
+              className="flex-1 rounded-xl px-3 text-sm outline-none"
+              style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}
               placeholder={t('instrumentName')}
               onKeyDown={(e) => { if (e.key === 'Enter') addInstrument() }}
             />
@@ -234,8 +234,8 @@ export default function SettingsPage() {
               disabled={!newInstrName.trim()}
               className="flex items-center justify-center rounded-xl transition-all active:scale-95"
               style={{
-                backgroundColor: newInstrName.trim() ? '#bf5af2' : '#1c1c1e',
-                color: newInstrName.trim() ? '#fff' : 'rgba(235,235,245,0.3)',
+                backgroundColor: newInstrName.trim() ? 'var(--color-accent)' : 'var(--color-card)',
+                color: newInstrName.trim() ? '#fff' : 'var(--color-text-muted)',
                 minWidth: 44, minHeight: 44,
               }}
             >
@@ -254,8 +254,8 @@ export default function SettingsPage() {
                 onClick={() => setChordDisplayPosition(key)}
                 className="py-3 rounded-2xl text-sm font-medium transition-all active:scale-95"
                 style={{
-                  backgroundColor: chordDisplayPosition === key ? '#0a84ff' : '#1c1c1e',
-                  color: chordDisplayPosition === key ? '#fff' : 'rgba(235,235,245,0.4)',
+                  backgroundColor: chordDisplayPosition === key ? 'var(--color-info)' : 'var(--color-card)',
+                  color: chordDisplayPosition === key ? '#fff' : 'var(--color-text-tertiary)',
                   minHeight: 50,
                 }}
               >
@@ -273,8 +273,8 @@ export default function SettingsPage() {
                   onClick={() => setChordDiagramMode(key)}
                   className="py-3 rounded-2xl text-sm font-medium transition-all active:scale-95"
                   style={{
-                    backgroundColor: chordDiagramMode === key ? '#32d74b' : '#1c1c1e',
-                    color: chordDiagramMode === key ? '#000' : 'rgba(235,235,245,0.4)',
+                    backgroundColor: chordDiagramMode === key ? 'var(--color-chord)' : 'var(--color-card)',
+                    color: chordDiagramMode === key ? '#000' : 'var(--color-text-tertiary)',
                     minHeight: 50,
                   }}
                 >
@@ -286,9 +286,9 @@ export default function SettingsPage() {
 
           {/* Diagram colours */}
           {chordDisplayPosition !== 'none' && (
-            <div className="rounded-2xl mt-3 overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #2c2c2e' }}>
-                <span className="text-sm text-white">Guitar dot colour</span>
+            <div className="rounded-2xl mt-3 overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span className="text-sm">Guitar dot colour</span>
                 <input
                   type="color"
                   value={guitarDotColor}
@@ -297,8 +297,8 @@ export default function SettingsPage() {
                   style={{ width: 36, height: 28, border: 'none', backgroundColor: 'transparent', padding: 0 }}
                 />
               </div>
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #2c2c2e' }}>
-                <span className="text-sm text-white">Piano key colour</span>
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span className="text-sm">Piano key colour</span>
                 <input
                   type="color"
                   value={pianoHighlightColor}
@@ -311,13 +311,13 @@ export default function SettingsPage() {
               <button
                 onClick={() => setGuitarFlipped(!guitarFlipped)}
                 className="w-full flex items-center justify-between px-4 py-3 transition-all"
-                style={{ borderBottom: '1px solid #2c2c2e' }}
+                style={{ borderBottom: '1px solid var(--color-border)' }}
               >
-                <span className="text-sm text-white">Flip guitar frets (mirror)</span>
+                <span className="text-sm">Flip guitar frets (mirror)</span>
                 <div
                   className="rounded-full transition-all"
                   style={{
-                    width: 44, height: 26, backgroundColor: guitarFlipped ? '#32d74b' : '#2c2c2e',
+                    width: 44, height: 26, backgroundColor: guitarFlipped ? 'var(--color-chord)' : 'var(--color-card-raised)',
                     display: 'flex', alignItems: 'center', padding: '3px',
                   }}
                 >
@@ -330,8 +330,8 @@ export default function SettingsPage() {
               {/* Diagram size */}
               <div className="px-4 py-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-white">Diagram size</span>
-                  <span className="text-sm font-semibold" style={{ color: '#32d74b' }}>
+                  <span className="text-sm">Diagram size</span>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--color-chord)' }}>
                     {diagramScale === 0.75 ? 'S' : diagramScale === 1 ? 'M' : diagramScale === 1.5 ? 'L' : 'XL'}
                   </span>
                 </div>
@@ -342,8 +342,8 @@ export default function SettingsPage() {
                       onClick={() => setDiagramScale(s)}
                       className="py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
                       style={{
-                        backgroundColor: diagramScale === s ? '#0a84ff' : '#2c2c2e',
-                        color: diagramScale === s ? '#fff' : 'rgba(235,235,245,0.4)',
+                        backgroundColor: diagramScale === s ? 'var(--color-info)' : 'var(--color-card-raised)',
+                        color: diagramScale === s ? '#fff' : 'var(--color-text-tertiary)',
                       }}
                     >
                       {s === 0.75 ? 'S' : s === 1 ? 'M' : s === 1.5 ? 'L' : 'XL'}
@@ -360,7 +360,7 @@ export default function SettingsPage() {
           <p style={sectionLabel}>{t('roles')}</p>
 
           {/* Built-in roles */}
-          <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: '#1c1c1e' }}>
+          <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: 'var(--color-card)' }}>
             {BUILT_IN_ROLES.map((roleId, idx) => {
               const displayLabel = roleLabels[roleId] || t(roleId)
               const isEditing = editingRoleId === roleId
@@ -385,21 +385,21 @@ export default function SettingsPage() {
                         }
                         if (e.key === 'Escape') setEditingRoleId(null)
                       }}
-                      className="flex-1 bg-transparent text-sm text-white outline-none px-1 rounded"
-                      style={{ backgroundColor: '#2c2c2e' }}
+                      className="flex-1 bg-transparent text-sm outline-none px-1 rounded"
+                      style={{ backgroundColor: 'var(--color-card-raised)' }}
                       autoFocus
                     />
                   ) : (
-                    <span className="flex-1 text-sm text-white">{displayLabel}</span>
+                    <span className="flex-1 text-sm">{displayLabel}</span>
                   )}
-                  <span className="text-xs" style={{ color: 'rgba(235,235,245,0.2)' }}>{t(roleId)}</span>
+                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{t(roleId)}</span>
                   <button
                     onClick={() => {
                       setEditingRoleId(roleId)
                       setEditingRoleLabel(roleLabels[roleId] || t(roleId))
                     }}
                   >
-                    <Pencil size={13} strokeWidth={1.5} style={{ color: 'rgba(235,235,245,0.4)' }} />
+                    <Pencil size={13} strokeWidth={1.5} style={{ color: 'var(--color-text-tertiary)' }} />
                   </button>
                 </div>
               )
@@ -408,7 +408,7 @@ export default function SettingsPage() {
 
           {/* Custom roles */}
           {customRoles.length > 0 && (
-            <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: '#1c1c1e' }}>
+            <div className="rounded-2xl overflow-hidden mb-3" style={{ backgroundColor: 'var(--color-card)' }}>
               {customRoles.map((cr, idx) => (
                 <div
                   key={cr.id}
@@ -416,9 +416,9 @@ export default function SettingsPage() {
                   style={{ borderTop: idx > 0 ? '1px solid #2c2c2e' : undefined }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm text-white flex-1">{cr.name}</span>
+                    <span className="text-sm flex-1">{cr.name}</span>
                     <button onClick={() => deleteCustomRole(cr.id)}>
-                      <Trash2 size={13} strokeWidth={1.5} style={{ color: '#ff453a' }} />
+                      <Trash2 size={13} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
                     </button>
                   </div>
                   <div className="flex gap-2 flex-wrap">
@@ -432,8 +432,8 @@ export default function SettingsPage() {
                         onClick={() => updateCustomRole(cr.id, { [key]: !cr[key] })}
                         className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
                         style={{
-                          backgroundColor: cr[key] ? '#32d74b22' : '#2c2c2e',
-                          color: cr[key] ? '#32d74b' : 'rgba(235,235,245,0.3)',
+                          backgroundColor: cr[key] ? '#32d74b22' : 'var(--color-card-raised)',
+                          color: cr[key] ? 'var(--color-chord)' : 'var(--color-text-muted)',
                           border: cr[key] ? '1px solid #32d74b44' : '1px solid transparent',
                         }}
                       >
@@ -451,8 +451,8 @@ export default function SettingsPage() {
             <input
               value={newRoleName}
               onChange={(e) => setNewRoleName(e.target.value)}
-              className="flex-1 rounded-xl px-3 text-sm outline-none text-white"
-              style={{ backgroundColor: '#1c1c1e', border: '1px solid #2c2c2e', minHeight: 44 }}
+              className="flex-1 rounded-xl px-3 text-sm outline-none"
+              style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}
               placeholder={t('roleName')}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddCustomRole() }}
             />
@@ -461,8 +461,8 @@ export default function SettingsPage() {
               disabled={!newRoleName.trim()}
               className="flex items-center justify-center rounded-xl transition-all active:scale-95"
               style={{
-                backgroundColor: newRoleName.trim() ? '#bf5af2' : '#1c1c1e',
-                color: newRoleName.trim() ? '#fff' : 'rgba(235,235,245,0.3)',
+                backgroundColor: newRoleName.trim() ? 'var(--color-accent)' : 'var(--color-card)',
+                color: newRoleName.trim() ? '#fff' : 'var(--color-text-muted)',
                 minWidth: 44, minHeight: 44,
               }}
             >
@@ -475,7 +475,7 @@ export default function SettingsPage() {
         {allTags.length > 0 && (
           <section>
             <p style={sectionLabel}>{t('tagColors')}</p>
-            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
               {allTags.map((tag, idx) => {
                 const currentColor = tagColors[tag]
                 return (
@@ -486,7 +486,7 @@ export default function SettingsPage() {
                   >
                     <span
                       className="text-sm flex-1"
-                      style={{ color: currentColor ?? 'rgba(235,235,245,0.7)' }}
+                      style={{ color: currentColor ?? 'var(--color-text-secondary)' }}
                     >
                       {tag}
                     </span>
@@ -510,7 +510,7 @@ export default function SettingsPage() {
                         <button
                           onClick={() => setTagColor(tag, '')}
                           className="rounded-full text-xs"
-                          style={{ width: 20, height: 20, backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.4)' }}
+                          style={{ width: 20, height: 20, backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)' }}
                         >
                           ×
                         </button>
@@ -528,19 +528,19 @@ export default function SettingsPage() {
           <p style={sectionLabel}>Theme</p>
           <div className="grid grid-cols-2 gap-2">
             {([
-              { key: 'dark' as AppTheme, label: 'Dark', dot: '#000000', accent: '#bf5af2' },
-              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: '#0a84ff' },
-              { key: 'light' as AppTheme, label: 'Light', dot: '#f2f2f7', accent: '#bf5af2' },
-              { key: 'forest' as AppTheme, label: 'Forest', dot: '#0a1a0e', accent: '#30d158' },
+              { key: 'dark' as AppTheme, label: 'Dark', dot: 'var(--color-bg)', accent: 'var(--color-accent)' },
+              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: 'var(--color-info)' },
+              { key: 'light' as AppTheme, label: 'Light', dot: '#f2f2f7', accent: 'var(--color-accent)' },
+              { key: 'forest' as AppTheme, label: 'Forest', dot: '#0a1a0e', accent: 'var(--color-chord)' },
             ]).map(({ key, label, dot, accent }) => (
               <button
                 key={key}
                 onClick={() => setTheme(key)}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
                 style={{
-                  backgroundColor: theme === key ? `${accent}22` : '#1c1c1e',
-                  color: theme === key ? accent : 'rgba(235,235,245,0.5)',
-                  border: `1px solid ${theme === key ? accent + '66' : '#2c2c2e'}`,
+                  backgroundColor: theme === key ? `${accent}22` : 'var(--color-card)',
+                  color: theme === key ? accent : 'var(--color-text-tertiary)',
+                  border: `1px solid ${theme === key ? accent + '66' : 'var(--color-card-raised)'}`,
                   minHeight: 50,
                 }}
               >
@@ -558,7 +558,7 @@ export default function SettingsPage() {
         {/* Default Song Template */}
         <section>
           <p style={sectionLabel}>Default Psalm Template</p>
-          <p className="text-xs mb-2 px-1" style={{ color: 'rgba(235,235,245,0.35)' }}>
+          <p className="text-xs mb-2 px-1" style={{ color: 'var(--color-text-tertiary)' }}>
             New psalms start from this template (ChordPro format). Leave blank for an empty psalm.
           </p>
           <textarea
@@ -568,9 +568,9 @@ export default function SettingsPage() {
             placeholder={`[! VERSE 1]\n[G]Your words[Em] here\n\n[! CHORUS]\n[C]Chorus line`}
             className="w-full rounded-2xl px-4 py-3 text-sm font-mono resize-none outline-none"
             style={{
-              backgroundColor: '#1c1c1e',
-              border: '1px solid #2c2c2e',
-              color: 'rgba(235,235,245,0.8)',
+              backgroundColor: 'var(--color-card)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-secondary)',
               lineHeight: 1.6,
             }}
           />
@@ -581,15 +581,15 @@ export default function SettingsPage() {
 
         {/* App info */}
         <section>
-          <div className="p-4 rounded-2xl text-center" style={{ backgroundColor: '#1c1c1e' }}>
-            <p className="font-semibold text-white">WorshipNote</p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(235,235,245,0.3)' }}>v{APP_VERSION} · Psalms & Chords</p>
+          <div className="p-4 rounded-2xl text-center" style={{ backgroundColor: 'var(--color-card)' }}>
+            <p className="font-semibold">WorshipNote</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>v{APP_VERSION} · Psalms & Chords</p>
             <a
               href="https://github.com/Lukonstantinov/WorshipNote/releases"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block mt-2 text-xs px-3 py-1.5 rounded-lg transition-all"
-              style={{ backgroundColor: '#0a84ff22', color: '#0a84ff' }}
+              style={{ backgroundColor: '#0a84ff22', color: 'var(--color-info)' }}
             >
               Check for updates
             </a>

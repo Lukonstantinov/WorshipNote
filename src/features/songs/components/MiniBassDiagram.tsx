@@ -11,7 +11,7 @@ interface Props {
 const STRING_COUNT = 4
 const FRET_COUNT = 4
 
-export function MiniBassDiagram({ chord, customDiagram, size = 56, dotColor = '#bf5af2', flipped = false }: Props) {
+export function MiniBassDiagram({ chord, customDiagram, size = 56, dotColor = 'var(--color-accent)', flipped = false }: Props) {
   const voicing = customDiagram
 
   const pad = 6

@@ -77,9 +77,9 @@ export function SongEditor({ song }: Props) {
   }
 
   const inputStyle: React.CSSProperties = {
-    backgroundColor: '#1c1c1e',
-    border: '1px solid #2c2c2e',
-    color: '#ffffff',
+    backgroundColor: 'var(--color-card)',
+    border: '1px solid var(--color-border)',
+    color: 'var(--color-text-primary)',
     minHeight: 44,
     borderRadius: 12,
     outline: 'none',
@@ -90,7 +90,7 @@ export function SongEditor({ song }: Props) {
   const labelStyle: React.CSSProperties = {
     display: 'block',
     fontSize: 11,
-    color: 'rgba(235,235,245,0.4)',
+    color: 'var(--color-text-tertiary)',
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
     marginBottom: 6,
@@ -160,9 +160,9 @@ export function SongEditor({ song }: Props) {
               onChange={(e) => setFolderId(e.target.value)}
               style={{ ...inputStyle, cursor: 'pointer' }}
             >
-              <option value="" style={{ backgroundColor: '#1c1c1e' }}>— {t('noFolder')} —</option>
+              <option value="" style={{ backgroundColor: 'var(--color-card)' }}>— {t('noFolder')} —</option>
               {folders.map((f) => (
-                <option key={f.id} value={f.id} style={{ backgroundColor: '#1c1c1e' }}>
+                <option key={f.id} value={f.id} style={{ backgroundColor: 'var(--color-card)' }}>
                   {f.name}
                 </option>
               ))}
@@ -187,13 +187,13 @@ export function SongEditor({ song }: Props) {
             <label style={{ ...labelStyle, marginBottom: 0 }}>{t('content')}</label>
             <div className="flex items-center gap-1.5">
               {/* Mode toggle */}
-              <div className="flex rounded-xl overflow-hidden" style={{ backgroundColor: '#1c1c1e' }}>
+              <div className="flex rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
                 <button
                   onClick={() => setEditorMode('simple')}
                   className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all"
                   style={{
-                    backgroundColor: editorMode === 'simple' ? '#2c2c2e' : 'transparent',
-                    color: editorMode === 'simple' ? '#fff' : 'rgba(235,235,245,0.4)',
+                    backgroundColor: editorMode === 'simple' ? 'var(--color-card-raised)' : 'transparent',
+                    color: editorMode === 'simple' ? '#fff' : 'var(--color-text-tertiary)',
                     minHeight: 32,
                   }}
                 >
@@ -204,8 +204,8 @@ export function SongEditor({ song }: Props) {
                   onClick={() => setEditorMode('advanced')}
                   className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-all"
                   style={{
-                    backgroundColor: editorMode === 'advanced' ? '#2c2c2e' : 'transparent',
-                    color: editorMode === 'advanced' ? '#fff' : 'rgba(235,235,245,0.4)',
+                    backgroundColor: editorMode === 'advanced' ? 'var(--color-card-raised)' : 'transparent',
+                    color: editorMode === 'advanced' ? '#fff' : 'var(--color-text-tertiary)',
                     minHeight: 32,
                   }}
                 >
@@ -219,8 +219,8 @@ export function SongEditor({ song }: Props) {
                   onClick={() => setShowPreview((p) => !p)}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium transition-all"
                   style={{
-                    backgroundColor: showPreview ? '#bf5af2' : '#2c2c2e',
-                    color: showPreview ? '#fff' : 'rgba(235,235,245,0.5)',
+                    backgroundColor: showPreview ? 'var(--color-accent)' : 'var(--color-card-raised)',
+                    color: showPreview ? '#fff' : 'var(--color-text-tertiary)',
                   }}
                 >
                   {showPreview ? <EyeOff size={13} strokeWidth={1.5} /> : <Eye size={13} strokeWidth={1.5} />}
@@ -250,7 +250,7 @@ export function SongEditor({ song }: Props) {
             <button
               onClick={handleSaveSnapshot}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
-              style={{ backgroundColor: '#1c1c1e', color: snapshotMsg ? '#32d74b' : 'rgba(235,235,245,0.5)', border: '1px solid #2c2c2e' }}
+              style={{ backgroundColor: 'var(--color-card)', color: snapshotMsg ? 'var(--color-chord)' : 'var(--color-text-tertiary)', border: '1px solid var(--color-border)' }}
               title="Save current content as the 'original' you can restore to"
             >
               <Camera size={13} strokeWidth={1.5} />
@@ -260,7 +260,7 @@ export function SongEditor({ song }: Props) {
               <button
                 onClick={handleRestoreSnapshot}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
-                style={{ backgroundColor: '#1c1c1e', color: '#ff9f0a', border: '1px solid #2c2c2e' }}
+                style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-warning)', border: '1px solid var(--color-border)' }}
                 title={`Restore to snapshot saved on ${song.snapshotSavedAt ? new Date(song.snapshotSavedAt).toLocaleDateString() : 'unknown date'}`}
               >
                 <RotateCcw size={13} strokeWidth={1.5} />
@@ -274,15 +274,15 @@ export function SongEditor({ song }: Props) {
         <div className="flex gap-3">
           <button
             onClick={handleSave}
-            className="flex-1 py-3 rounded-xl font-semibold text-white transition-all active:scale-[0.98]"
-            style={{ backgroundColor: '#bf5af2', minHeight: 44 }}
+            className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]"
+            style={{ backgroundColor: 'var(--color-accent)', minHeight: 44 }}
           >
             {t('save')}
           </button>
           <button
             onClick={() => navigate(-1)}
             className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]"
-            style={{ backgroundColor: '#2c2c2e', color: 'rgba(235,235,245,0.5)', minHeight: 44 }}
+            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)', minHeight: 44 }}
           >
             {t('cancel')}
           </button>
@@ -293,20 +293,20 @@ export function SongEditor({ song }: Props) {
       {showPreview && editorMode === 'advanced' && (
         <div
           className="hidden md:flex flex-col flex-1 border-l overflow-auto"
-          style={{ borderColor: '#2c2c2e', backgroundColor: '#000000' }}
+          style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg)' }}
         >
           <div
             className="px-4 py-2.5 border-b text-xs font-semibold tracking-widest"
-            style={{ borderColor: '#2c2c2e', color: 'rgba(235,235,245,0.2)', backgroundColor: '#111111' }}
+            style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg-secondary)' }}
           >
             PREVIEW
           </div>
           <div className="p-6 flex-1">
             {title && (
-              <h2 className="font-bold text-white mb-1" style={{ fontSize: 18 }}>{title}</h2>
+              <h2 className="font-bold mb-1" style={{ fontSize: 18 }}>{title}</h2>
             )}
             {originalKey && (
-              <p className="text-xs mb-4" style={{ color: '#32d74b' }}>
+              <p className="text-xs mb-4" style={{ color: 'var(--color-chord)' }}>
                 {originalKey}{bpm ? ` · ${bpm} bpm` : ''}
               </p>
             )}

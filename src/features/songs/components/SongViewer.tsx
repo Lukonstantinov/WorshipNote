@@ -37,7 +37,7 @@ export function SongViewer({ parsed }: Props) {
               key={i}
               className="flex items-center gap-2 text-xs italic py-1 px-2 rounded-lg w-fit"
               style={{
-                color: '#0a84ff',
+                color: 'var(--color-info)',
                 backgroundColor: 'rgba(10,132,255,0.1)',
                 fontSize: Math.max(11, fontSize * 0.6),
               }}
@@ -62,7 +62,7 @@ export function SongViewer({ parsed }: Props) {
                     className="font-semibold leading-tight"
                     style={{
                       fontFamily: 'JetBrains Mono, Fira Code, monospace',
-                      color: '#32d74b',
+                      color: 'var(--color-chord)',
                       fontSize: Math.max(11, fontSize * 0.65),
                       minWidth: seg.chord ? '0.5ch' : '0',
                       whiteSpace: 'pre',
@@ -73,7 +73,7 @@ export function SongViewer({ parsed }: Props) {
                 )}
                 <span
                   className="leading-snug whitespace-pre-wrap"
-                  style={{ color: '#ffffff' }}
+                  style={{ color: 'var(--color-text-primary)' }}
                 >
                   {seg.text}
                 </span>

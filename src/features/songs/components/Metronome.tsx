@@ -89,8 +89,8 @@ export function Metronome({ bpm }: Props) {
         onClick={toggle}
         className="flex items-center justify-center rounded-xl transition-all active:scale-95"
         style={{
-          backgroundColor: isPlaying ? '#ff9f0a' : '#2c2c2e',
-          color: isPlaying ? '#000' : 'rgba(235,235,245,0.6)',
+          backgroundColor: isPlaying ? 'var(--color-warning)' : 'var(--color-card-raised)',
+          color: isPlaying ? '#000' : 'var(--color-text-secondary)',
           minHeight: 44,
           minWidth: 44,
           width: 44,
@@ -115,8 +115,8 @@ export function Metronome({ bpm }: Props) {
                 height: b === 0 ? 8 : 6,
                 backgroundColor:
                   activeBeat === b
-                    ? b === 0 ? '#ff9f0a' : '#32d74b'
-                    : '#2c2c2e',
+                    ? b === 0 ? 'var(--color-warning)' : 'var(--color-chord)'
+                    : 'var(--color-card-raised)',
               }}
             />
           ))}
@@ -124,7 +124,7 @@ export function Metronome({ bpm }: Props) {
       )}
 
       {isPlaying && (
-        <span className="text-xs font-semibold" style={{ color: '#ff9f0a' }}>
+        <span className="text-xs font-semibold" style={{ color: 'var(--color-warning)' }}>
           {bpm}
         </span>
       )}

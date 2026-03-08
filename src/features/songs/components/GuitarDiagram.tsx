@@ -12,14 +12,14 @@ interface Props {
 const STRING_COUNT = 6
 const FRET_COUNT = 5
 
-export function GuitarDiagram({ chord, customDiagram, size = 120, dotColor = '#bf5af2', flipped = false }: Props) {
+export function GuitarDiagram({ chord, customDiagram, size = 120, dotColor = 'var(--color-accent)', flipped = false }: Props) {
   const voicing = customDiagram ?? getGuitarChord(chord)
 
   if (!voicing) {
     return (
       <div
         className="flex items-center justify-center rounded-xl text-xs"
-        style={{ width: size, height: size, backgroundColor: '#1c1c1e', color: 'rgba(235,235,245,0.3)' }}
+        style={{ width: size, height: size, backgroundColor: 'var(--color-card)', color: 'var(--color-text-muted)' }}
       >
         {chord}
       </div>
