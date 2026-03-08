@@ -161,7 +161,7 @@ export default function HomePage() {
                 >
                   <button
                     onClick={() => handleMoveToFolder(undefined)}
-                    className="w-full text-left px-4 py-2.5 text-sm transition-all hover:bg-white/10"
+                    className="w-full text-left px-4 py-2.5 text-sm transition-all hover-bg"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
                     — No folder —
@@ -170,7 +170,7 @@ export default function HomePage() {
                     <button
                       key={f.id}
                       onClick={() => handleMoveToFolder(f.id)}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover:bg-white/10"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover-bg"
                       style={{ color: 'var(--color-text-secondary)' }}
                     >
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: f.color }} />
@@ -234,7 +234,7 @@ export default function HomePage() {
                 <button
                   key={opt.key}
                   onClick={() => { setSort(opt.key); setShowSort(false) }}
-                  className="w-full text-left px-4 py-2.5 text-sm transition-all hover:bg-white/10"
+                  className="w-full text-left px-4 py-2.5 text-sm transition-all hover-bg"
                   style={{ color: sort === opt.key ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
                 >
                   {opt.label}
@@ -390,9 +390,9 @@ function SongCard({
     <div
       className="block p-4 rounded-2xl transition-all"
       style={{
-        backgroundColor: selected ? '#bf5af222' : 'var(--color-card)',
-        borderLeft: folder ? `3px solid ${folder.color}` : selected ? '3px solid #bf5af2' : undefined,
-        border: selected ? '1px solid #bf5af266' : undefined,
+        backgroundColor: selected ? 'var(--color-accent-dim)' : 'var(--color-card)',
+        borderLeft: folder ? `3px solid ${folder.color}` : selected ? '3px solid var(--color-accent)' : undefined,
+        border: selected ? '1px solid var(--color-accent)' : undefined,
       }}
     >
       <div className="flex items-center justify-between gap-2">

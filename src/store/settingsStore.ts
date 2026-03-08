@@ -16,6 +16,22 @@ export interface CustomRole {
   showDiagrams: boolean
 }
 
+export interface SongPreset {
+  id: string
+  name: string
+  color: string
+  /** ChordPro content template */
+  content: string
+  /** Optional default key */
+  key?: string
+  /** Optional default BPM */
+  bpm?: number
+  /** Optional default tags */
+  tags?: string[]
+  /** Whether this is the default preset for new songs */
+  isDefault?: boolean
+}
+
 const DEFAULT_INSTRUMENTS: Instrument[] = [
   { id: 'guitar', name: 'Guitar', type: 'guitar' },
   { id: 'piano', name: 'Piano', type: 'piano' },
@@ -73,6 +89,12 @@ interface SettingsStore {
   setTheme: (theme: AppTheme) => void
   setDefaultSongTemplate: (template: string) => void
   setLastSeenVersion: (version: string) => void
+  /** Song presets */
+  songPresets: SongPreset[]
+  addSongPreset: (preset: SongPreset) => void
+  updateSongPreset: (id: string, updates: Partial<SongPreset>) => void
+  deleteSongPreset: (id: string) => void
+  setDefaultPreset: (id: string) => void
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -144,6 +166,19 @@ export const useSettingsStore = create<SettingsStore>()(
       setTheme: (theme) => set({ theme }),
       setDefaultSongTemplate: (defaultSongTemplate) => set({ defaultSongTemplate }),
       setLastSeenVersion: (lastSeenVersion) => set({ lastSeenVersion }),
+      songPresets: [] as SongPreset[],
+      addSongPreset: (preset) =>
+        set((s) => ({ songPresets: [...s.songPresets, preset] })),
+      updateSongPreset: (id, updates) =>
+        set((s) => ({
+          songPresets: s.songPresets.map((p) => (p.id === id ? { ...p, ...updates } : p)),
+        })),
+      deleteSongPreset: (id) =>
+        set((s) => ({ songPresets: s.songPresets.filter((p) => p.id !== id) })),
+      setDefaultPreset: (id) =>
+        set((s) => ({
+          songPresets: s.songPresets.map((p) => ({ ...p, isDefault: p.id === id })),
+        })),
     }),
     { name: 'worshiphub-settings' }
   )

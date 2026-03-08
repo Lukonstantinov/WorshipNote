@@ -98,7 +98,7 @@ export function BarProgressions({ progressions, onChange }: Props) {
             {/* Header */}
             <button
               onClick={() => setExpandedId(isExpanded ? null : prog.id)}
-              className="w-full flex items-center gap-2 px-4 py-3 transition-all hover:bg-white/5"
+              className="w-full flex items-center gap-2 px-4 py-3 transition-all hover-bg"
             >
               <GripVertical size={14} style={{ color: 'var(--color-text-muted)' }} />
               <input

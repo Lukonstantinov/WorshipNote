@@ -32,18 +32,18 @@ export function BassDiagram({ chord, customDiagram, size = 120, dotColor = 'var(
   if (!voicing) {
     return (
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible' }}>
-        <text x={w / 2} y={13} textAnchor="middle" fontSize={13} fontWeight="700" fill="#ffffff" fontFamily="system-ui, sans-serif">
+        <text x={w / 2} y={13} textAnchor="middle" fontSize={13} fontWeight="700" fill="var(--color-diagram-text)" fontFamily="system-ui, sans-serif">
           {chord}
         </text>
         {/* Empty bass fretboard */}
-        <rect x={pad} y={topPad} width={gridW} height={3} rx={1.5} fill="rgba(235,235,245,0.7)" />
+        <rect x={pad} y={topPad} width={gridW} height={3} rx={1.5} fill="var(--color-text-secondary)" />
         {Array.from({ length: FRET_COUNT }).map((_, fi) => (
-          <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="rgba(235,235,245,0.15)" strokeWidth={1} />
+          <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="var(--color-diagram-stroke)" strokeWidth={1} />
         ))}
         {Array.from({ length: STRING_COUNT }).map((_, si) => (
-          <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="rgba(235,235,245,0.25)" strokeWidth={1} />
+          <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="var(--color-diagram-stroke)" strokeWidth={1} />
         ))}
-        <text x={w / 2} y={topPad + gridH / 2 + 5} textAnchor="middle" fontSize={9} fill="rgba(235,235,245,0.3)" fontFamily="system-ui, sans-serif">
+        <text x={w / 2} y={topPad + gridH / 2 + 5} textAnchor="middle" fontSize={9} fill="var(--color-text-muted)" fontFamily="system-ui, sans-serif">
           bass
         </text>
       </svg>
@@ -56,27 +56,27 @@ export function BassDiagram({ chord, customDiagram, size = 120, dotColor = 'var(
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible' }}>
       {/* Chord name */}
-      <text x={w / 2} y={13} textAnchor="middle" fontSize={13} fontWeight="700" fill="#ffffff" fontFamily="system-ui, sans-serif">
+      <text x={w / 2} y={13} textAnchor="middle" fontSize={13} fontWeight="700" fill="var(--color-diagram-text)" fontFamily="system-ui, sans-serif">
         {chord}
       </text>
 
       {/* Nut or base fret indicator */}
       {baseFret === 1 ? (
-        <rect x={pad} y={topPad} width={gridW} height={3} rx={1.5} fill="rgba(235,235,245,0.7)" />
+        <rect x={pad} y={topPad} width={gridW} height={3} rx={1.5} fill="var(--color-text-secondary)" />
       ) : (
-        <text x={pad - 4} y={topPad + fretGap / 2 + 4} textAnchor="end" fontSize={9} fill="rgba(235,235,245,0.5)" fontFamily="system-ui, sans-serif">
+        <text x={pad - 4} y={topPad + fretGap / 2 + 4} textAnchor="end" fontSize={9} fill="var(--color-text-tertiary)" fontFamily="system-ui, sans-serif">
           {baseFret}fr
         </text>
       )}
 
       {/* Fret lines */}
       {Array.from({ length: FRET_COUNT }).map((_, fi) => (
-        <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="rgba(235,235,245,0.15)" strokeWidth={1} />
+        <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="var(--color-diagram-stroke)" strokeWidth={1} />
       ))}
 
       {/* String lines */}
       {Array.from({ length: STRING_COUNT }).map((_, si) => (
-        <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="rgba(235,235,245,0.25)" strokeWidth={si === 0 ? 2 : 1} />
+        <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="var(--color-diagram-stroke)" strokeWidth={si === 0 ? 2 : 1} />
       ))}
 
       {/* Muted / open string markers */}
@@ -86,13 +86,13 @@ export function BassDiagram({ chord, customDiagram, size = 120, dotColor = 'var(
         if (fret === -1) {
           return (
             <g key={si}>
-              <line x1={cx - 4} y1={cy - 4} x2={cx + 4} y2={cy + 4} stroke="rgba(235,235,245,0.4)" strokeWidth={1.5} strokeLinecap="round" />
-              <line x1={cx + 4} y1={cy - 4} x2={cx - 4} y2={cy + 4} stroke="rgba(235,235,245,0.4)" strokeWidth={1.5} strokeLinecap="round" />
+              <line x1={cx - 4} y1={cy - 4} x2={cx + 4} y2={cy + 4} stroke="var(--color-diagram-fret)" strokeWidth={1.5} strokeLinecap="round" />
+              <line x1={cx + 4} y1={cy - 4} x2={cx - 4} y2={cy + 4} stroke="var(--color-diagram-fret)" strokeWidth={1.5} strokeLinecap="round" />
             </g>
           )
         }
         if (fret === 0) {
-          return <circle key={si} cx={cx} cy={cy} r={4} stroke="rgba(235,235,245,0.5)" strokeWidth={1.5} fill="none" />
+          return <circle key={si} cx={cx} cy={cy} r={4} stroke="var(--color-diagram-fret)" strokeWidth={1.5} fill="none" />
         }
         return null
       })}
@@ -122,7 +122,7 @@ export function BassDiagram({ chord, customDiagram, size = 120, dotColor = 'var(
           y={showBaseFret ? h - 2 : topPad + gridH + 14}
           textAnchor="middle"
           fontSize={9}
-          fill="rgba(235,235,245,0.5)"
+          fill="var(--color-text-tertiary)"
           fontFamily="system-ui, sans-serif"
         >
           {voicing.comment}

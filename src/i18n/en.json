@@ -125,5 +125,22 @@
   "addProgression": "Add",
   "progressionDefault": "Progression {{n}}",
   "beatsPerBar": "Beats per bar",
-  "addBar": "Add Bar"
+  "addBar": "Add Bar",
+  "pitchDetection": "Tuner",
+  "pitchModeNote": "Note",
+  "pitchModeChord": "Chord",
+  "pitchGain": "Mic Gain",
+  "pitchThreshold": "Noise Gate",
+  "pitchDevice": "Input Device",
+  "pitchDefaultDevice": "Default microphone",
+  "addFromLibrary": "From library",
+  "chordRowsLabel": "Chord rows",
+  "pitchMicDenied": "Microphone access denied",
+  "pitchMicDeniedHint": "Open your device settings and allow microphone access for this app, then try again.",
+  "presets": "Presets",
+  "addPreset": "Add Preset",
+  "presetName": "Preset name",
+  "defaultPreset": "Default",
+  "applyPreset": "Apply",
+  "deletePreset": "Delete preset"
 }

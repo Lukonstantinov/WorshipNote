@@ -200,9 +200,9 @@ export default function ChordLibraryPage() {
                   </button>
                   {showFolderPicker && (
                     <div className="absolute right-0 top-10 rounded-xl shadow-xl z-30 overflow-hidden" style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 160 }}>
-                      <button onClick={() => handleMoveToFolder(undefined)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-white/10" style={{ color: 'var(--color-text-tertiary)' }}>— No folder —</button>
+                      <button onClick={() => handleMoveToFolder(undefined)} className="w-full text-left px-4 py-2.5 text-sm hover-bg" style={{ color: 'var(--color-text-tertiary)' }}>— No folder —</button>
                       {folders.map((f) => (
-                        <button key={f.id} onClick={() => handleMoveToFolder(f.id)} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-white/10" style={{ color: 'var(--color-text-secondary)' }}>
+                        <button key={f.id} onClick={() => handleMoveToFolder(f.id)} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover-bg" style={{ color: 'var(--color-text-secondary)' }}>
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: f.color }} />{f.name}
                         </button>
                       ))}
@@ -327,7 +327,7 @@ export default function ChordLibraryPage() {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setExpandedId(isExpanded ? null : p.id)}
-                            className="p-2 rounded-xl hover:bg-white/5 transition-transform"
+                            className="p-2 rounded-xl hover-bg transition-transform"
                             title={isExpanded ? 'Collapse' : 'Show chord diagrams'}
                           >
                             <ChevronDown
@@ -340,10 +340,10 @@ export default function ChordLibraryPage() {
                               }}
                             />
                           </button>
-                          <button onClick={() => handleEdit(p)} className="p-2 rounded-xl hover:bg-white/5" title="Edit">
+                          <button onClick={() => handleEdit(p)} className="p-2 rounded-xl hover-bg" title="Edit">
                             <ChevronRight size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
                           </button>
-                          <button onClick={() => { if (confirm('Delete this progression?')) deleteProgression(p.id) }} className="p-2 rounded-xl hover:bg-white/5">
+                          <button onClick={() => { if (confirm('Delete this progression?')) deleteProgression(p.id) }} className="p-2 rounded-xl hover-bg">
                             <Trash2 size={14} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
                           </button>
                         </div>

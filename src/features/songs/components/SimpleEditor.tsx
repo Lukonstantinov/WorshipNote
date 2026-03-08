@@ -328,7 +328,7 @@ function MoreSectionsMenu({ onAdd }: { onAdd: (label: string) => void }) {
             <button
               key={p.label}
               onClick={() => { onAdd(p.label); setOpen(false) }}
-              className="w-full text-left px-4 py-2 text-xs font-medium transition-all hover:bg-white/10"
+              className="w-full text-left px-4 py-2 text-xs font-medium transition-all hover-bg"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               + {p.display}

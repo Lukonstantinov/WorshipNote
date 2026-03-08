@@ -22,6 +22,19 @@ npm run build        # Production build
 npx cap sync         # Sync Capacitor native projects
 ```
 
+### Android Signed APK (local build)
+
+```bash
+npm run build
+npx cap sync android
+cd android && ./gradlew assembleRelease
+# Output: android/app/build/outputs/apk/release/app-release.apk
+```
+
+- **Keystore:** `android/app/worshiphub-release.jks` (alias: `worshiphub`, password: `worshiphub123`)
+- **Signing config:** Embedded in `android/app/build.gradle` → `signingConfigs.release`
+- **CI:** GitHub Actions workflow (`.github/workflows/android.yml`) builds and uploads the signed APK automatically. Pushes to `master` also create a GitHub Release.
+
 ## Project Structure
 
 ```
@@ -70,11 +83,9 @@ src/
 │       │   └── PianoRollTimeline.tsx     # Note history timeline
 │       ├── hooks/
 │       │   ├── usePitchDetection.ts     # Pitch detection React hook
-│       │   ├── useChordDetection.ts     # Chord detection React hook
-│       │   └── useMicSettings.ts        # Mic settings hook
+│       │   └── useChordDetection.ts     # Chord detection React hook
 │       └── lib/
 │           ├── yin.ts                   # YIN pitch detection algorithm
-│           ├── pitchProcessor.worklet.ts # AudioWorklet for off-thread processing
 │           ├── audioCapture.ts          # Web Audio API mic capture
 │           ├── pitchUtils.ts            # Note conversion, filters, gating
 │           └── chordDetector.ts         # Polyphonic chord detection (chromagram)

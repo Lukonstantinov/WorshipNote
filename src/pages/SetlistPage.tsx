@@ -113,7 +113,7 @@ export default function SetlistPage() {
                         <Link
                           key={ss.id}
                           to={`/songs/${song.id}`}
-                          className="flex items-start gap-3 px-4 py-2.5 transition-all hover:bg-white/5"
+                          className="flex items-start gap-3 px-4 py-2.5 transition-all hover-bg"
                           style={{ borderTop: idx > 0 ? '1px solid rgba(44,44,46,0.5)' : undefined }}
                         >
                           <span

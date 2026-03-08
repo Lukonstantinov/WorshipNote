@@ -125,5 +125,22 @@
   "addProgression": "Добавить",
   "progressionDefault": "Последовательность {{n}}",
   "beatsPerBar": "Долей в такте",
-  "addBar": "Добавить такт"
+  "addBar": "Добавить такт",
+  "pitchDetection": "Тюнер",
+  "pitchModeNote": "Нота",
+  "pitchModeChord": "Аккорд",
+  "pitchGain": "Усиление",
+  "pitchThreshold": "Порог шума",
+  "pitchDevice": "Устройство ввода",
+  "pitchDefaultDevice": "Микрофон по умолчанию",
+  "addFromLibrary": "Из библиотеки",
+  "chordRowsLabel": "Аккордовые ряды",
+  "pitchMicDenied": "Доступ к микрофону запрещён",
+  "pitchMicDeniedHint": "Откройте настройки устройства и разрешите доступ к микрофону для этого приложения.",
+  "presets": "Шаблоны",
+  "addPreset": "Добавить шаблон",
+  "presetName": "Название шаблона",
+  "defaultPreset": "По умолчанию",
+  "applyPreset": "Применить",
+  "deletePreset": "Удалить шаблон"
 }

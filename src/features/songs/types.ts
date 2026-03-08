@@ -57,6 +57,8 @@ export interface ChordRow {
   fromLibrary?: boolean;
   /** ID of the source progression in chord library */
   libraryProgressionId?: string;
+  /** whether this row is visible in song view (default true) */
+  visible?: boolean;
 }
 
 export interface BarProgressionData {

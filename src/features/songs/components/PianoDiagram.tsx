@@ -61,7 +61,7 @@ export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor 
   return (
     <svg width={w} height={h + 20 + commentHeight} viewBox={`0 0 ${w} ${h + 20 + commentHeight}`}>
       {/* Chord name */}
-      <text x={w / 2} y={13} textAnchor="middle" fontSize={12} fontWeight="700" fill="#ffffff" fontFamily="system-ui, sans-serif">
+      <text x={w / 2} y={13} textAnchor="middle" fontSize={12} fontWeight="700" fill="var(--color-diagram-text)" fontFamily="system-ui, sans-serif">
         {chord}
       </text>
 
@@ -77,8 +77,8 @@ export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor 
               width={wKeyW - 1}
               height={wKeyH - 1}
               rx={2}
-              fill={hi ? highlightColor : '#ffffff'}
-              stroke="#333"
+              fill={hi ? highlightColor : 'var(--color-piano-white)'}
+              stroke="var(--color-piano-stroke)"
               strokeWidth={0.5}
             />
           )
@@ -96,7 +96,7 @@ export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor 
               width={bKeyW}
               height={bKeyH}
               rx={2}
-              fill={hi ? 'var(--color-info)' : 'var(--color-bg-secondary)'}
+              fill={hi ? 'var(--color-info)' : 'var(--color-piano-black)'}
             />
           )
         })}
@@ -109,7 +109,7 @@ export function PianoDiagram({ chord, customDiagram, size = 120, highlightColor 
           y={h + 20 + commentHeight - 2}
           textAnchor="middle"
           fontSize={9}
-          fill="rgba(235,235,245,0.5)"
+          fill="var(--color-text-tertiary)"
           fontFamily="system-ui, sans-serif"
         >
           {customDiagram.comment}
