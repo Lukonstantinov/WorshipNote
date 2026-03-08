@@ -125,5 +125,14 @@
   "addProgression": "Add",
   "progressionDefault": "Progression {{n}}",
   "beatsPerBar": "Beats per bar",
-  "addBar": "Add Bar"
+  "addBar": "Add Bar",
+  "pitchDetection": "Tuner",
+  "pitchModeNote": "Note",
+  "pitchModeChord": "Chord",
+  "pitchGain": "Mic Gain",
+  "pitchThreshold": "Noise Gate",
+  "pitchDevice": "Input Device",
+  "pitchDefaultDevice": "Default microphone",
+  "addFromLibrary": "From library",
+  "chordRowsLabel": "Chord rows"
 }

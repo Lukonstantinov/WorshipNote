@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, ListMusic, Guitar, Settings } from 'lucide-react'
+import { BookOpen, ListMusic, Guitar, Settings, Mic } from 'lucide-react'
 
 const NAV = [
   { to: '/library',  label: 'library',  Icon: BookOpen },
   { to: '/setlists', label: 'setlists', Icon: ListMusic },
   { to: '/chords',   label: 'chordLibrary', Icon: Guitar },
+  { to: '/pitch',    label: 'pitchDetection', Icon: Mic },
   { to: '/settings', label: 'settings', Icon: Settings },
 ]
 

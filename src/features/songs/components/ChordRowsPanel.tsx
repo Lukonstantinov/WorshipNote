@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, Eye, EyeOff, Library } from 'lucide-react'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { GuitarDiagram } from './GuitarDiagram'
 import { PianoDiagram } from './PianoDiagram'
 import { BassDiagram } from './BassDiagram'
+import { ProgressionPickerModal } from '../../chordLibrary/components/ProgressionPickerModal'
 import type { ChordRow } from '../types'
 import { generateId } from '../../../shared/lib/storage'
 
@@ -33,6 +34,7 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
 
   const [collapsed, setCollapsed] = useState(false)
   const [editingRowId, setEditingRowId] = useState<string | null>(null)
+  const [showPicker, setShowPicker] = useState(false)
 
   const instrument = instruments.find((i) => i.id === selectedInstrument)
   const instrType = instrument?.type ?? 'guitar'
@@ -48,10 +50,14 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
   }
 
   const addRow = () => {
-    const newRow: ChordRow = { id: generateId(), label: '', comment: '', chords: [], color: undefined }
+    const newRow: ChordRow = { id: generateId(), label: '', comment: '', chords: [], color: undefined, visible: true }
     const updated = [...chordRows, newRow]
     onChange(updated)
     setEditingRowId(newRow.id)
+  }
+
+  const addFromLibrary = (row: ChordRow) => {
+    onChange([...chordRows, { ...row, visible: true }])
   }
 
   const removeRow = (id: string) => onChange(chordRows.filter((r) => r.id !== id))
@@ -59,18 +65,38 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
   const updateRow = (id: string, patch: Partial<ChordRow>) =>
     onChange(chordRows.map((r) => r.id === id ? { ...r, ...patch } : r))
 
+  const toggleVisibility = (id: string) =>
+    onChange(chordRows.map((r) => r.id === id ? { ...r, visible: r.visible === false ? true : false } : r))
+
+  const visibleCount = chordRows.filter((r) => r.visible !== false).length
+
   if (chordRows.length === 0 && !collapsed) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2">
-        <span className="text-xs flex-1" style={{ color: 'var(--color-text-muted)' }}>Chord rows</span>
-        <button
-          onClick={addRow}
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-tertiary)' }}
-        >
-          <Plus size={12} strokeWidth={2} /> Add row
-        </button>
-      </div>
+      <>
+        <div className="flex items-center gap-2 px-3 py-2">
+          <span className="text-xs flex-1" style={{ color: 'var(--color-text-muted)' }}>Chord rows</span>
+          <button
+            onClick={() => setShowPicker(true)}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
+            style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+          >
+            <Library size={12} strokeWidth={2} /> From library
+          </button>
+          <button
+            onClick={addRow}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
+            style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-tertiary)' }}
+          >
+            <Plus size={12} strokeWidth={2} /> Add row
+          </button>
+        </div>
+        {showPicker && (
+          <ProgressionPickerModal
+            onSelect={addFromLibrary}
+            onClose={() => setShowPicker(false)}
+          />
+        )}
+      </>
     )
   }
 
@@ -80,7 +106,14 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
       <div className="flex items-center gap-2 px-3 py-1.5" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
         <button onClick={() => setCollapsed((c) => !c)} className="flex items-center gap-1 flex-1" style={{ color: 'var(--color-text-tertiary)' }}>
           {collapsed ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
-          <span className="text-xs">Chord rows ({chordRows.length})</span>
+          <span className="text-xs">Chord rows ({visibleCount}/{chordRows.length})</span>
+        </button>
+        <button
+          onClick={() => setShowPicker(true)}
+          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
+          style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+        >
+          <Library size={12} strokeWidth={2} /> Library
         </button>
         <button
           onClick={addRow}
@@ -95,15 +128,23 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
         <div className="space-y-2 p-2">
           {chordRows.map((row) => {
             const isEditing = editingRowId === row.id
+            const isHidden = row.visible === false
             return (
               <div
                 key={row.id}
                 className="rounded-xl overflow-hidden"
-                style={{ backgroundColor: 'var(--color-bg)', border: row.color && row.color !== 'transparent' ? `1px solid ${row.color}33` : '1px solid #1c1c1e' }}
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  border: row.color && row.color !== 'transparent' ? `1px solid ${row.color}33` : '1px solid var(--color-border-subtle)',
+                  opacity: isHidden ? 0.4 : 1,
+                }}
               >
                 {/* Row header */}
                 <div className="flex items-center gap-2 px-2 py-1.5">
                   <GripVertical size={14} style={{ color: 'var(--color-text-muted)' }} />
+                  {row.fromLibrary && (
+                    <Library size={11} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                  )}
                   {row.label ? (
                     <span className="text-xs font-semibold" style={{ color: row.color && row.color !== 'transparent' ? row.color : 'var(--color-text-tertiary)', minWidth: 60 }}>
                       {row.label}
@@ -112,6 +153,14 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                     <span className="text-xs" style={{ color: 'var(--color-text-muted)', minWidth: 60 }}>no label</span>
                   )}
                   <div className="flex-1" />
+                  <button
+                    onClick={() => toggleVisibility(row.id)}
+                    className="p-1 rounded transition-all"
+                    style={{ color: isHidden ? 'var(--color-text-muted)' : 'var(--color-text-tertiary)' }}
+                    title={isHidden ? 'Show row' : 'Hide row'}
+                  >
+                    {isHidden ? <EyeOff size={13} strokeWidth={2} /> : <Eye size={13} strokeWidth={2} />}
+                  </button>
                   <button
                     onClick={() => setEditingRowId(isEditing ? null : row.id)}
                     className="text-xs px-2 py-0.5 rounded transition-all"
@@ -166,8 +215,8 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                   </div>
                 )}
 
-                {/* Chord diagrams — scrollable row */}
-                {row.chords.length > 0 && (
+                {/* Chord diagrams — scrollable row (only when visible) */}
+                {!isHidden && row.chords.length > 0 && (
                   <div className="flex gap-0 overflow-x-auto scrollbar-none">
                     {/* Left side label for display */}
                     {row.label && !isEditing && (
@@ -193,14 +242,14 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                   </div>
                 )}
 
-                {row.chords.length === 0 && !isEditing && (
+                {!isHidden && row.chords.length === 0 && !isEditing && (
                   <p className="text-xs px-3 pb-2" style={{ color: 'var(--color-text-muted)' }}>
                     Click "edit" to add chords
                   </p>
                 )}
 
                 {/* Comment below row */}
-                {row.comment && (
+                {!isHidden && row.comment && (
                   <p className="text-xs px-3 pb-2" style={{ color: 'var(--color-text-tertiary)', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 4 }}>
                     {row.comment}
                   </p>
@@ -209,6 +258,13 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
             )
           })}
         </div>
+      )}
+
+      {showPicker && (
+        <ProgressionPickerModal
+          onSelect={addFromLibrary}
+          onClose={() => setShowPicker(false)}
+        />
       )}
     </div>
   )

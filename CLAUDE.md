@@ -83,11 +83,9 @@ src/
 │       │   └── PianoRollTimeline.tsx     # Note history timeline
 │       ├── hooks/
 │       │   ├── usePitchDetection.ts     # Pitch detection React hook
-│       │   ├── useChordDetection.ts     # Chord detection React hook
-│       │   └── useMicSettings.ts        # Mic settings hook
+│       │   └── useChordDetection.ts     # Chord detection React hook
 │       └── lib/
 │           ├── yin.ts                   # YIN pitch detection algorithm
-│           ├── pitchProcessor.worklet.ts # AudioWorklet for off-thread processing
 │           ├── audioCapture.ts          # Web Audio API mic capture
 │           ├── pitchUtils.ts            # Note conversion, filters, gating
 │           └── chordDetector.ts         # Polyphonic chord detection (chromagram)

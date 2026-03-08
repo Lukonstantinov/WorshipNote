@@ -125,5 +125,14 @@
   "addProgression": "Pridėti",
   "progressionDefault": "Seka {{n}}",
   "beatsPerBar": "Dūžių takte",
-  "addBar": "Pridėti taktą"
+  "addBar": "Pridėti taktą",
+  "pitchDetection": "Derintuvas",
+  "pitchModeNote": "Nata",
+  "pitchModeChord": "Akordas",
+  "pitchGain": "Stiprinimas",
+  "pitchThreshold": "Triukšmo slenkstis",
+  "pitchDevice": "Įvesties įrenginys",
+  "pitchDefaultDevice": "Numatytasis mikrofonas",
+  "addFromLibrary": "Iš bibliotekos",
+  "chordRowsLabel": "Akordų eilutės"
 }
