@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react'
-import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight } from 'lucide-react'
+import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight, ChevronDown } from 'lucide-react'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import type { ChordProgression, ChordLibraryFolder } from '../store/chordLibraryStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { GuitarDiagram } from '../features/songs/components/GuitarDiagram'
+import { MiniGuitarDiagram } from '../features/songs/components/MiniGuitarDiagram'
+import { MiniPianoDiagram } from '../features/songs/components/MiniPianoDiagram'
+import { MiniBassDiagram } from '../features/songs/components/MiniBassDiagram'
 import { ChordLibraryFolderManager } from '../features/chordLibrary/components/ChordLibraryFolderManager'
 import { ProgressionBuilder } from '../features/chordLibrary/components/ProgressionBuilder'
 import { getAllChordNames, getGuitarChord } from '../features/songs/lib/chordData'
@@ -12,11 +15,47 @@ type Tab = 'progressions' | 'reference'
 
 const CHORD_COLORS = ['var(--color-accent)', 'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-info)']
 
+function ProgressionDiagrams({ chords }: { chords: string[] }) {
+  const {
+    selectedInstrument, instruments,
+    customChords, customPianoChords,
+    guitarDotColor, pianoHighlightColor, guitarFlipped, diagramScale,
+  } = useSettingsStore()
+
+  const instrument = instruments.find((i) => i.id === selectedInstrument)
+  const instrType = instrument?.type ?? 'guitar'
+  const showPiano = instrType === 'piano' || instrType === 'keyboard'
+  const showBass = instrType === 'bass'
+  const scale = diagramScale ?? 1
+  const miniSz = Math.round(64 * scale)
+
+  return (
+    <div
+      className="flex gap-2 px-4 pb-4 overflow-x-auto scrollbar-none"
+      style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+    >
+      {chords.map((chord, i) => (
+        <div key={`${chord}-${i}`} className="flex-shrink-0 flex flex-col items-center gap-1 pt-3">
+          {showPiano ? (
+            <MiniPianoDiagram chord={chord} customDiagram={customPianoChords[chord]} size={miniSz} highlightColor={pianoHighlightColor} />
+          ) : showBass ? (
+            <MiniBassDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
+          ) : (
+            <MiniGuitarDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
+          )}
+          <span className="text-xs font-semibold" style={{ color: 'var(--color-chord)' }}>{chord}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function ChordLibraryPage() {
   const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder } = useChordLibraryStore()
   const { guitarDotColor, guitarFlipped } = useSettingsStore()
 
   const [tab, setTab] = useState<Tab>('progressions')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null)
   const [showFolderManager, setShowFolderManager] = useState(false)
@@ -228,18 +267,19 @@ export default function ChordLibraryPage() {
               {filtered.map((p) => {
                 const folder = p.folderId ? folders.find((f) => f.id === p.folderId) : undefined
                 const isSelected = selected.has(p.id)
+                const isExpanded = expandedId === p.id
                 return (
                   <div
                     key={p.id}
-                    className="rounded-2xl p-4 transition-all"
+                    className="rounded-2xl transition-all overflow-hidden"
                     style={{
-                      backgroundColor: isSelected ? '#bf5af222' : 'var(--color-card)',
-                      border: isSelected ? '1px solid #bf5af266' : '1px solid transparent',
-                      borderLeft: folder ? `3px solid ${folder.color}` : isSelected ? '3px solid #bf5af2' : undefined,
+                      backgroundColor: isSelected ? 'var(--color-accent-dim)' : 'var(--color-card)',
+                      border: isSelected ? '1px solid var(--color-accent)' : '1px solid transparent',
+                      borderLeft: folder ? `3px solid ${folder.color}` : isSelected ? '3px solid var(--color-accent)' : undefined,
                     }}
                     onClick={selectMode ? () => toggleSelect(p.id) : undefined}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 p-4">
                       {selectMode && (
                         <div className="flex-shrink-0 mt-0.5">
                           {isSelected
@@ -252,7 +292,7 @@ export default function ChordLibraryPage() {
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="font-semibold text-sm">{p.name}</span>
                           {p.key && (
-                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#bf5af222', color: 'var(--color-accent)' }}>
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}>
                               {p.key}
                             </span>
                           )}
@@ -285,6 +325,21 @@ export default function ChordLibraryPage() {
                       </div>
                       {!selectMode && (
                         <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                            className="p-2 rounded-xl hover:bg-white/5 transition-transform"
+                            title={isExpanded ? 'Collapse' : 'Show chord diagrams'}
+                          >
+                            <ChevronDown
+                              size={16}
+                              strokeWidth={1.5}
+                              style={{
+                                color: isExpanded ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease',
+                              }}
+                            />
+                          </button>
                           <button onClick={() => handleEdit(p)} className="p-2 rounded-xl hover:bg-white/5" title="Edit">
                             <ChevronRight size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
                           </button>
@@ -294,6 +349,11 @@ export default function ChordLibraryPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Expanded chord diagrams */}
+                    {isExpanded && p.chords.length > 0 && (
+                      <ProgressionDiagrams chords={p.chords} />
+                    )}
                   </div>
                 )
               })}
