@@ -1,3 +1,4 @@
+import { getBassChord } from '../lib/bassChordData'
 import type { CustomChordDiagram } from '../types'
 
 interface Props {
@@ -12,10 +13,10 @@ const STRING_COUNT = 4
 const FRET_COUNT = 5
 
 export function BassDiagram({ chord, customDiagram, size = 120, dotColor = 'var(--color-accent)', flipped = false }: Props) {
-  const voicing = customDiagram
+  const voicing = customDiagram ?? getBassChord(chord)
 
   const pad = 14
-  const topPad = 22
+  const topPad = 28
   const bottomPad = 8
   const w = size
   const h = size + (voicing?.baseFret && voicing.baseFret > 1 ? 8 : 0)

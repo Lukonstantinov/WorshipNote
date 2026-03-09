@@ -36,7 +36,7 @@ export function UkuleleDiagram({ chord, customDiagram, size = 120, dotColor = 'v
   const showBaseFret = baseFret > 1
 
   const pad = 14
-  const topPad = 22
+  const topPad = 28
   const bottomPad = voicing.comment ? 20 : 8
   const w = size
   const h = size + (showBaseFret ? 8 : 0)

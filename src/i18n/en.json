@@ -115,7 +115,7 @@
   "exportChordLibrary": "Export Chord Library",
   "exportChordLibraryDesc": "{{count}} custom chord diagrams",
   "importSongs": "Import Songs (JSON)",
-  "importSongsDesc": "Import from WorshipHub JSON file",
+  "importSongsDesc": "Import from WorshipNote JSON file",
   "importChordLibrary": "Import Chord Library",
   "importChordLibraryDesc": "Import custom chord diagrams",
   "importSuccess": "Imported {{count}} of {{total}} songs",
@@ -142,5 +142,16 @@
   "presetName": "Preset name",
   "defaultPreset": "Default",
   "applyPreset": "Apply",
-  "deletePreset": "Delete preset"
+  "deletePreset": "Delete preset",
+  "vocalist": "Vocalist",
+  "export": "Export",
+  "exportSong": "Export Song",
+  "exportIncludeStructure": "Structure labels",
+  "exportIncludeVocalist": "Vocalist",
+  "exportIncludeChords": "Chords",
+  "exportIncludeChordRows": "Chord rows",
+  "exportIncludeProgressions": "Bar progressions",
+  "exportAsTXT": "Download TXT",
+  "exportAsHTML": "Open printable page",
+  "downloadSong": "Download"
 }

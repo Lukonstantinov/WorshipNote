@@ -5,8 +5,10 @@ import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X } from 'luci
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { extractStructure } from '../features/songs/lib/parser'
-import { songToText, setlistToText, downloadTextFile, openPrintableHTML } from '../shared/lib/exportUtils'
+import { setlistToText, downloadTextFile, openPrintableHTML } from '../shared/lib/exportUtils'
+import { SongExportModal } from '../features/songs/components/SongExportModal'
 import type { Setlist } from '../store/setlistStore'
+import type { Song } from '../features/songs/types'
 
 // Colour by section position index (A, B, C, D, E, F…)
 const POSITION_COLORS = [
@@ -84,6 +86,7 @@ export default function SetlistPage() {
   const { setlists, deleteSetlist } = useSetlistStore()
   const { getSongById } = useSongStore()
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [exportSong, setExportSong] = useState<Song | null>(null)
 
   return (
     <div className="p-4 pb-28 md:pb-4">
@@ -236,12 +239,9 @@ export default function SetlistPage() {
                             </div>
                             <ChevronRight size={14} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0, marginTop: 4 }} />
                           </Link>
-                          {/* Per-song download */}
+                          {/* Per-song export */}
                           <button
-                            onClick={async () => {
-                              const text = songToText(song)
-                              await downloadTextFile(text, `${song.title}.txt`)
-                            }}
+                            onClick={() => setExportSong(song)}
                             className="flex-shrink-0 p-1.5 rounded-lg transition-all hover-bg"
                             style={{ color: 'var(--color-text-muted)' }}
                             title="Download song"
@@ -265,6 +265,9 @@ export default function SetlistPage() {
           onClick={() => setOpenMenuId(null)}
         />
       )}
+
+      {/* Song export modal */}
+      {exportSong && <SongExportModal song={exportSong} onClose={() => setExportSong(null)} />}
     </div>
   )
 }

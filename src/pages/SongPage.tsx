@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Pencil, Trash2, ChevronDown, Guitar, Piano, Music2, Drum, ChevronUp, Plus } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, ChevronDown, Guitar, Piano, Music2, Drum, ChevronUp, EyeOff, Eye, Download } from 'lucide-react'
 import { useSongStore } from '../store/songStore'
 import { parseSong, extractStructure } from '../features/songs/lib/parser'
 import { transposeSong } from '../features/songs/lib/transposer'
@@ -14,6 +14,7 @@ import { SongStructure } from '../features/songs/components/SongStructure'
 import { ChordDiagramPanel } from '../features/songs/components/ChordDiagramPanel'
 import { ChordRowsPanel } from '../features/songs/components/ChordRowsPanel'
 import { BarProgressions } from '../features/songs/components/BarProgressions'
+import { SongExportModal } from '../features/songs/components/SongExportModal'
 import { useSettingsStore } from '../store/settingsStore'
 import type { Role } from '../store/settingsStore'
 import type { Instrument } from '../features/songs/types'
@@ -42,7 +43,7 @@ export default function SongPage() {
   const {
     role, setRole,
     instruments, selectedInstrument, setSelectedInstrument,
-    chordDisplayPosition, chordDiagramMode,
+    chordDisplayPosition,
     roleLabels, customRoles,
   } = useSettingsStore()
 
@@ -50,7 +51,8 @@ export default function SongPage() {
   const [capo, setCapo] = useState(0)
   const [showInstrumentMenu, setShowInstrumentMenu] = useState(false)
   const [showControls, setShowControls] = useState(false)
-  const [showChordRows, setShowChordRows] = useState(false)
+  const [hideMainChords, setHideMainChords] = useState(false)
+  const [showExport, setShowExport] = useState(false)
   // Show role selector overlay on first open
   const [showRoleSelector, setShowRoleSelector] = useState(true)
 
@@ -238,6 +240,14 @@ export default function SongPage() {
             : <ChevronDown size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
           }
         </button>
+        <button
+          onClick={() => setShowExport(true)}
+          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
+          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
+          title={t('downloadSong')}
+        >
+          <Download size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
+        </button>
         <Link
           to={`/songs/${song.id}/edit`}
           className="flex items-center justify-center rounded-xl transition-all active:scale-95"
@@ -322,9 +332,32 @@ export default function SongPage() {
         </div>
       )}
 
-      {/* Chord diagrams — top position */}
+      {/* Chord diagrams — top position (with hide toggle) */}
       {showChordDiagrams && chordDisplayPosition === 'top' && (
-        <ChordDiagramPanel parsed={parsed} position="top" />
+        <div className="flex-shrink-0">
+          <div className="flex items-center">
+            <div className="flex-1 overflow-hidden">
+              {!hideMainChords && <ChordDiagramPanel parsed={parsed} position="top" />}
+            </div>
+            <button
+              onClick={() => setHideMainChords((p) => !p)}
+              className="flex items-center justify-center px-2 flex-shrink-0"
+              style={{ color: 'var(--color-text-muted)', minHeight: 36 }}
+              title={hideMainChords ? t('showDiagrams') : t('showDiagrams')}
+            >
+              {hideMainChords ? <Eye size={14} strokeWidth={2} /> : <EyeOff size={14} strokeWidth={2} />}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Chord rows — right under chords, above structure */}
+      {capabilities.showDiagrams && (
+        <ChordRowsPanel
+          songId={song.id}
+          chordRows={song.chordRows ?? []}
+          onChange={(rows) => updateSong(song.id, { chordRows: rows })}
+        />
       )}
 
       {/* ABAC structure bar */}
@@ -334,30 +367,6 @@ export default function SongPage() {
           pattern={structurePattern}
           manualStructure={song.structure}
         />
-      )}
-
-      {/* Chord rows — collapsible, only shown when rows exist or in mini mode */}
-      {capabilities.showDiagrams && ((song.chordRows?.length ?? 0) > 0 || chordDiagramMode === 'mini') && (
-        <div className="flex-shrink-0 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-          <button
-            onClick={() => setShowChordRows((p) => !p)}
-            className="flex items-center gap-1.5 w-full px-3 py-1.5 text-xs font-medium transition-all"
-            style={{ color: 'var(--color-text-tertiary)', backgroundColor: 'var(--color-bg-secondary)' }}
-          >
-            {showChordRows
-              ? <ChevronUp size={12} strokeWidth={2} />
-              : <Plus size={12} strokeWidth={2} />
-            }
-            <span>{t('chordRowsLabel') || 'Chord rows'}{(song.chordRows?.length ?? 0) > 0 ? ` (${song.chordRows!.length})` : ''}</span>
-          </button>
-          {showChordRows && (
-            <ChordRowsPanel
-              songId={song.id}
-              chordRows={song.chordRows ?? []}
-              onChange={(rows) => updateSong(song.id, { chordRows: rows })}
-            />
-          )}
-        </div>
       )}
 
       {/* Main area: content + optional side chord panel */}
@@ -388,6 +397,9 @@ export default function SongPage() {
           </div>
         )}
       </div>
+
+      {/* Export modal */}
+      {showExport && <SongExportModal song={song} onClose={() => setShowExport(false)} />}
     </div>
   )
 }

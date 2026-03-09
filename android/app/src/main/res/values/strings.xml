@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">WorshipHub</string>
-    <string name="title_activity_main">WorshipHub</string>
+    <string name="app_name">WorshipNote</string>
+    <string name="title_activity_main">WorshipNote</string>
     <string name="package_name">com.worshiphub.app</string>
     <string name="custom_url_scheme">com.worshiphub.app</string>
 </resources>

@@ -27,6 +27,7 @@ export function SongEditor({ song }: Props) {
   const [bpm, setBpm] = useState<string>(song?.bpm?.toString() ?? '')
   const defaultPreset = songPresets.find((p) => p.isDefault)
   const [content, setContent] = useState(song?.content ?? defaultPreset?.content ?? defaultSongTemplate)
+  const [vocalist, setVocalist] = useState(song?.vocalist ?? '')
   const [tags, setTags] = useState(song?.tags?.join(', ') ?? '')
   const [folderId, setFolderId] = useState<string>(song?.folderId ?? '')
   const [structure, setStructure] = useState(song?.structure ?? '')
@@ -43,6 +44,7 @@ export function SongEditor({ song }: Props) {
       title,
       original_key: originalKey || undefined,
       bpm: bpm ? parseInt(bpm) : undefined,
+      vocalist: vocalist.trim() || undefined,
       content,
       tags: parsedTags,
       folderId: folderId || undefined,
@@ -171,6 +173,17 @@ export function SongEditor({ song }: Props) {
               placeholder="120"
             />
           </div>
+        </div>
+
+        {/* Vocalist */}
+        <div>
+          <label style={labelStyle}>{t('vocalist') || 'Vocalist'}</label>
+          <input
+            value={vocalist}
+            onChange={(e) => setVocalist(e.target.value)}
+            style={inputStyle}
+            placeholder="Main vocalist name"
+          />
         </div>
 
         {/* Tags */}

@@ -36,9 +36,9 @@ export function GuitarDiagram({ chord, customDiagram, size = 120, dotColor = 'va
   const { baseFret = 1 } = voicing
   const showBaseFret = baseFret > 1
 
-  // Layout
+  // Layout — topPad leaves room for chord name + open/muted markers
   const pad = 14
-  const topPad = 22
+  const topPad = 28
   const bottomPad = voicing.comment ? 20 : 8
   const w = size
   const h = size + (showBaseFret ? 8 : 0)

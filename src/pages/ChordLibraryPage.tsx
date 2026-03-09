@@ -9,11 +9,13 @@ import { MiniPianoDiagram } from '../features/songs/components/MiniPianoDiagram'
 import { MiniBassDiagram } from '../features/songs/components/MiniBassDiagram'
 import { UkuleleDiagram } from '../features/songs/components/UkuleleDiagram'
 import { ChordDiagramEditor } from '../features/songs/components/ChordDiagramEditor'
+import { ChordDetailModal } from '../features/songs/components/ChordDetailModal'
 import { ChordLibraryFolderManager } from '../features/chordLibrary/components/ChordLibraryFolderManager'
 import { ProgressionBuilder } from '../features/chordLibrary/components/ProgressionBuilder'
 import { getAllChordNames, getGuitarChord, getChordCategory, CHORD_CATEGORIES } from '../features/songs/lib/chordData'
 import type { ChordCategory } from '../features/songs/lib/chordData'
 import { getAllUkuleleChordNames } from '../features/songs/lib/ukuleleChordData'
+import { getAllBassChordNames } from '../features/songs/lib/bassChordData'
 
 type Tab = 'progressions' | 'reference'
 
@@ -89,10 +91,13 @@ export default function ChordLibraryPage() {
   const [refSelectedChords, setRefSelectedChords] = useState<string[]>([])
   // Edit diagram within expanded progression card
   const [editingProgressionChord, setEditingProgressionChord] = useState<string | null>(null)
+  // Chord detail modal (enlarged view + suggested progressions)
+  const [detailChord, setDetailChord] = useState<string | null>(null)
   const customChordInputRef = useRef<HTMLInputElement>(null)
 
   const allChordNames = useMemo(() => getAllChordNames(), [])
   const allUkuleleNames = useMemo(() => getAllUkuleleChordNames(), [])
+  const allBassNames = useMemo(() => getAllBassChordNames(), [])
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
@@ -112,6 +117,8 @@ export default function ChordLibraryPage() {
     let baseNames: string[]
     if (refInstrument === 'ukulele') {
       baseNames = allUkuleleNames
+    } else if (refInstrument === 'bass') {
+      baseNames = refCategory === 'custom' ? Object.keys(customChords) : allBassNames
     } else if (refCategory === 'custom') {
       baseNames = Object.keys(customChords)
     } else {
@@ -563,7 +570,7 @@ export default function ChordLibraryPage() {
           )}
 
           <p className="text-xs mb-3 px-1" style={{ color: 'var(--color-text-muted)' }}>
-            {refInstrument.charAt(0).toUpperCase() + refInstrument.slice(1)} chord reference · {filteredRefChords.length} chords · Tap to build progression
+            {refInstrument.charAt(0).toUpperCase() + refInstrument.slice(1)} chord reference · {filteredRefChords.length} chords · Tap to view
           </p>
 
           {/* Chord grid */}
@@ -585,10 +592,8 @@ export default function ChordLibraryPage() {
                       // In select mode: add to queue (allows duplicates)
                       setRefSelectedChords((prev) => [...prev, chordName])
                     } else {
-                      // Default: open progression builder with this single chord
-                      setRefSelectedChords([chordName])
-                      setShowBuilder(true)
-                      setEditingProgression(undefined)
+                      // Default: open enlarged chord detail view
+                      setDetailChord(chordName)
                     }
                   }}
                 >
@@ -696,6 +701,24 @@ export default function ChordLibraryPage() {
         <ChordDiagramEditor
           chordName={editingProgressionChord}
           onClose={() => setEditingProgressionChord(null)}
+        />
+      )}
+      {detailChord && (
+        <ChordDetailModal
+          chord={detailChord}
+          instrument={refInstrument}
+          customDiagram={customChords[detailChord]}
+          customPianoDiagram={customPianoChords[detailChord]}
+          dotColor={guitarDotColor}
+          pianoColor={pianoHighlightColor}
+          flipped={guitarFlipped}
+          onClose={() => setDetailChord(null)}
+          onEdit={() => { setEditingCustomChord(detailChord); setDetailChord(null) }}
+          onBuildProgression={(chords) => {
+            setRefSelectedChords(chords)
+            setShowBuilder(true)
+            setEditingProgression(undefined)
+          }}
         />
       )}
     </div>
