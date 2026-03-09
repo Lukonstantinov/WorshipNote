@@ -5,31 +5,35 @@ import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { extractStructure } from '../features/songs/lib/parser'
 
-// Maps section label to a short abbreviation for display
-function abbreviateLabel(lbl: string): string {
-  const u = lbl.toUpperCase()
-  if (u.startsWith('VERSE') || u.startsWith('КУПЛЕТ') || u.startsWith('POSM')) return 'V'
-  if (u.startsWith('CHORUS') || u.startsWith('ПРИПЕВ') || u.startsWith('REF')) return 'C'
-  if (u.startsWith('BRIDGE') || u.startsWith('МОСТ')) return 'B'
-  if (u.startsWith('INTRO')) return 'I'
-  if (u.startsWith('OUTRO')) return 'O'
-  if (u.startsWith('PRE')) return 'P'
-  if (u.startsWith('TAG')) return 'T'
-  if (u.startsWith('SOLO')) return 'S'
-  return lbl.slice(0, 1).toUpperCase()
+// Colour by section position index (A, B, C, D, E, F…)
+const POSITION_COLORS = [
+  'var(--color-accent)',
+  'var(--color-info)',
+  'var(--color-warning)',
+  'var(--color-chord)',
+  'var(--color-error)',
+  '#bf5af2',
+  '#ff6482',
+  '#64d2ff',
+  '#ffd60a',
+  '#5ac8fa',
+]
+
+function positionColor(letter: string): string {
+  const idx = letter.charCodeAt(0) - 65 // 'A'=0, 'B'=1, …
+  return POSITION_COLORS[idx] ?? 'var(--color-text-tertiary)'
 }
 
-// Color per section type
-function sectionColor(abbr: string): string {
-  switch (abbr) {
-    case 'V': return 'var(--color-info)'
-    case 'C': return 'var(--color-accent)'
-    case 'B': return 'var(--color-warning)'
-    case 'I': return 'var(--color-chord)'
-    case 'O': return 'var(--color-info)'
-    case 'P': return 'var(--color-error)'
-    default: return 'var(--color-text-tertiary)'
+function collapseRepeats(chips: string[]): { label: string; count: number }[] {
+  const result: { label: string; count: number }[] = []
+  for (const chip of chips) {
+    if (result.length && result[result.length - 1].label === chip) {
+      result[result.length - 1].count++
+    } else {
+      result.push({ label: chip, count: 1 })
+    }
   }
+  return result
 }
 
 export default function SetlistPage() {
@@ -105,9 +109,9 @@ export default function SetlistPage() {
                       const song = getSongById(ss.song_id)
                       if (!song) return null
 
-                      // Extract song structure
-                      const { labels } = extractStructure(song.structure ? song.structure + '\n' + song.content : song.content)
-                      const structureChips = labels.map(abbreviateLabel)
+                      // Extract song structure using parser's A/B/C/D pattern
+                      const { pattern } = extractStructure(song.structure ? song.structure + '\n' + song.content : song.content)
+                      const structureChips = collapseRepeats(pattern ? pattern.split(' ') : [])
 
                       return (
                         <Link
@@ -145,19 +149,22 @@ export default function SetlistPage() {
                             {/* Song structure chips */}
                             {structureChips.length > 0 && (
                               <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                {structureChips.map((chip, i) => (
-                                  <span
-                                    key={i}
-                                    className="text-xs px-1.5 py-0.5 rounded font-bold"
-                                    style={{
-                                      backgroundColor: sectionColor(chip) + '22',
-                                      color: sectionColor(chip),
-                                      fontSize: 10,
-                                    }}
-                                  >
-                                    {chip}
-                                  </span>
-                                ))}
+                                {structureChips.map(({ label, count }, i) => {
+                                  const color = positionColor(label)
+                                  return (
+                                    <span
+                                      key={i}
+                                      className="text-xs px-1.5 py-0.5 rounded font-bold"
+                                      style={{
+                                        backgroundColor: color + '22',
+                                        color,
+                                        fontSize: 10,
+                                      }}
+                                    >
+                                      {count > 1 ? `${label}×${count}` : label}
+                                    </span>
+                                  )
+                                })}
                               </div>
                             )}
                           </div>
