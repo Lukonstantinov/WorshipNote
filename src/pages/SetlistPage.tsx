@@ -174,9 +174,18 @@ export default function SetlistPage() {
                       const song = getSongById(ss.song_id)
                       if (!song) return null
 
-                      // Extract song structure using parser's A/B/C/D pattern
-                      const { pattern } = extractStructure(song.structure ? song.structure + '\n' + song.content : song.content)
-                      const structureChips = collapseRepeats(pattern ? pattern.split(' ') : [])
+                      // Use manual structure if set, otherwise extract from content
+                      let structureParts: string[] = []
+                      if (song.structure) {
+                        const hasSpaces = /\s/.test(song.structure)
+                        structureParts = hasSpaces
+                          ? song.structure.split(/\s+/).filter(Boolean)
+                          : song.structure.split('').filter((c) => /[A-Za-z]/.test(c))
+                      } else {
+                        const { pattern } = extractStructure(song.content)
+                        if (pattern) structureParts = pattern.split(' ')
+                      }
+                      const structureChips = collapseRepeats(structureParts)
 
                       return (
                         <div

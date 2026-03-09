@@ -128,12 +128,16 @@ export async function downloadFile(content: string, filename: string, mimeType: 
         await navigator.share({ files: [file], title: filename })
         return
       }
-    } catch { /* user cancelled or unsupported — fall through */ }
+    } catch (e: unknown) {
+      if (e instanceof DOMException && e.name === 'AbortError') return
+    }
 
     try {
       await navigator.share({ title: filename, text: content })
       return
-    } catch { /* fall through */ }
+    } catch (e: unknown) {
+      if (e instanceof DOMException && e.name === 'AbortError') return
+    }
   }
 
   // 2. Desktop: blob download
@@ -152,11 +156,18 @@ export async function downloadFile(content: string, filename: string, mimeType: 
     } catch { /* fall through */ }
   }
 
-  // 3. Last resort: open in new window
+  // 3. Capacitor fallback: copy to clipboard
+  try {
+    await navigator.clipboard.writeText(content)
+    alert(`"${filename}" copied to clipboard`)
+    return
+  } catch { /* fall through */ }
+
+  // 4. Last resort: open in new window with proper styling
   const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   const win = window.open('', '_blank')
   if (win) {
-    win.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px;">${escape(content)}</pre>`)
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:monospace;padding:20px;background:#fff;color:#000;white-space:pre-wrap;}</style></head><body><button onclick="try{window.close()}catch(e){history.back()}" style="margin-bottom:16px;padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;">Back</button><pre>${escape(content)}</pre></body></html>`)
     win.document.close()
   }
 }

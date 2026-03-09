@@ -62,7 +62,11 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
   const displayPattern = manualStructure || pattern
   if (!displayPattern && labels.length === 0) return null
 
-  const patternParts = displayPattern.split(/\s+/).filter(Boolean)
+  // Split pattern: if it has spaces, split by spaces; otherwise split each character
+  const hasSpaces = /\s/.test(displayPattern)
+  const patternParts = hasSpaces
+    ? displayPattern.split(/\s+/).filter(Boolean)
+    : displayPattern.split('').filter((c) => /[A-Za-z]/.test(c))
   const collapsed = collapseRepeats(patternParts)
 
   return (

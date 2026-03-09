@@ -99,12 +99,17 @@ export async function downloadTextFile(content: string, filename: string): Promi
         await navigator.share({ files: [file], title: filename })
         return
       }
-    } catch { /* user cancelled or unsupported — fall through */ }
+    } catch (e: unknown) {
+      // Only fall through on non-abort errors (user cancel = stop)
+      if (e instanceof DOMException && e.name === 'AbortError') return
+    }
 
     try {
       await navigator.share({ title: filename, text: content })
       return
-    } catch { /* fall through */ }
+    } catch (e: unknown) {
+      if (e instanceof DOMException && e.name === 'AbortError') return
+    }
   }
 
   // 2. Desktop: blob download
@@ -123,10 +128,17 @@ export async function downloadTextFile(content: string, filename: string): Promi
     } catch { /* fall through */ }
   }
 
-  // 3. Last resort: open text in a new window so user can copy
+  // 3. Capacitor fallback: copy to clipboard
+  try {
+    await navigator.clipboard.writeText(content)
+    alert(`"${filename}" copied to clipboard`)
+    return
+  } catch { /* fall through */ }
+
+  // 4. Last resort: open text in a new window so user can copy
   const win = window.open('', '_blank')
   if (win) {
-    win.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px;">${escapeHtml(content)}</pre>`)
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(filename)}</title><style>body{font-family:monospace;padding:20px;background:#fff;color:#000;white-space:pre-wrap;word-wrap:break-word;}</style></head><body><button onclick="try{window.close()}catch(e){history.back()}" style="margin-bottom:16px;padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer;">Back</button><pre>${escapeHtml(content)}</pre></body></html>`)
     win.document.close()
   }
 }
@@ -203,9 +215,18 @@ export function openSetlistHTML(setlist: Setlist, songs: Song[]): void {
     if (meta.length > 0) parts.push(`<div class="meta">${meta.join(' &middot; ')}</div>`)
 
     // Structure pattern (A B A×3 C D)
-    const { pattern } = extractStructure(song.content)
-    if (pattern) {
-      const collapsed = collapseRepeats(pattern.split(' '))
+    let structureParts: string[] = []
+    if (song.structure) {
+      const hasSpaces = /\s/.test(song.structure)
+      structureParts = hasSpaces
+        ? song.structure.split(/\s+/).filter(Boolean)
+        : song.structure.split('').filter((c: string) => /[A-Za-z]/.test(c))
+    } else {
+      const { pattern } = extractStructure(song.content)
+      if (pattern) structureParts = pattern.split(' ')
+    }
+    if (structureParts.length > 0) {
+      const collapsed = collapseRepeats(structureParts)
       parts.push(`<div class="structure">Structure: ${escapeHtml(collapsed)}</div>`)
     }
 
