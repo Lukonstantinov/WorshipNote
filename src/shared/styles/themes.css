@@ -99,13 +99,13 @@
   --color-nav-blur-bg: rgba(255, 255, 255, 0.88);
   --color-overlay: rgba(0, 0, 0, 0.3);
   --color-hover: rgba(0, 0, 0, 0.06);
-  --color-diagram-bg: #ffffff;
-  --color-diagram-stroke: #c7c7cc;
+  --color-diagram-bg: #f0f0f5;
+  --color-diagram-stroke: #6e6e73;
   --color-diagram-text: #1c1c1e;
-  --color-diagram-fret: #8e8e93;
-  --color-piano-white: #ffffff;
+  --color-diagram-fret: #48484a;
+  --color-piano-white: #f8f8fb;
   --color-piano-black: #1c1c1e;
-  --color-piano-stroke: #c7c7cc;
+  --color-piano-stroke: #6e6e73;
   --color-selected-text: #ffffff;
 }
 

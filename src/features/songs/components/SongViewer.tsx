@@ -56,7 +56,7 @@ export function SongViewer({ parsed }: Props) {
         return (
           <div key={i} className="flex flex-wrap">
             {segments.map((seg, j) => (
-              <div key={j} className="inline-flex flex-col mr-0">
+              <div key={j} className="inline-flex flex-col" style={{ flexShrink: 0 }}>
                 {capabilities.showChords && (
                   <span
                     className="font-semibold leading-tight"
@@ -66,6 +66,7 @@ export function SongViewer({ parsed }: Props) {
                       fontSize: Math.max(11, fontSize * 0.65),
                       minWidth: seg.chord ? '0.5ch' : '0',
                       whiteSpace: 'pre',
+                      paddingRight: seg.chord ? '0.3em' : '0',
                     }}
                   >
                     {seg.chord || ''}

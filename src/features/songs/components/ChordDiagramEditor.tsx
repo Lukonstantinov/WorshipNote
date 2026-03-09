@@ -55,16 +55,16 @@ function FretEditor({ chordName, stringCount, onClose }: { chordName: string; st
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>Start fret:</span>
         <button onClick={() => setBaseFret((b) => Math.max(1, b - 1))} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-primary)' }}>−</button>
-        <span className="text-white text-sm font-semibold w-4 text-center">{baseFret}</span>
+        <span className="text-sm font-semibold w-4 text-center" style={{ color: 'var(--color-text-primary)' }}>{baseFret}</span>
         <button onClick={() => setBaseFret((b) => Math.min(12, b + 1))} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-primary)' }}>+</button>
       </div>
       <svg width={w} height={h} className="mx-auto block" style={{ cursor: 'pointer' }}>
-        <rect x={pad} y={topPad} width={gridW} height={3} rx={1.5} fill="rgba(235,235,245,0.6)" />
+        <rect x={pad} y={topPad} width={gridW} height={3} rx={1.5} fill="var(--color-diagram-text)" />
         {Array.from({ length: FRET_COUNT }).map((_, fi) => (
-          <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="rgba(235,235,245,0.15)" strokeWidth={1} />
+          <line key={fi} x1={pad} y1={topPad + (fi + 1) * fretGap} x2={pad + gridW} y2={topPad + (fi + 1) * fretGap} stroke="var(--color-diagram-stroke)" strokeWidth={1} />
         ))}
         {Array.from({ length: stringCount }).map((_, si) => (
-          <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="rgba(235,235,245,0.25)" strokeWidth={1} />
+          <line key={si} x1={pad + si * stringGap} y1={topPad} x2={pad + si * stringGap} y2={topPad + gridH} stroke="var(--color-diagram-stroke)" strokeWidth={1.5} />
         ))}
         {Array.from({ length: stringCount }).map((_, si) => {
           const cx = pad + si * stringGap; const cy = topPad - 8
@@ -73,13 +73,13 @@ function FretEditor({ chordName, stringCount, onClose }: { chordName: string; st
             <g key={si} onClick={() => cycleMuteOpen(si)} style={{ cursor: 'pointer' }}>
               {isMuted ? (
                 <g>
-                  <line x1={cx-4} y1={cy-4} x2={cx+4} y2={cy+4} stroke="rgba(235,235,245,0.6)" strokeWidth={1.5} strokeLinecap="round" />
-                  <line x1={cx+4} y1={cy-4} x2={cx-4} y2={cy+4} stroke="rgba(235,235,245,0.6)" strokeWidth={1.5} strokeLinecap="round" />
+                  <line x1={cx-4} y1={cy-4} x2={cx+4} y2={cy+4} stroke="var(--color-diagram-fret)" strokeWidth={1.5} strokeLinecap="round" />
+                  <line x1={cx+4} y1={cy-4} x2={cx-4} y2={cy+4} stroke="var(--color-diagram-fret)" strokeWidth={1.5} strokeLinecap="round" />
                 </g>
               ) : isOpen ? (
-                <circle cx={cx} cy={cy} r={4} stroke="rgba(235,235,245,0.5)" strokeWidth={1.5} fill="none" />
+                <circle cx={cx} cy={cy} r={4} stroke="var(--color-diagram-fret)" strokeWidth={1.5} fill="none" />
               ) : (
-                <circle cx={cx} cy={cy} r={5} fill="rgba(235,235,245,0.1)" />
+                <circle cx={cx} cy={cy} r={5} fill="var(--color-diagram-stroke)" opacity={0.4} />
               )}
             </g>
           )
@@ -91,7 +91,7 @@ function FretEditor({ chordName, stringCount, onClose }: { chordName: string; st
             return (
               <g key={`${si}-${fi}`} onClick={() => toggleFret(si, fi + 1)} style={{ cursor: 'pointer' }}>
                 <circle cx={cx} cy={cy} r={dotR + 4} fill="transparent" />
-                {isActive ? <circle cx={cx} cy={cy} r={dotR} fill={guitarDotColor} /> : <circle cx={cx} cy={cy} r={3} fill="rgba(255,255,255,0.05)" />}
+                {isActive ? <circle cx={cx} cy={cy} r={dotR} fill={guitarDotColor} /> : <circle cx={cx} cy={cy} r={3} fill="var(--color-diagram-stroke)" opacity={0.25} />}
               </g>
             )
           })
@@ -159,12 +159,12 @@ function PianoEditor({ chordName, onClose }: { chordName: string; onClose: () =>
       <svg width={w} height={h} className="mx-auto block">
         {Array.from({ length: WHITE_COUNT }).map((_, i) => {
           const noteName = WHITE_KEYS[i % 7]; const hi = isHighlighted(noteName)
-          return <rect key={i} x={i * wKeyW + 0.5} y={0.5} width={wKeyW - 1} height={wKeyH - 1} rx={2} fill={hi ? pianoHighlightColor : '#ffffff'} stroke="#444" strokeWidth={0.5} onClick={() => toggleNote(noteName)} style={{ cursor: 'pointer' }} />
+          return <rect key={i} x={i * wKeyW + 0.5} y={0.5} width={wKeyW - 1} height={wKeyH - 1} rx={2} fill={hi ? pianoHighlightColor : 'var(--color-piano-white)'} stroke="var(--color-piano-stroke)" strokeWidth={0.5} onClick={() => toggleNote(noteName)} style={{ cursor: 'pointer' }} />
         })}
         {blackPositions.map((pos, bi) => {
           const noteName = BLACK_KEY_NAMES[bi % BLACK_KEY_NAMES.length]; const hi = isHighlighted(noteName)
           const x = pos * wKeyW + wKeyW / 2 - bKeyW / 2
-          return <rect key={bi} x={x} y={0} width={bKeyW} height={bKeyH} rx={2} fill={hi ? 'var(--color-info)' : 'var(--color-bg-secondary)'} onClick={() => toggleNote(noteName)} style={{ cursor: 'pointer' }} />
+          return <rect key={bi} x={x} y={0} width={bKeyW} height={bKeyH} rx={2} fill={hi ? 'var(--color-info)' : 'var(--color-piano-black)'} onClick={() => toggleNote(noteName)} style={{ cursor: 'pointer' }} />
         })}
       </svg>
       {selectedNotes.length > 0 && (

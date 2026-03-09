@@ -143,3 +143,32 @@ export function getGuitarChord(name: string): ChordVoicing | undefined {
 export function getAllChordNames(): string[] {
   return Object.keys(CHORDS)
 }
+
+export type ChordCategory = 'major' | 'minor' | '7th' | 'maj7' | 'm7' | 'sus' | 'dim' | 'aug' | 'add9' | 'other'
+
+export function getChordCategory(name: string): ChordCategory {
+  if (name.includes('maj7')) return 'maj7'
+  if (name.includes('m7') || name.includes('min7')) return 'm7'
+  if (name.includes('sus')) return 'sus'
+  if (name.includes('dim')) return 'dim'
+  if (name.includes('aug')) return 'aug'
+  if (name.includes('add9')) return 'add9'
+  if (/[0-9]/.test(name) && !name.includes('maj')) return '7th'
+  // minor: ends with 'm' not preceded by another m/letter that makes it maj
+  if (/m$/.test(name) || /m[^a]/.test(name.slice(1))) return 'minor'
+  if (/^[A-G][b#]?$/.test(name)) return 'major'
+  return 'major'
+}
+
+export const CHORD_CATEGORIES: { key: ChordCategory | 'all'; label: string }[] = [
+  { key: 'all',   label: 'All' },
+  { key: 'major', label: 'Major' },
+  { key: 'minor', label: 'Minor' },
+  { key: '7th',   label: '7th' },
+  { key: 'maj7',  label: 'Maj7' },
+  { key: 'm7',    label: 'm7' },
+  { key: 'sus',   label: 'Sus' },
+  { key: 'dim',   label: 'Dim' },
+  { key: 'aug',   label: 'Aug' },
+  { key: 'add9',  label: 'Add9' },
+]

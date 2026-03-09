@@ -42,7 +42,7 @@ export default function SongPage() {
   const {
     role, setRole,
     instruments, selectedInstrument, setSelectedInstrument,
-    chordDisplayPosition,
+    chordDisplayPosition, chordDiagramMode,
     roleLabels, customRoles,
   } = useSettingsStore()
 
@@ -336,8 +336,8 @@ export default function SongPage() {
         />
       )}
 
-      {/* Chord rows — collapsible, at the top */}
-      {capabilities.showDiagrams && (
+      {/* Chord rows — collapsible, only shown when rows exist or in mini mode */}
+      {capabilities.showDiagrams && ((song.chordRows?.length ?? 0) > 0 || chordDiagramMode === 'mini') && (
         <div className="flex-shrink-0 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
           <button
             onClick={() => setShowChordRows((p) => !p)}
