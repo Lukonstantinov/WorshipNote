@@ -88,7 +88,7 @@ export function MiniPianoDiagram({ chord, customDiagram, size = 56, highlightCol
               width={bKeyW}
               height={bKeyH}
               rx={1}
-              fill={hi ? 'var(--color-info)' : 'var(--color-bg-secondary)'}
+              fill={hi ? 'var(--color-info)' : 'var(--color-piano-black)'}
             />
           )
         })}

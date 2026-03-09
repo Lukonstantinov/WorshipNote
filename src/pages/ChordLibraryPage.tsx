@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight, ChevronDown } from 'lucide-react'
+import { useState, useMemo, useRef } from 'react'
+import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight, ChevronDown, Pencil } from 'lucide-react'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import type { ChordProgression, ChordLibraryFolder } from '../store/chordLibraryStore'
 import { useSettingsStore } from '../store/settingsStore'
@@ -7,9 +7,13 @@ import { GuitarDiagram } from '../features/songs/components/GuitarDiagram'
 import { MiniGuitarDiagram } from '../features/songs/components/MiniGuitarDiagram'
 import { MiniPianoDiagram } from '../features/songs/components/MiniPianoDiagram'
 import { MiniBassDiagram } from '../features/songs/components/MiniBassDiagram'
+import { UkuleleDiagram } from '../features/songs/components/UkuleleDiagram'
+import { ChordDiagramEditor } from '../features/songs/components/ChordDiagramEditor'
 import { ChordLibraryFolderManager } from '../features/chordLibrary/components/ChordLibraryFolderManager'
 import { ProgressionBuilder } from '../features/chordLibrary/components/ProgressionBuilder'
-import { getAllChordNames, getGuitarChord } from '../features/songs/lib/chordData'
+import { getAllChordNames, getGuitarChord, getChordCategory, CHORD_CATEGORIES } from '../features/songs/lib/chordData'
+import type { ChordCategory } from '../features/songs/lib/chordData'
+import { getAllUkuleleChordNames } from '../features/songs/lib/ukuleleChordData'
 
 type Tab = 'progressions' | 'reference'
 
@@ -52,7 +56,7 @@ function ProgressionDiagrams({ chords }: { chords: string[] }) {
 
 export default function ChordLibraryPage() {
   const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder } = useChordLibraryStore()
-  const { guitarDotColor, guitarFlipped } = useSettingsStore()
+  const { guitarDotColor, guitarFlipped, customChords, customPianoChords, deleteCustomChord, deleteCustomPianoChord, pianoHighlightColor } = useSettingsStore()
 
   const [tab, setTab] = useState<Tab>('progressions')
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -69,7 +73,16 @@ export default function ChordLibraryPage() {
 
   // Reference tab
   const [refQuery, setRefQuery] = useState('')
+  const [refInstrument, setRefInstrument] = useState<'guitar' | 'bass' | 'piano' | 'ukulele'>('guitar')
+  const [refCategory, setRefCategory] = useState<'all' | ChordCategory | 'custom'>('all')
+  const [editingCustomChord, setEditingCustomChord] = useState<string | null>(null)
+  const [showCustomNameInput, setShowCustomNameInput] = useState(false)
+  const [customChordNameInput, setCustomChordNameInput] = useState('')
+  const [buildingFromChord, setBuildingFromChord] = useState<string | null>(null)
+  const customChordInputRef = useRef<HTMLInputElement>(null)
+
   const allChordNames = useMemo(() => getAllChordNames(), [])
+  const allUkuleleNames = useMemo(() => getAllUkuleleChordNames(), [])
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
@@ -83,9 +96,35 @@ export default function ChordLibraryPage() {
   }, [progressions, query, activeFolderId])
 
   const filteredRefChords = useMemo(() => {
-    if (!refQuery) return allChordNames
-    return allChordNames.filter((n) => n.toLowerCase().includes(refQuery.toLowerCase()))
-  }, [allChordNames, refQuery])
+    const q = refQuery.toLowerCase()
+
+    // Get base list for instrument
+    let baseNames: string[]
+    if (refInstrument === 'ukulele') {
+      baseNames = allUkuleleNames
+    } else if (refCategory === 'custom') {
+      baseNames = Object.keys(customChords)
+    } else {
+      baseNames = allChordNames
+    }
+
+    // Add custom chord names to guitar/bass/piano view (those not already in the built-in list)
+    if (refInstrument !== 'ukulele' && refCategory !== 'custom') {
+      const customNames = Object.keys(customChords).filter((n) => !baseNames.includes(n))
+      if (customNames.length > 0) baseNames = [...baseNames, ...customNames]
+    }
+
+    // Filter by category
+    let names = baseNames
+    if (refCategory !== 'all' && refCategory !== 'custom') {
+      names = names.filter((n) => getChordCategory(n) === refCategory)
+    }
+
+    // Filter by search
+    if (q) names = names.filter((n) => n.toLowerCase().includes(q))
+
+    return names
+  }, [allChordNames, allUkuleleNames, refQuery, refInstrument, refCategory, customChords])
 
   const handleEdit = (p: ChordProgression) => { setEditingProgression(p); setShowBuilder(true) }
   const handleAdd = () => { setEditingProgression(undefined); setShowBuilder(true) }
@@ -364,28 +403,183 @@ export default function ChordLibraryPage() {
 
       {tab === 'reference' && (
         <>
-          {/* Reference search */}
-          <div className="flex items-center gap-2 px-3 rounded-xl mb-4" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}>
-            <Search size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-            <input value={refQuery} onChange={(e) => setRefQuery(e.target.value)} className="flex-1 bg-transparent outline-none text-sm" placeholder="Search chords (e.g. Am, F#m, Cmaj7)…" />
+          {/* Instrument tabs */}
+          <div className="flex gap-1 mb-3 rounded-xl p-1" style={{ backgroundColor: 'var(--color-card)' }}>
+            {(['guitar', 'bass', 'piano', 'ukulele'] as const).map((instr) => (
+              <button
+                key={instr}
+                onClick={() => { setRefInstrument(instr); setRefCategory('all') }}
+                className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all capitalize"
+                style={{
+                  backgroundColor: refInstrument === instr ? 'var(--color-accent)' : 'transparent',
+                  color: refInstrument === instr ? '#fff' : 'var(--color-text-tertiary)',
+                }}
+              >
+                {instr}
+              </button>
+            ))}
           </div>
+
+          {/* Category filter chips */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 scrollbar-none">
+            {[...CHORD_CATEGORIES, { key: 'custom' as const, label: 'Custom' }].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setRefCategory(key)}
+                className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: refCategory === key ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: refCategory === key ? '#fff' : 'var(--color-text-tertiary)',
+                  border: `1px solid ${refCategory === key ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Reference search + Create custom */}
+          <div className="flex gap-2 mb-3">
+            <div className="flex-1 flex items-center gap-2 px-3 rounded-xl" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}>
+              <Search size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+              <input value={refQuery} onChange={(e) => setRefQuery(e.target.value)} className="flex-1 bg-transparent outline-none text-sm" placeholder={`Search ${refInstrument} chords…`} />
+            </div>
+            <button
+              onClick={() => { setShowCustomNameInput(true); setCustomChordNameInput(''); setTimeout(() => customChordInputRef.current?.focus(), 50) }}
+              className="flex items-center gap-1.5 px-3 rounded-xl text-sm font-medium transition-all active:scale-95 flex-shrink-0"
+              style={{ backgroundColor: 'var(--color-accent)', color: '#fff', minHeight: 44 }}
+              title="Create custom chord"
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              Custom
+            </button>
+          </div>
+
+          {/* Custom chord name input */}
+          {showCustomNameInput && (
+            <div className="flex gap-2 mb-3 p-3 rounded-2xl" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
+              <div className="flex-1">
+                <p className="text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>Enter chord name (e.g. Xmaj, MyChord):</p>
+                <input
+                  ref={customChordInputRef}
+                  value={customChordNameInput}
+                  onChange={(e) => setCustomChordNameInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && customChordNameInput.trim()) {
+                      setEditingCustomChord(customChordNameInput.trim())
+                      setShowCustomNameInput(false)
+                    } else if (e.key === 'Escape') {
+                      setShowCustomNameInput(false)
+                    }
+                  }}
+                  className="w-full bg-transparent outline-none text-sm px-2 py-1 rounded-lg"
+                  style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+                  placeholder="e.g. Cadd2"
+                />
+              </div>
+              <div className="flex flex-col gap-1 justify-center">
+                <button
+                  onClick={() => { if (customChordNameInput.trim()) { setEditingCustomChord(customChordNameInput.trim()); setShowCustomNameInput(false) } }}
+                  disabled={!customChordNameInput.trim()}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-40"
+                  style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
+                >
+                  Create
+                </button>
+                <button
+                  onClick={() => setShowCustomNameInput(false)}
+                  className="px-3 py-1.5 rounded-xl text-xs"
+                  style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           <p className="text-xs mb-3 px-1" style={{ color: 'var(--color-text-muted)' }}>
-            Built-in guitar chord reference · {filteredRefChords.length} chords
+            {refInstrument.charAt(0).toUpperCase() + refInstrument.slice(1)} chord reference · {filteredRefChords.length} chords · Tap to build progression
           </p>
+
+          {/* Chord grid */}
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-            {filteredRefChords.map((name) => {
-              const voicing = getGuitarChord(name)
-              if (!voicing) return null
+            {filteredRefChords.map((chordName) => {
+              const isCustom = !!customChords[chordName]
               return (
-                <div key={name} className="flex flex-col items-center rounded-2xl p-3" style={{ backgroundColor: 'var(--color-card)' }}>
-                  <GuitarDiagram
-                    chord={name}
-                    customDiagram={voicing}
-                    size={80}
-                    dotColor={guitarDotColor}
-                    flipped={guitarFlipped}
-                  />
-                  <span className="text-xs font-semibold mt-1">{name}</span>
+                <div
+                  key={chordName}
+                  className="relative flex flex-col items-center rounded-2xl p-3 cursor-pointer transition-all active:scale-95"
+                  style={{ backgroundColor: 'var(--color-card)', border: isCustom ? '1px solid var(--color-accent)' : '1px solid transparent' }}
+                  onClick={() => { setBuildingFromChord(chordName); setShowBuilder(true) }}
+                >
+                  {/* Custom badge */}
+                  {isCustom && (
+                    <span
+                      className="absolute top-1 right-1 px-1 rounded text-xs font-bold"
+                      style={{ backgroundColor: 'var(--color-accent)', color: '#fff', fontSize: 8, lineHeight: '14px' }}
+                    >
+                      custom
+                    </span>
+                  )}
+
+                  {/* Diagram */}
+                  {refInstrument === 'guitar' && (
+                    <GuitarDiagram
+                      chord={chordName}
+                      customDiagram={customChords[chordName] ?? getGuitarChord(chordName) ?? undefined}
+                      size={80}
+                      dotColor={guitarDotColor}
+                      flipped={guitarFlipped}
+                    />
+                  )}
+                  {refInstrument === 'bass' && (
+                    <MiniBassDiagram
+                      chord={chordName}
+                      customDiagram={customChords[chordName]}
+                      size={80}
+                      dotColor={guitarDotColor}
+                      flipped={guitarFlipped}
+                    />
+                  )}
+                  {refInstrument === 'piano' && (
+                    <MiniPianoDiagram
+                      chord={chordName}
+                      customDiagram={customPianoChords[chordName]}
+                      size={80}
+                      highlightColor={pianoHighlightColor}
+                    />
+                  )}
+                  {refInstrument === 'ukulele' && (
+                    <UkuleleDiagram
+                      chord={chordName}
+                      customDiagram={customChords[chordName]}
+                      size={80}
+                      dotColor={guitarDotColor}
+                      flipped={guitarFlipped}
+                    />
+                  )}
+
+                  <span className="text-xs font-semibold mt-1 text-center leading-tight">{chordName}</span>
+
+                  {/* Edit/delete for custom chords on hover */}
+                  {isCustom && (
+                    <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setEditingCustomChord(chordName)}
+                        className="p-1 rounded-lg hover-bg"
+                        title="Edit diagram"
+                      >
+                        <Pencil size={10} strokeWidth={2} style={{ color: 'var(--color-text-muted)' }} />
+                      </button>
+                      <button
+                        onClick={() => { if (confirm(`Delete custom chord "${chordName}"?`)) { deleteCustomChord(chordName); deleteCustomPianoChord(chordName) } }}
+                        className="p-1 rounded-lg hover-bg"
+                        title="Delete"
+                      >
+                        <Trash2 size={10} strokeWidth={2} style={{ color: 'var(--color-error)' }} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -398,7 +592,15 @@ export default function ChordLibraryPage() {
       {showBuilder && (
         <ProgressionBuilder
           progression={editingProgression}
-          onClose={() => { setShowBuilder(false); setEditingProgression(undefined) }}
+          initialChords={buildingFromChord && !editingProgression ? [buildingFromChord] : undefined}
+          onClose={() => { setShowBuilder(false); setEditingProgression(undefined); setBuildingFromChord(null) }}
+        />
+      )}
+      {editingCustomChord && (
+        <ChordDiagramEditor
+          chordName={editingCustomChord}
+          instrumentType={refInstrument === 'piano' ? 'piano' : refInstrument === 'bass' ? 'bass' : refInstrument === 'ukulele' ? 'guitar' : 'guitar'}
+          onClose={() => setEditingCustomChord(null)}
         />
       )}
     </div>

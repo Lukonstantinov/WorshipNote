@@ -35,7 +35,7 @@ const BUILT_IN_ROLES = ['musician', 'singer', 'congregation'] as const
 
 function CategoryHeader({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -8, marginTop: 8 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 16 }}>
       <span style={{ color: 'var(--color-accent)' }}>{icon}</span>
       <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
       <div style={{ flex: 1, height: 1, backgroundColor: 'var(--color-border-subtle)', marginLeft: 4 }} />
@@ -104,6 +104,7 @@ export default function SettingsPage() {
     color: 'var(--color-text-tertiary)',
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
+    marginTop: 4,
     marginBottom: 8,
     paddingLeft: 4,
   }
@@ -341,23 +342,23 @@ export default function SettingsPage() {
           {/* Diagram colours */}
           {chordDisplayPosition !== 'none' && (
             <div className="rounded-2xl mt-3 overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <span className="text-sm">Guitar dot colour</span>
+              <div className="flex items-center justify-between gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span className="text-sm flex-1 min-w-0">Guitar dot colour</span>
                 <input
                   type="color"
                   value={guitarDotColor}
                   onChange={(e) => setGuitarDotColor(e.target.value)}
-                  className="rounded cursor-pointer"
+                  className="rounded cursor-pointer flex-shrink-0"
                   style={{ width: 36, height: 28, border: 'none', backgroundColor: 'transparent', padding: 0 }}
                 />
               </div>
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <span className="text-sm">Piano key colour</span>
+              <div className="flex items-center justify-between gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span className="text-sm flex-1 min-w-0">Piano key colour</span>
                 <input
                   type="color"
                   value={pianoHighlightColor}
                   onChange={(e) => setPianoHighlightColor(e.target.value)}
-                  className="rounded cursor-pointer"
+                  className="rounded cursor-pointer flex-shrink-0"
                   style={{ width: 36, height: 28, border: 'none', backgroundColor: 'transparent', padding: 0 }}
                 />
               </div>

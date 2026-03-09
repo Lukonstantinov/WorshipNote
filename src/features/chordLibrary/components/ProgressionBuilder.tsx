@@ -35,17 +35,18 @@ function getRomanNumeral(chordName: string, keyRoot: string, isMinorKey: boolean
 
 interface Props {
   progression?: ChordProgression
+  initialChords?: string[]
   onClose: () => void
 }
 
-export function ProgressionBuilder({ progression, onClose }: Props) {
+export function ProgressionBuilder({ progression, initialChords, onClose }: Props) {
   const { addProgression, updateProgression, folders } = useChordLibraryStore()
 
   const [name, setName] = useState(progression?.name ?? '')
   const [key, setKey] = useState(progression?.key ?? '')
   const [description, setDescription] = useState(progression?.description ?? '')
   const [folderId, setFolderId] = useState(progression?.folderId ?? '')
-  const [chords, setChords] = useState<string[]>(progression?.chords ?? [])
+  const [chords, setChords] = useState<string[]>(progression?.chords ?? initialChords ?? [])
   const [newChord, setNewChord] = useState('')
 
   const isMinorKey = key.endsWith('m') || key.toLowerCase().endsWith('min')
