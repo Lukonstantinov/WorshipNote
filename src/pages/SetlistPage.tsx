@@ -42,9 +42,9 @@ function collapseRepeats(chips: string[]): { label: string; count: number }[] {
 function DownloadMenu({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
   const { songs } = useSongStore()
 
-  const handleDownloadAll = () => {
+  const handleDownloadAll = async () => {
     const text = setlistToText(setlist, songs)
-    downloadTextFile(text, `${setlist.title}.txt`)
+    await downloadTextFile(text, `${setlist.title}.txt`)
     onClose()
   }
 
@@ -238,9 +238,9 @@ export default function SetlistPage() {
                           </Link>
                           {/* Per-song download */}
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               const text = songToText(song)
-                              downloadTextFile(text, `${song.title}.txt`)
+                              await downloadTextFile(text, `${song.title}.txt`)
                             }}
                             className="flex-shrink-0 p-1.5 rounded-lg transition-all hover-bg"
                             style={{ color: 'var(--color-text-muted)' }}

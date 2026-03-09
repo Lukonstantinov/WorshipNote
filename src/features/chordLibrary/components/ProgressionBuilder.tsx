@@ -48,6 +48,7 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
   const [folderId, setFolderId] = useState(progression?.folderId ?? '')
   const [chords, setChords] = useState<string[]>(progression?.chords ?? initialChords ?? [])
   const [newChord, setNewChord] = useState('')
+  const [color, setColor] = useState(progression?.color ?? '')
 
   const isMinorKey = key.endsWith('m') || key.toLowerCase().endsWith('min')
   const keyRoot = key.replace(/m(in)?$/, '').trim()
@@ -80,6 +81,7 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
       description: description.trim() || undefined,
       chords,
       folderId: folderId || undefined,
+      color: color || undefined,
     }
     if (progression) {
       updateProgression(progression.id, data)
@@ -186,6 +188,49 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
               style={inputStyle}
               placeholder="Used in the chorus, slow strum…"
             />
+          </div>
+
+          {/* Color accent */}
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Card Colour (optional)
+            </label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {['', '#bf5af2', '#0a84ff', '#32d74b', '#ff9f0a', '#ff453a', '#ff6482', '#64d2ff', '#ffd60a', '#5ac8fa'].map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  className="rounded-full transition-all active:scale-90"
+                  style={{
+                    width: 28, height: 28,
+                    backgroundColor: c || 'var(--color-card-raised)',
+                    border: color === c ? '3px solid var(--color-text-primary)' : '2px solid transparent',
+                    outline: color === c ? '1px solid var(--color-border)' : 'none',
+                  }}
+                  title={c || 'No colour'}
+                >
+                  {!c && <span style={{ fontSize: 12, color: 'var(--color-text-muted)', lineHeight: '24px' }}>✕</span>}
+                </button>
+              ))}
+              {/* Custom colour input */}
+              <input
+                type="color"
+                value={color || '#bf5af2'}
+                onChange={(e) => setColor(e.target.value)}
+                className="rounded-full cursor-pointer"
+                style={{ width: 28, height: 28, border: '2px solid var(--color-border)', padding: 0, backgroundColor: 'transparent' }}
+                title="Custom colour"
+              />
+            </div>
+            {color && (
+              <div className="mt-2 p-3 rounded-xl text-xs font-medium" style={{
+                background: `linear-gradient(135deg, ${color}33, ${color}11)`,
+                border: `1px solid ${color}44`,
+                color: 'var(--color-text-secondary)',
+              }}>
+                Preview gradient
+              </div>
+            )}
           </div>
 
           {/* Chord sequence display */}

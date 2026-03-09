@@ -18,6 +18,8 @@ export interface ChordProgression {
   chords: string[]
   description?: string
   folderId?: string
+  /** Optional hex color for gradient card background */
+  color?: string
   createdAt: string
 }
 

@@ -19,7 +19,7 @@ type Tab = 'progressions' | 'reference'
 
 const CHORD_COLORS = ['var(--color-accent)', 'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-info)']
 
-function ProgressionDiagrams({ chords }: { chords: string[] }) {
+function ProgressionDiagrams({ chords, onEditChord }: { chords: string[]; onEditChord: (chord: string) => void }) {
   const {
     selectedInstrument, instruments,
     customChords, customPianoChords,
@@ -39,7 +39,12 @@ function ProgressionDiagrams({ chords }: { chords: string[] }) {
       style={{ borderTop: '1px solid var(--color-border-subtle)' }}
     >
       {chords.map((chord, i) => (
-        <div key={`${chord}-${i}`} className="flex-shrink-0 flex flex-col items-center gap-1 pt-3">
+        <button
+          key={`${chord}-${i}`}
+          className="flex-shrink-0 flex flex-col items-center gap-1 pt-3 rounded-xl px-1 transition-all active:scale-95 hover-bg"
+          title="Tap to edit chord diagram"
+          onClick={() => onEditChord(chord)}
+        >
           {showPiano ? (
             <MiniPianoDiagram chord={chord} customDiagram={customPianoChords[chord]} size={miniSz} highlightColor={pianoHighlightColor} />
           ) : showBass ? (
@@ -48,7 +53,8 @@ function ProgressionDiagrams({ chords }: { chords: string[] }) {
             <MiniGuitarDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
           )}
           <span className="text-xs font-semibold" style={{ color: 'var(--color-chord)' }}>{chord}</span>
-        </div>
+          <span className="text-xs" style={{ color: 'var(--color-text-muted)', fontSize: 9 }}>edit</span>
+        </button>
       ))}
     </div>
   )
@@ -78,7 +84,11 @@ export default function ChordLibraryPage() {
   const [editingCustomChord, setEditingCustomChord] = useState<string | null>(null)
   const [showCustomNameInput, setShowCustomNameInput] = useState(false)
   const [customChordNameInput, setCustomChordNameInput] = useState('')
-  const [buildingFromChord, setBuildingFromChord] = useState<string | null>(null)
+  // Select-to-build mode: user taps chords to queue them up, then builds a progression
+  const [refSelectMode, setRefSelectMode] = useState(false)
+  const [refSelectedChords, setRefSelectedChords] = useState<string[]>([])
+  // Edit diagram within expanded progression card
+  const [editingProgressionChord, setEditingProgressionChord] = useState<string | null>(null)
   const customChordInputRef = useRef<HTMLInputElement>(null)
 
   const allChordNames = useMemo(() => getAllChordNames(), [])
@@ -312,9 +322,11 @@ export default function ChordLibraryPage() {
                     key={p.id}
                     className="rounded-2xl transition-all overflow-hidden"
                     style={{
-                      backgroundColor: isSelected ? 'var(--color-accent-dim)' : 'var(--color-card)',
-                      border: isSelected ? '1px solid var(--color-accent)' : '1px solid transparent',
-                      borderLeft: folder ? `3px solid ${folder.color}` : isSelected ? '3px solid var(--color-accent)' : undefined,
+                      background: p.color && !isSelected
+                        ? `linear-gradient(135deg, ${p.color}28, ${p.color}0a), var(--color-card)`
+                        : isSelected ? 'var(--color-accent-dim)' : 'var(--color-card)',
+                      border: isSelected ? `1px solid var(--color-accent)` : p.color ? `1px solid ${p.color}44` : '1px solid transparent',
+                      borderLeft: folder ? `3px solid ${folder.color}` : p.color ? `3px solid ${p.color}` : isSelected ? '3px solid var(--color-accent)' : undefined,
                     }}
                     onClick={selectMode ? () => toggleSelect(p.id) : undefined}
                   >
@@ -389,9 +401,9 @@ export default function ChordLibraryPage() {
                       )}
                     </div>
 
-                    {/* Expanded chord diagrams */}
+                    {/* Expanded chord diagrams — tap to edit */}
                     {isExpanded && p.chords.length > 0 && (
-                      <ProgressionDiagrams chords={p.chords} />
+                      <ProgressionDiagrams chords={p.chords} onEditChord={(chord) => setEditingProgressionChord(chord)} />
                     )}
                   </div>
                 )
@@ -438,12 +450,27 @@ export default function ChordLibraryPage() {
             ))}
           </div>
 
-          {/* Reference search + Create custom */}
+          {/* Reference search + actions */}
           <div className="flex gap-2 mb-3">
             <div className="flex-1 flex items-center gap-2 px-3 rounded-xl" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}>
               <Search size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
               <input value={refQuery} onChange={(e) => setRefQuery(e.target.value)} className="flex-1 bg-transparent outline-none text-sm" placeholder={`Search ${refInstrument} chords…`} />
             </div>
+            {/* Select mode toggle */}
+            <button
+              onClick={() => { setRefSelectMode((v) => !v); setRefSelectedChords([]) }}
+              className="flex items-center gap-1.5 px-3 rounded-xl text-sm font-medium transition-all active:scale-95 flex-shrink-0"
+              style={{
+                backgroundColor: refSelectMode ? 'var(--color-info)' : 'var(--color-card)',
+                color: refSelectMode ? '#fff' : 'var(--color-text-tertiary)',
+                border: `1px solid ${refSelectMode ? 'var(--color-info)' : 'var(--color-border)'}`,
+                minHeight: 44,
+              }}
+              title="Select chords to build progression"
+            >
+              <CheckSquare size={15} strokeWidth={1.5} />
+              Select
+            </button>
             <button
               onClick={() => { setShowCustomNameInput(true); setCustomChordNameInput(''); setTimeout(() => customChordInputRef.current?.focus(), 50) }}
               className="flex items-center gap-1.5 px-3 rounded-xl text-sm font-medium transition-all active:scale-95 flex-shrink-0"
@@ -454,6 +481,44 @@ export default function ChordLibraryPage() {
               Custom
             </button>
           </div>
+
+          {/* Select mode: selected chord queue + build button */}
+          {refSelectMode && (
+            <div className="mb-3 p-3 rounded-2xl" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-info)' }}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-info)' }}>
+                  {refSelectedChords.length === 0 ? 'Tap chords below to add to progression' : `${refSelectedChords.length} chord${refSelectedChords.length !== 1 ? 's' : ''} selected`}
+                </span>
+                {refSelectedChords.length > 0 && (
+                  <button onClick={() => setRefSelectedChords([])} className="text-xs px-2 py-0.5 rounded-lg" style={{ color: 'var(--color-text-muted)' }}>Clear</button>
+                )}
+              </div>
+              {refSelectedChords.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {refSelectedChords.map((chord, idx) => (
+                    <div key={idx} className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ backgroundColor: 'var(--color-card-raised)' }}>
+                      <span className="text-sm font-bold" style={{ color: 'var(--color-chord)' }}>{chord}</span>
+                      <button onClick={() => setRefSelectedChords((prev) => prev.filter((_, i) => i !== idx))}>
+                        <X size={10} strokeWidth={2.5} style={{ color: 'var(--color-text-muted)' }} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                disabled={refSelectedChords.length === 0}
+                onClick={() => {
+                  setShowBuilder(true)
+                  setEditingProgression(undefined)
+                  setRefSelectMode(false)
+                }}
+                className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-40"
+                style={{ backgroundColor: 'var(--color-info)', color: '#fff' }}
+              >
+                Build Progression →
+              </button>
+            </div>
+          )}
 
           {/* Custom chord name input */}
           {showCustomNameInput && (
@@ -505,13 +570,37 @@ export default function ChordLibraryPage() {
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {filteredRefChords.map((chordName) => {
               const isCustom = !!customChords[chordName]
+              const selCount = refSelectedChords.filter((c) => c === chordName).length
+              const isInSelection = selCount > 0
               return (
                 <div
                   key={chordName}
                   className="relative flex flex-col items-center rounded-2xl p-3 cursor-pointer transition-all active:scale-95"
-                  style={{ backgroundColor: 'var(--color-card)', border: isCustom ? '1px solid var(--color-accent)' : '1px solid transparent' }}
-                  onClick={() => { setBuildingFromChord(chordName); setShowBuilder(true) }}
+                  style={{
+                    backgroundColor: isInSelection ? 'var(--color-info)' + '22' : 'var(--color-card)',
+                    border: isInSelection ? '2px solid var(--color-info)' : isCustom ? '1px solid var(--color-accent)' : '1px solid transparent',
+                  }}
+                  onClick={() => {
+                    if (refSelectMode) {
+                      // In select mode: add to queue (allows duplicates)
+                      setRefSelectedChords((prev) => [...prev, chordName])
+                    } else {
+                      // Default: open progression builder with this single chord
+                      setRefSelectedChords([chordName])
+                      setShowBuilder(true)
+                      setEditingProgression(undefined)
+                    }
+                  }}
                 >
+                  {/* Selection count badge */}
+                  {isInSelection && (
+                    <div
+                      className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
+                      style={{ backgroundColor: 'var(--color-info)', color: '#fff', fontSize: 10 }}
+                    >
+                      {selCount}
+                    </div>
+                  )}
                   {/* Custom badge */}
                   {isCustom && (
                     <span
@@ -592,15 +681,21 @@ export default function ChordLibraryPage() {
       {showBuilder && (
         <ProgressionBuilder
           progression={editingProgression}
-          initialChords={buildingFromChord && !editingProgression ? [buildingFromChord] : undefined}
-          onClose={() => { setShowBuilder(false); setEditingProgression(undefined); setBuildingFromChord(null) }}
+          initialChords={refSelectedChords.length > 0 && !editingProgression ? refSelectedChords : undefined}
+          onClose={() => { setShowBuilder(false); setEditingProgression(undefined); setRefSelectedChords([]) }}
         />
       )}
       {editingCustomChord && (
         <ChordDiagramEditor
           chordName={editingCustomChord}
-          instrumentType={refInstrument === 'piano' ? 'piano' : refInstrument === 'bass' ? 'bass' : refInstrument === 'ukulele' ? 'guitar' : 'guitar'}
+          instrumentType={refInstrument === 'piano' ? 'piano' : refInstrument === 'bass' ? 'bass' : 'guitar'}
           onClose={() => setEditingCustomChord(null)}
+        />
+      )}
+      {editingProgressionChord && (
+        <ChordDiagramEditor
+          chordName={editingProgressionChord}
+          onClose={() => setEditingProgressionChord(null)}
         />
       )}
     </div>

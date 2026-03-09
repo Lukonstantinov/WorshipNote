@@ -65,18 +65,31 @@ export function setlistToText(setlist: Setlist, songs: Song[]): string {
 }
 
 /**
- * Triggers a browser download of a text file.
+ * Triggers a file download or share, compatible with Capacitor/Android WebView.
+ * Tries Web Share API (works natively on Android), then falls back to data URI.
  */
-export function downloadTextFile(content: string, filename: string): void {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
+export async function downloadTextFile(content: string, filename: string): Promise<void> {
+  // Try Web Share API with file (works on Android Capacitor WebView)
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      const file = new File([content], filename, { type: 'text/plain' })
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename })
+        return
+      }
+    } catch {
+      // User cancelled or API not supported — fall through
+    }
+  }
+
+  // Fallback: data URI download (works in desktop browsers)
+  const dataUri = `data:text/plain;charset=utf-8,${encodeURIComponent(content)}`
   const a = document.createElement('a')
-  a.href = url
+  a.href = dataUri
   a.download = filename
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  URL.revokeObjectURL(url)
 }
 
 /**
