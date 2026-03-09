@@ -5,7 +5,7 @@ import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X } from 'luci
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { extractStructure } from '../features/songs/lib/parser'
-import { setlistToText, downloadTextFile, openPrintableHTML } from '../shared/lib/exportUtils'
+import { setlistToText, downloadTextFile, openSetlistHTML } from '../shared/lib/exportUtils'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
 import type { Setlist } from '../store/setlistStore'
 import type { Song } from '../features/songs/types'
@@ -51,8 +51,7 @@ function DownloadMenu({ setlist, onClose }: { setlist: Setlist; onClose: () => v
   }
 
   const handleOpenHTML = () => {
-    const text = setlistToText(setlist, songs)
-    openPrintableHTML(setlist.title, text)
+    openSetlistHTML(setlist, songs)
     onClose()
   }
 
