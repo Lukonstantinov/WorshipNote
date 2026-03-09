@@ -115,7 +115,7 @@
   "exportChordLibrary": "Экспорт аккордов",
   "exportChordLibraryDesc": "{{count}} аккордовых схем",
   "importSongs": "Импорт песен (JSON)",
-  "importSongsDesc": "Импорт из файла WorshipHub",
+  "importSongsDesc": "Импорт из файла WorshipNote",
   "importChordLibrary": "Импорт аккордов",
   "importChordLibraryDesc": "Импорт аккордовых схем",
   "importSuccess": "Импортировано {{count}} из {{total}} песен",
@@ -142,5 +142,16 @@
   "presetName": "Название шаблона",
   "defaultPreset": "По умолчанию",
   "applyPreset": "Применить",
-  "deletePreset": "Удалить шаблон"
+  "deletePreset": "Удалить шаблон",
+  "vocalist": "Вокалист",
+  "export": "Экспорт",
+  "exportSong": "Экспорт песни",
+  "exportIncludeStructure": "Обозначения структуры",
+  "exportIncludeVocalist": "Вокалист",
+  "exportIncludeChords": "Аккорды",
+  "exportIncludeChordRows": "Ряды аккордов",
+  "exportIncludeProgressions": "Последовательности аккордов",
+  "exportAsTXT": "Скачать TXT",
+  "exportAsHTML": "Открыть для печати",
+  "downloadSong": "Скачать"
 }

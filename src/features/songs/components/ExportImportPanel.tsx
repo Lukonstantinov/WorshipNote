@@ -137,20 +137,20 @@ export function ExportImportPanel() {
   const handleExportJSON = () => {
     const json = exportSongsAsJSON(songs, folders)
     const date = new Date().toISOString().slice(0, 10)
-    downloadFile(json, `worshiphub-songs-${date}.json`, 'application/json')
+    downloadFile(json, `worshipnote-songs-${date}.json`, 'application/json')
   }
 
   const handleExportTXT = (includeChords: boolean) => {
     const txt = exportAllSongsAsTXT(songs, includeChords)
     const date = new Date().toISOString().slice(0, 10)
     const suffix = includeChords ? 'with-chords' : 'lyrics-only'
-    downloadFile(txt, `worshiphub-songs-${suffix}-${date}.txt`, 'text/plain')
+    downloadFile(txt, `worshipnote-songs-${suffix}-${date}.txt`, 'text/plain')
   }
 
   const handleExportChords = () => {
     const json = exportChordLibrary(customChords, customPianoChords)
     const date = new Date().toISOString().slice(0, 10)
-    downloadFile(json, `worshiphub-chords-${date}.json`, 'application/json')
+    downloadFile(json, `worshipnote-chords-${date}.json`, 'application/json')
   }
 
   // ── Import handlers ──

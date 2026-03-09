@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Pencil, Trash2, ChevronDown, Guitar, Piano, Music2, Drum, ChevronUp, EyeOff, Eye } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, ChevronDown, Guitar, Piano, Music2, Drum, ChevronUp, EyeOff, Eye, Download } from 'lucide-react'
 import { useSongStore } from '../store/songStore'
 import { parseSong, extractStructure } from '../features/songs/lib/parser'
 import { transposeSong } from '../features/songs/lib/transposer'
@@ -14,6 +14,7 @@ import { SongStructure } from '../features/songs/components/SongStructure'
 import { ChordDiagramPanel } from '../features/songs/components/ChordDiagramPanel'
 import { ChordRowsPanel } from '../features/songs/components/ChordRowsPanel'
 import { BarProgressions } from '../features/songs/components/BarProgressions'
+import { SongExportModal } from '../features/songs/components/SongExportModal'
 import { useSettingsStore } from '../store/settingsStore'
 import type { Role } from '../store/settingsStore'
 import type { Instrument } from '../features/songs/types'
@@ -51,6 +52,7 @@ export default function SongPage() {
   const [showInstrumentMenu, setShowInstrumentMenu] = useState(false)
   const [showControls, setShowControls] = useState(false)
   const [hideMainChords, setHideMainChords] = useState(false)
+  const [showExport, setShowExport] = useState(false)
   // Show role selector overlay on first open
   const [showRoleSelector, setShowRoleSelector] = useState(true)
 
@@ -238,6 +240,14 @@ export default function SongPage() {
             : <ChevronDown size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
           }
         </button>
+        <button
+          onClick={() => setShowExport(true)}
+          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
+          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
+          title={t('downloadSong')}
+        >
+          <Download size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
+        </button>
         <Link
           to={`/songs/${song.id}/edit`}
           className="flex items-center justify-center rounded-xl transition-all active:scale-95"
@@ -387,6 +397,9 @@ export default function SongPage() {
           </div>
         )}
       </div>
+
+      {/* Export modal */}
+      {showExport && <SongExportModal song={song} onClose={() => setShowExport(false)} />}
     </div>
   )
 }

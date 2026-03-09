@@ -115,7 +115,7 @@
   "exportChordLibrary": "Eksportuoti akordus",
   "exportChordLibraryDesc": "{{count}} akordų schemų",
   "importSongs": "Importuoti giesmes (JSON)",
-  "importSongsDesc": "Importuoti iš WorshipHub failo",
+  "importSongsDesc": "Importuoti iš WorshipNote failo",
   "importChordLibrary": "Importuoti akordus",
   "importChordLibraryDesc": "Importuoti akordų schemas",
   "importSuccess": "Importuota {{count}} iš {{total}} giesmių",
@@ -142,5 +142,16 @@
   "presetName": "Šablono pavadinimas",
   "defaultPreset": "Numatytasis",
   "applyPreset": "Taikyti",
-  "deletePreset": "Ištrinti šabloną"
+  "deletePreset": "Ištrinti šabloną",
+  "vocalist": "Vokalistas",
+  "export": "Eksportas",
+  "exportSong": "Eksportuoti giesmę",
+  "exportIncludeStructure": "Struktūros žymės",
+  "exportIncludeVocalist": "Vokalistas",
+  "exportIncludeChords": "Akordai",
+  "exportIncludeChordRows": "Akordų eilutės",
+  "exportIncludeProgressions": "Akordų sekos",
+  "exportAsTXT": "Atsisiųsti TXT",
+  "exportAsHTML": "Atidaryti spausdinimui",
+  "downloadSong": "Atsisiųsti"
 }

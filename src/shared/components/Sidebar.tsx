@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BookOpen, ListMusic, Guitar, Settings, Mic } from 'lucide-react'
+import { WNLogo } from './WNLogo'
 
 const NAV = [
   { to: '/library',  label: 'library',  Icon: BookOpen },
@@ -20,13 +21,16 @@ export function Sidebar() {
         className="hidden md:flex flex-col w-56 h-full border-r"
         style={{ backgroundColor: 'var(--color-nav-bg)', borderColor: 'var(--color-border)' }}
       >
-        <div className="px-5 py-5 border-b" style={{ borderColor: 'var(--color-border)' }}>
-          <h1 className="text-base font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
-            WorshipHub
-          </h1>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
-            Псалмы и аккорды
-          </p>
+        <div className="px-5 py-5 border-b flex items-center gap-3" style={{ borderColor: 'var(--color-border)' }}>
+          <WNLogo size={32} />
+          <div>
+            <h1 className="text-base font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+              WorshipNote
+            </h1>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
+              Псалмы и аккорды
+            </p>
+          </div>
         </div>
         <div className="flex-1 py-2">
           {NAV.map(({ to, label, Icon }) => (
