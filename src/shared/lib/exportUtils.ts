@@ -82,14 +82,16 @@ export async function downloadTextFile(content: string, filename: string): Promi
     }
   }
 
-  // Fallback: data URI download (works in desktop browsers)
-  const dataUri = `data:text/plain;charset=utf-8,${encodeURIComponent(content)}`
+  // Fallback: Blob-based download (more reliable than data URI)
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
-  a.href = dataUri
+  a.href = url
   a.download = filename
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 /**
