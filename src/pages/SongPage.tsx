@@ -219,15 +219,6 @@ export default function SongPage() {
             </p>
           )}
         </div>
-        {/* Role badge — tap to change role */}
-        <button
-          onClick={() => setShowRoleSelector(true)}
-          className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', minHeight: 44 }}
-          title="Change role"
-        >
-          {allRoles.find((r) => r.id === role)?.label ?? role}
-        </button>
         {/* Controls toggle */}
         <button
           onClick={() => setShowControls((p) => !p)}
@@ -240,35 +231,6 @@ export default function SongPage() {
             : <ChevronDown size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
           }
         </button>
-        <button
-          onClick={() => setShowExport(true)}
-          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
-          title={t('downloadSong')}
-        >
-          <Download size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
-        </button>
-        <Link
-          to={`/songs/${song.id}/edit`}
-          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
-          title={t('edit')}
-        >
-          <Pencil size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
-        </Link>
-        <button
-          onClick={() => {
-            if (confirm(t('confirmDelete'))) {
-              deleteSong(song.id)
-              navigate('/library')
-            }
-          }}
-          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
-          title={t('delete')}
-        >
-          <Trash2 size={16} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
-        </button>
       </div>
 
       {/* Collapsible controls bar */}
@@ -277,6 +239,48 @@ export default function SongPage() {
           className="px-3 py-2 space-y-2 flex-shrink-0 border-b"
           style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border-subtle)' }}
         >
+          {/* Action buttons row: role, download, edit, delete */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setShowRoleSelector(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', minHeight: 36 }}
+              title="Change role"
+            >
+              {allRoles.find((r) => r.id === role)?.label ?? role}
+            </button>
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={() => setShowExport(true)}
+                className="flex items-center justify-center rounded-xl transition-all active:scale-95"
+                style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 36, minHeight: 36 }}
+                title={t('downloadSong')}
+              >
+                <Download size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
+              </button>
+              <Link
+                to={`/songs/${song.id}/edit`}
+                className="flex items-center justify-center rounded-xl transition-all active:scale-95"
+                style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 36, minHeight: 36 }}
+                title={t('edit')}
+              >
+                <Pencil size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
+              </Link>
+              <button
+                onClick={() => {
+                  if (confirm(t('confirmDelete'))) {
+                    deleteSong(song.id)
+                    navigate('/library')
+                  }
+                }}
+                className="flex items-center justify-center rounded-xl transition-all active:scale-95"
+                style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 36, minHeight: 36 }}
+                title={t('delete')}
+              >
+                <Trash2 size={15} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
+              </button>
+            </div>
+          </div>
           <TransposeControls
             steps={steps}
             originalKey={song.original_key}

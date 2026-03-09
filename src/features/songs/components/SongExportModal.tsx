@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, Download, Printer } from 'lucide-react'
 import type { Song } from '../types'
+import { downloadTextFile } from '../../../shared/lib/exportUtils'
 
 interface ExportOptions {
   includeStructure: boolean
@@ -216,60 +217,12 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
 </head>
 <body>
 <div class="toolbar">
-  <button onclick="history.back()">&#8592; Back</button>
+  <button onclick="try{window.close()}catch(e){} history.back();">&#8592; Back</button>
   <button onclick="window.print()">Print / Save as PDF</button>
 </div>
 ${parts.join('\n')}
 </body>
 </html>`
-}
-
-async function downloadTxtFile(content: string, filename: string): Promise<void> {
-  // 1. Try Web Share API with file (best for Android)
-  if (typeof navigator !== 'undefined' && navigator.share) {
-    try {
-      const file = new File([content], filename, { type: 'text/plain' })
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename })
-        return
-      }
-    } catch {
-      // fall through
-    }
-
-    // 2. Try share with text only (works on most mobile)
-    try {
-      await navigator.share({ title: filename, text: content })
-      return
-    } catch {
-      // fall through
-    }
-  }
-
-  // 3. Blob-based download (works in desktop browsers)
-  try {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    return
-  } catch {
-    // fall through
-  }
-
-  // 4. Last resort: open text in a new window
-  const escape = (s: string) =>
-    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  const win = window.open('', '_blank')
-  if (win) {
-    win.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px;">${escape(content)}</pre>`)
-    win.document.close()
-  }
 }
 
 export function SongExportModal({ song, onClose }: Props) {
@@ -287,7 +240,7 @@ export function SongExportModal({ song, onClose }: Props) {
 
   const handleTXT = async () => {
     const text = buildSongText(song, opts)
-    await downloadTxtFile(text, `${song.title}.txt`)
+    await downloadTextFile(text, `${song.title}.txt`)
     onClose()
   }
 

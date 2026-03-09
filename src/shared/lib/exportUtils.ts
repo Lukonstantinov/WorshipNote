@@ -1,5 +1,18 @@
 import type { Song } from '../../features/songs/types'
 import type { Setlist } from '../../store/setlistStore'
+import { extractStructure } from '../../features/songs/lib/parser'
+
+function collapseRepeats(parts: string[]): string {
+  const result: { label: string; count: number }[] = []
+  for (const p of parts) {
+    if (result.length && result[result.length - 1].label === p) {
+      result[result.length - 1].count++
+    } else {
+      result.push({ label: p, count: 1 })
+    }
+  }
+  return result.map((r) => (r.count > 1 ? `${r.label}×${r.count}` : r.label)).join(' ')
+}
 
 /**
  * Strips ChordPro chord markers [X] from a line of content,
@@ -76,44 +89,41 @@ function escapeHtml(str: string): string {
  * Strategy: share file → share text → Blob download → open in new window.
  */
 export async function downloadTextFile(content: string, filename: string): Promise<void> {
-  // 1. Try Web Share API with file (best for Android)
-  if (typeof navigator !== 'undefined' && navigator.share) {
+  const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor
+
+  // 1. On mobile/Capacitor: prefer Web Share API (blob download doesn't work in WebView)
+  if (isCapacitor && typeof navigator !== 'undefined' && navigator.share) {
     try {
       const file = new File([content], filename, { type: 'text/plain' })
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: filename })
         return
       }
-    } catch {
-      // User cancelled or API not supported — fall through
-    }
+    } catch { /* user cancelled or unsupported — fall through */ }
 
-    // 2. Try share with text only (works on most mobile)
     try {
       await navigator.share({ title: filename, text: content })
       return
-    } catch {
-      // fall through
-    }
+    } catch { /* fall through */ }
   }
 
-  // 3. Try Blob download (works in desktop browsers, not in Android WebView)
-  try {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    return
-  } catch {
-    // fall through
+  // 2. Desktop: blob download
+  if (!isCapacitor) {
+    try {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      return
+    } catch { /* fall through */ }
   }
 
-  // 4. Last resort: open text in a new window so user can copy
+  // 3. Last resort: open text in a new window so user can copy
   const win = window.open('', '_blank')
   if (win) {
     win.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px;">${escapeHtml(content)}</pre>`)
@@ -152,7 +162,7 @@ export function openPrintableHTML(title: string, content: string): void {
 </head>
 <body>
 <div class="toolbar">
-  <button onclick="history.back()">&#8592; Back</button>
+  <button onclick="try{window.close()}catch(e){} history.back();">&#8592; Back</button>
   <button onclick="window.print()">Print / Save as PDF</button>
 </div>
 ${formatTextAsHTML(content)}
@@ -191,6 +201,13 @@ export function openSetlistHTML(setlist: Setlist, songs: Song[]): void {
     if (song.bpm) meta.push(`BPM: ${song.bpm}`)
     if (song.vocalist && !ss.vocalist) meta.push(`Vocalist: ${escapeHtml(song.vocalist)}`)
     if (meta.length > 0) parts.push(`<div class="meta">${meta.join(' &middot; ')}</div>`)
+
+    // Structure pattern (A B A×3 C D)
+    const { pattern } = extractStructure(song.content)
+    if (pattern) {
+      const collapsed = collapseRepeats(pattern.split(' '))
+      parts.push(`<div class="structure">Structure: ${escapeHtml(collapsed)}</div>`)
+    }
 
     // Song content
     const contentLines = song.content.split('\n')
@@ -233,7 +250,8 @@ export function openSetlistHTML(setlist: Setlist, songs: Song[]): void {
   .song-block { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #ddd; }
   .song-block:last-child { border-bottom: none; }
   .song-title { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
-  .meta { font-size: 13px; color: #666; font-style: italic; margin-bottom: 8px; }
+  .meta { font-size: 13px; color: #666; font-style: italic; margin-bottom: 4px; }
+  .structure { font-size: 13px; color: #333; font-weight: bold; margin-bottom: 8px; letter-spacing: 0.05em; }
   .toolbar { margin-bottom: 20px; display: flex; gap: 8px; }
   .toolbar button { padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
   .toolbar button:hover { background: #555; }
@@ -246,7 +264,7 @@ export function openSetlistHTML(setlist: Setlist, songs: Song[]): void {
 </head>
 <body>
 <div class="toolbar">
-  <button onclick="history.back()">&#8592; Back</button>
+  <button onclick="try{window.close()}catch(e){} history.back();">&#8592; Back</button>
   <button onclick="window.print()">Print / Save as PDF</button>
 </div>
 <h1>${escapeHtml(setlist.title)}</h1>

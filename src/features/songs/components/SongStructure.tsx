@@ -44,6 +44,18 @@ function sectionColor(label: string): string {
   return 'rgba(235,235,245,0.45)'
 }
 
+function collapseRepeats(parts: string[]): { label: string; count: number }[] {
+  const result: { label: string; count: number }[] = []
+  for (const p of parts) {
+    if (result.length && result[result.length - 1].label === p) {
+      result[result.length - 1].count++
+    } else {
+      result.push({ label: p, count: 1 })
+    }
+  }
+  return result
+}
+
 export function SongStructure({ labels, pattern, manualStructure }: Props) {
   const { t } = useTranslation()
 
@@ -51,6 +63,7 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
   if (!displayPattern && labels.length === 0) return null
 
   const patternParts = displayPattern.split(/\s+/).filter(Boolean)
+  const collapsed = collapseRepeats(patternParts)
 
   return (
     <div
@@ -63,18 +76,20 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
         </span>
 
         {manualStructure
-          ? patternParts.map((letter, i) => (
+          ? collapsed.map((item, i) => (
               <span
                 key={i}
                 className="px-2 py-0.5 rounded-lg text-xs font-bold"
                 style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-accent)' }}
               >
-                {letter}
+                {item.count > 1 ? `${item.label}×${item.count}` : item.label}
               </span>
             ))
-          : labels.map((label, i) => {
+          : collapsed.map((item, i) => {
+              // Find first label matching this letter to get color
+              const labelIdx = patternParts.indexOf(item.label)
+              const label = labels[labelIdx] ?? ''
               const color = sectionColor(label)
-              const letter = patternParts[i] ?? '?'
               return (
                 <div key={i} className="flex items-center gap-1">
                   {i > 0 && (
@@ -89,7 +104,7 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
                     }}
                     title={label}
                   >
-                    {letter}
+                    {item.count > 1 ? `${item.label}×${item.count}` : item.label}
                   </span>
                 </div>
               )
