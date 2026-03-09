@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil } from 'lucide-react'
+import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil, Palette, Type, Users, BookOpen, HardDrive, Info } from 'lucide-react'
 import { useSettingsStore } from '../store/settingsStore'
 import { useSongStore } from '../store/songStore'
 import type { Language, ChordDisplayPosition, ChordDiagramMode, CustomRole, AppTheme } from '../store/settingsStore'
@@ -32,6 +32,16 @@ const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
 }
 
 const BUILT_IN_ROLES = ['musician', 'singer', 'congregation'] as const
+
+function CategoryHeader({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -8, marginTop: 8 }}>
+      <span style={{ color: 'var(--color-accent)' }}>{icon}</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+      <div style={{ flex: 1, height: 1, backgroundColor: 'var(--color-border-subtle)', marginLeft: 4 }} />
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
@@ -118,7 +128,42 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold tracking-tight">{t('settings')}</h1>
       </div>
 
-      <div className="p-4 space-y-8 pb-28 max-w-md mx-auto">
+      <div className="p-4 space-y-6 pb-28 max-w-md mx-auto">
+
+        {/* ── APPEARANCE ─────────────────────────────────────── */}
+        <CategoryHeader icon={<Palette size={15} />} label="Appearance" />
+
+        {/* Theme */}
+        <section>
+          <p style={sectionLabel}>Theme</p>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { key: 'dark' as AppTheme, label: 'Dark', dot: 'var(--color-bg)', accent: 'var(--color-accent)' },
+              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: 'var(--color-info)' },
+              { key: 'light' as AppTheme, label: 'Light', dot: '#f2f2f7', accent: 'var(--color-accent)' },
+              { key: 'forest' as AppTheme, label: 'Forest', dot: '#0a1a0e', accent: 'var(--color-chord)' },
+            ]).map(({ key, label, dot, accent }) => (
+              <button
+                key={key}
+                onClick={() => setTheme(key)}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
+                style={{
+                  backgroundColor: theme === key ? `${accent}22` : 'var(--color-card)',
+                  color: theme === key ? accent : 'var(--color-text-tertiary)',
+                  border: `1px solid ${theme === key ? accent + '66' : 'var(--color-card-raised)'}`,
+                  minHeight: 50,
+                }}
+              >
+                <div
+                  className="w-6 h-6 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: dot, border: `2px solid ${accent}` }}
+                />
+                {label}
+                {theme === key && <Check size={14} strokeWidth={2.5} className="ml-auto" style={{ color: accent }} />}
+              </button>
+            ))}
+          </div>
+        </section>
 
         {/* Language */}
         <section>
@@ -140,6 +185,9 @@ export default function SettingsPage() {
             ))}
           </div>
         </section>
+
+        {/* ── DISPLAY ────────────────────────────────────────── */}
+        <CategoryHeader icon={<Type size={15} />} label="Display" />
 
         {/* Font size */}
         <section>
@@ -182,6 +230,9 @@ export default function SettingsPage() {
             ))}
           </div>
         </section>
+
+        {/* ── INSTRUMENTS ────────────────────────────────────── */}
+        <CategoryHeader icon={<Music2 size={15} />} label="Instruments" />
 
         {/* Instruments */}
         <section>
@@ -243,6 +294,9 @@ export default function SettingsPage() {
             </button>
           </div>
         </section>
+
+        {/* ── CHORD DIAGRAMS ─────────────────────────────────── */}
+        <CategoryHeader icon={<Guitar size={15} />} label="Chord Diagrams" />
 
         {/* Chord diagram position */}
         <section>
@@ -354,6 +408,9 @@ export default function SettingsPage() {
             </div>
           )}
         </section>
+
+        {/* ── ROLES ──────────────────────────────────────────── */}
+        <CategoryHeader icon={<Users size={15} />} label="Roles" />
 
         {/* Roles */}
         <section>
@@ -471,6 +528,9 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* ── SONGS ──────────────────────────────────────────── */}
+        <CategoryHeader icon={<BookOpen size={15} />} label="Songs" />
+
         {/* Tag colors */}
         {allTags.length > 0 && (
           <section>
@@ -523,38 +583,6 @@ export default function SettingsPage() {
           </section>
         )}
 
-        {/* Theme */}
-        <section>
-          <p style={sectionLabel}>Theme</p>
-          <div className="grid grid-cols-2 gap-2">
-            {([
-              { key: 'dark' as AppTheme, label: 'Dark', dot: 'var(--color-bg)', accent: 'var(--color-accent)' },
-              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: 'var(--color-info)' },
-              { key: 'light' as AppTheme, label: 'Light', dot: '#f2f2f7', accent: 'var(--color-accent)' },
-              { key: 'forest' as AppTheme, label: 'Forest', dot: '#0a1a0e', accent: 'var(--color-chord)' },
-            ]).map(({ key, label, dot, accent }) => (
-              <button
-                key={key}
-                onClick={() => setTheme(key)}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
-                style={{
-                  backgroundColor: theme === key ? `${accent}22` : 'var(--color-card)',
-                  color: theme === key ? accent : 'var(--color-text-tertiary)',
-                  border: `1px solid ${theme === key ? accent + '66' : 'var(--color-card-raised)'}`,
-                  minHeight: 50,
-                }}
-              >
-                <div
-                  className="w-6 h-6 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: dot, border: `2px solid ${accent}` }}
-                />
-                {label}
-                {theme === key && <Check size={14} strokeWidth={2.5} className="ml-auto" style={{ color: accent }} />}
-              </button>
-            ))}
-          </div>
-        </section>
-
         {/* Default Song Template */}
         <section>
           <p style={sectionLabel}>Default Psalm Template</p>
@@ -579,8 +607,14 @@ export default function SettingsPage() {
         {/* Song Presets */}
         <SongPresetsSection />
 
+        {/* ── DATA ───────────────────────────────────────────── */}
+        <CategoryHeader icon={<HardDrive size={15} />} label="Data" />
+
         {/* Export / Import */}
         <ExportImportPanel />
+
+        {/* ── ABOUT ──────────────────────────────────────────── */}
+        <CategoryHeader icon={<Info size={15} />} label="About" />
 
         {/* App info */}
         <section>
@@ -606,7 +640,27 @@ export default function SettingsPage() {
 
 const PRESET_COLORS = [
   '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#0a84ff', '#bf5af2', '#ff6482', '#64d2ff',
+  '#ff2d55', '#ff6b00', '#c4a000', '#00c96e', '#0070f3', '#9b59b6', '#e91e8c', '#00b8d9',
 ]
+
+const PRESET_GRADIENT: Record<string, string> = {
+  '#ff453a': 'linear-gradient(135deg, #ff453a 0%, #ff9f0a 100%)',
+  '#ff9f0a': 'linear-gradient(135deg, #ff9f0a 0%, #ffd60a 100%)',
+  '#ffd60a': 'linear-gradient(135deg, #ffd60a 0%, #32d74b 100%)',
+  '#32d74b': 'linear-gradient(135deg, #32d74b 0%, #0a84ff 100%)',
+  '#0a84ff': 'linear-gradient(135deg, #0a84ff 0%, #bf5af2 100%)',
+  '#bf5af2': 'linear-gradient(135deg, #bf5af2 0%, #ff6482 100%)',
+  '#ff6482': 'linear-gradient(135deg, #ff6482 0%, #ff453a 100%)',
+  '#64d2ff': 'linear-gradient(135deg, #64d2ff 0%, #0a84ff 100%)',
+  '#ff2d55': 'linear-gradient(135deg, #ff2d55 0%, #ff6b00 100%)',
+  '#ff6b00': 'linear-gradient(135deg, #ff6b00 0%, #ffd60a 100%)',
+  '#c4a000': 'linear-gradient(135deg, #c4a000 0%, #32d74b 100%)',
+  '#00c96e': 'linear-gradient(135deg, #00c96e 0%, #64d2ff 100%)',
+  '#0070f3': 'linear-gradient(135deg, #0070f3 0%, #9b59b6 100%)',
+  '#9b59b6': 'linear-gradient(135deg, #9b59b6 0%, #e91e8c 100%)',
+  '#e91e8c': 'linear-gradient(135deg, #e91e8c 0%, #ff453a 100%)',
+  '#00b8d9': 'linear-gradient(135deg, #00b8d9 0%, #32d74b 100%)',
+}
 
 function SongPresetsSection() {
   const { t } = useTranslation()
@@ -693,17 +747,27 @@ function SongPresetsSection() {
       {/* Preset list */}
       {songPresets.length > 0 && (
         <div className="space-y-2 mb-3">
-          {songPresets.map((preset) => (
+          {songPresets.map((preset) => {
+            const gradient = PRESET_GRADIENT[preset.color] ?? `linear-gradient(135deg, ${preset.color} 0%, ${preset.color}88 100%)`
+            return (
             <div
               key={preset.id}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl"
               style={{
-                backgroundColor: 'var(--color-card)',
-                border: `1px solid ${preset.color}33`,
+                background: `linear-gradient(135deg, ${preset.color}28 0%, ${preset.color}10 100%)`,
+                border: `1px solid ${preset.color}55`,
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
               }}
             >
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: preset.color }} />
-              <span className="flex-1 text-sm font-medium" style={{ color: preset.color }}>
+              <div
+                className="w-5 h-5 rounded-lg flex-shrink-0"
+                style={{
+                  background: gradient,
+                  boxShadow: `0 2px 6px ${preset.color}55`,
+                }}
+              />
+              <span className="flex-1 text-sm font-semibold" style={{ color: preset.color }}>
                 {preset.name}
               </span>
               {preset.isDefault && (
@@ -736,7 +800,8 @@ function SongPresetsSection() {
                 <Trash2 size={12} strokeWidth={2} />
               </button>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
