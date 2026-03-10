@@ -3,9 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+const base = isGitHubPages ? '/WorshipNote/' : '/'
+
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/WorshipNote/',
+  base,
   plugins: [
     react(),
     tailwindcss(),
@@ -19,8 +22,8 @@ export default defineConfig({
         theme_color: '#0f0f0f',
         background_color: '#0f0f0f',
         display: 'standalone',
-        scope: '/WorshipNote/',
-        start_url: '/WorshipNote/',
+        scope: base,
+        start_url: base,
         icons: [
           {
             src: 'pwa-192x192.png',
