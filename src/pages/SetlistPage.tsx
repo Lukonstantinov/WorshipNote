@@ -6,6 +6,7 @@ import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { extractStructure } from '../features/songs/lib/parser'
 import { setlistToText, downloadTextFile, openSetlistHTML } from '../shared/lib/exportUtils'
+import type { SetlistExportOptions } from '../shared/lib/exportUtils'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
 import type { Setlist } from '../store/setlistStore'
 import type { Song } from '../features/songs/types'
@@ -41,41 +42,90 @@ function collapseRepeats(chips: string[]): { label: string; count: number }[] {
   return result
 }
 
-function DownloadMenu({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
+function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
+  const { t } = useTranslation()
   const { songs } = useSongStore()
+  const [includeChords, setIncludeChords] = useState(false)
+  const [colored, setColored] = useState(true)
 
-  const handleDownloadAll = async () => {
-    const text = setlistToText(setlist, songs)
+  const exportOpts: SetlistExportOptions = { includeChords, colored }
+
+  const handleTXT = async () => {
+    const text = setlistToText(setlist, songs, includeChords)
     await downloadTextFile(text, `${setlist.title}.txt`)
     onClose()
   }
 
-  const handleOpenHTML = () => {
-    openSetlistHTML(setlist, songs)
+  const handleHTML = async () => {
+    await openSetlistHTML(setlist, songs, exportOpts)
     onClose()
   }
 
+  const checkboxStyle: React.CSSProperties = {
+    width: 18, height: 18, accentColor: 'var(--color-accent)',
+  }
+
   return (
-    <div
-      className="absolute right-0 top-10 z-50 rounded-2xl overflow-hidden shadow-lg"
-      style={{ backgroundColor: 'var(--color-card-raised)', border: '1px solid var(--color-border)', minWidth: 200 }}
-    >
-      <button
-        onClick={handleDownloadAll}
-        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-left transition-all hover-bg"
-        style={{ color: 'var(--color-text-primary)' }}
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+      <div
+        className="rounded-2xl w-full max-w-sm mx-4 overflow-hidden"
+        style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
       >
-        <Download size={14} strokeWidth={1.5} />
-        Download as text (.txt)
-      </button>
-      <button
-        onClick={handleOpenHTML}
-        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-left transition-all hover-bg"
-        style={{ borderTop: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)' }}
-      >
-        <Download size={14} strokeWidth={1.5} />
-        Open printable page
-      </button>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+          <h3 className="font-semibold text-sm">{t('export')}</h3>
+          <button onClick={onClose} style={{ color: 'var(--color-text-tertiary)' }}>
+            <X size={18} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Options */}
+        <div className="px-4 py-3 space-y-3">
+          <p className="text-xs font-medium" style={{ color: 'var(--color-text-tertiary)' }}>
+            {t('exportIncludeStructure')}: ✓ &nbsp; {t('exportIncludeVocalist')}: ✓
+          </p>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeChords}
+              onChange={() => setIncludeChords((v) => !v)}
+              style={checkboxStyle}
+            />
+            <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('exportIncludeChords')}</span>
+          </label>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={colored}
+              onChange={() => setColored((v) => !v)}
+              style={checkboxStyle}
+            />
+            <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('exportColored')}</span>
+          </label>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+          <button
+            onClick={handleTXT}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+            style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
+          >
+            <Download size={14} strokeWidth={2} />
+            TXT
+          </button>
+          <button
+            onClick={handleHTML}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
+          >
+            <Download size={14} strokeWidth={2} />
+            HTML
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -140,7 +190,7 @@ export default function SetlistPage() {
                     }
                   </button>
                   {openMenuId === sl.id && (
-                    <DownloadMenu setlist={sl} onClose={() => setOpenMenuId(null)} />
+                    <SetlistExportModal setlist={sl} onClose={() => setOpenMenuId(null)} />
                   )}
                 </div>
 

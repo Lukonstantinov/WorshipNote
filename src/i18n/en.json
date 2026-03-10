@@ -151,6 +151,7 @@
   "exportIncludeChords": "Chords",
   "exportIncludeChordRows": "Chord rows",
   "exportIncludeProgressions": "Bar progressions",
+  "exportColored": "Colored (chords & structure)",
   "exportAsTXT": "Download TXT",
   "exportAsHTML": "Open printable page",
   "downloadSong": "Download"

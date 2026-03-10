@@ -151,6 +151,7 @@
   "exportIncludeChords": "Akordai",
   "exportIncludeChordRows": "Akordų eilutės",
   "exportIncludeProgressions": "Akordų sekos",
+  "exportColored": "Spalvotas (akordai ir struktūra)",
   "exportAsTXT": "Atsisiųsti TXT",
   "exportAsHTML": "Atidaryti spausdinimui",
   "downloadSong": "Atsisiųsti"
