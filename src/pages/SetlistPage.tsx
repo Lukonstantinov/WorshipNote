@@ -5,7 +5,7 @@ import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X } from 'luci
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { extractStructure } from '../features/songs/lib/parser'
-import { setlistToText, downloadTextFile, openPrintableHTML } from '../shared/lib/exportUtils'
+import { setlistToText, downloadTextFile, openSetlistHTML } from '../shared/lib/exportUtils'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
 import type { Setlist } from '../store/setlistStore'
 import type { Song } from '../features/songs/types'
@@ -51,8 +51,7 @@ function DownloadMenu({ setlist, onClose }: { setlist: Setlist; onClose: () => v
   }
 
   const handleOpenHTML = () => {
-    const text = setlistToText(setlist, songs)
-    openPrintableHTML(setlist.title, text)
+    openSetlistHTML(setlist, songs)
     onClose()
   }
 
@@ -175,9 +174,18 @@ export default function SetlistPage() {
                       const song = getSongById(ss.song_id)
                       if (!song) return null
 
-                      // Extract song structure using parser's A/B/C/D pattern
-                      const { pattern } = extractStructure(song.structure ? song.structure + '\n' + song.content : song.content)
-                      const structureChips = collapseRepeats(pattern ? pattern.split(' ') : [])
+                      // Use manual structure if set, otherwise extract from content
+                      let structureParts: string[] = []
+                      if (song.structure) {
+                        const hasSpaces = /\s/.test(song.structure)
+                        structureParts = hasSpaces
+                          ? song.structure.split(/\s+/).filter(Boolean)
+                          : song.structure.split('').filter((c) => /[A-Za-z]/.test(c))
+                      } else {
+                        const { pattern } = extractStructure(song.content)
+                        if (pattern) structureParts = pattern.split(' ')
+                      }
+                      const structureChips = collapseRepeats(structureParts)
 
                       return (
                         <div

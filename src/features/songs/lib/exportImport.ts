@@ -117,16 +117,52 @@ export function parseChordLibraryJSON(json: string): {
 
 // ── File download helper ──
 
-export function downloadFile(content: string, filename: string, mimeType: string): void {
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+export async function downloadFile(content: string, filename: string, mimeType: string): Promise<void> {
+  const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor
+
+  // 1. On Capacitor: use native Filesystem + Share plugins
+  if (isCapacitor) {
+    try {
+      const { Filesystem, Directory } = await import('@capacitor/filesystem')
+      const { Share } = await import('@capacitor/share')
+
+      const result = await Filesystem.writeFile({
+        path: filename,
+        data: btoa(unescape(encodeURIComponent(content))),
+        directory: Directory.Cache,
+      })
+
+      await Share.share({
+        title: filename,
+        url: result.uri,
+      })
+      return
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message?.includes('cancel')) return
+      console.error('Capacitor share failed:', e)
+    }
+  }
+
+  // 2. Desktop: blob download
+  try {
+    const blob = new Blob([content], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch {
+    // Last resort
+    const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px;background:#fff;color:#000;">${escape(content)}</pre>`)
+      win.document.close()
+    }
+  }
 }
 
 // ── File read helper ──

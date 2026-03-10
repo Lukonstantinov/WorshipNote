@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, Download, Printer } from 'lucide-react'
 import type { Song } from '../types'
+import { downloadTextFile, downloadHTMLFile } from '../../../shared/lib/exportUtils'
 
 interface ExportOptions {
   includeStructure: boolean
@@ -198,9 +199,9 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
   h2 { font-size: 16px; font-weight: bold; margin: 16px 0 8px; }
   .meta { font-size: 13px; color: #555; margin-bottom: 8px; }
   .structure { font-size: 13px; color: #333; font-weight: bold; margin-bottom: 12px; letter-spacing: 0.05em; }
-  .section-header { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #000; margin: 20px 0 4px; border-bottom: 1px solid #ccc; padding-bottom: 2px; }
-  .chord-line { font-family: monospace; font-size: 13px; font-weight: bold; color: #000; margin-top: 8px; white-space: pre; }
-  .chord { font-weight: bold; }
+  .section-header { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin: 20px 0 4px; font-style: italic; }
+  .chord-line { font-family: monospace; font-size: 13px; font-weight: bold; color: #666; margin-top: 8px; white-space: pre; font-style: italic; }
+  .chord { font-weight: bold; color: #666; font-style: italic; }
   p { margin-bottom: 2px; }
   .bar { font-family: monospace; font-size: 14px; margin-left: 16px; }
   .comment { font-size: 13px; color: #555; font-style: italic; margin-left: 16px; }
@@ -216,38 +217,12 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
 </head>
 <body>
 <div class="toolbar">
-  <button onclick="history.back()">&#8592; Back</button>
+  <button onclick="try{window.close()}catch(e){} history.back();">&#8592; Back</button>
   <button onclick="window.print()">Print / Save as PDF</button>
 </div>
 ${parts.join('\n')}
 </body>
 </html>`
-}
-
-async function downloadTxtFile(content: string, filename: string): Promise<void> {
-  // Try Web Share API first (Android)
-  if (typeof navigator !== 'undefined' && navigator.share) {
-    try {
-      const file = new File([content], filename, { type: 'text/plain' })
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename })
-        return
-      }
-    } catch {
-      // fall through
-    }
-  }
-
-  // Blob-based download (more reliable than data URI)
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
 }
 
 export function SongExportModal({ song, onClose }: Props) {
@@ -265,17 +240,13 @@ export function SongExportModal({ song, onClose }: Props) {
 
   const handleTXT = async () => {
     const text = buildSongText(song, opts)
-    await downloadTxtFile(text, `${song.title}.txt`)
+    await downloadTextFile(text, `${song.title}.txt`)
     onClose()
   }
 
-  const handleHTML = () => {
+  const handleHTML = async () => {
     const html = buildSongHTML(song, opts)
-    const win = window.open('', '_blank')
-    if (win) {
-      win.document.write(html)
-      win.document.close()
-    }
+    await downloadHTMLFile(html, `${song.title}.html`)
     onClose()
   }
 
