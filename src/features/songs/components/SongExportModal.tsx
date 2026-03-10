@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X, Download, Printer } from 'lucide-react'
 import type { Song } from '../types'
-import { downloadTextFile } from '../../../shared/lib/exportUtils'
+import { downloadTextFile, downloadHTMLFile } from '../../../shared/lib/exportUtils'
 
 interface ExportOptions {
   includeStructure: boolean
@@ -244,13 +244,9 @@ export function SongExportModal({ song, onClose }: Props) {
     onClose()
   }
 
-  const handleHTML = () => {
+  const handleHTML = async () => {
     const html = buildSongHTML(song, opts)
-    const win = window.open('', '_blank')
-    if (win) {
-      win.document.write(html)
-      win.document.close()
-    }
+    await downloadHTMLFile(html, `${song.title}.html`)
     onClose()
   }
 

@@ -120,55 +120,48 @@ export function parseChordLibraryJSON(json: string): {
 export async function downloadFile(content: string, filename: string, mimeType: string): Promise<void> {
   const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor
 
-  // 1. On mobile/Capacitor: prefer Web Share API (blob download doesn't work)
-  if (isCapacitor && typeof navigator !== 'undefined' && navigator.share) {
+  // 1. On Capacitor: use native Filesystem + Share plugins
+  if (isCapacitor) {
     try {
-      const file = new File([content], filename, { type: mimeType })
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename })
-        return
-      }
-    } catch (e: unknown) {
-      if (e instanceof DOMException && e.name === 'AbortError') return
-    }
+      const { Filesystem, Directory } = await import('@capacitor/filesystem')
+      const { Share } = await import('@capacitor/share')
 
-    try {
-      await navigator.share({ title: filename, text: content })
+      const result = await Filesystem.writeFile({
+        path: filename,
+        data: btoa(unescape(encodeURIComponent(content))),
+        directory: Directory.Cache,
+      })
+
+      await Share.share({
+        title: filename,
+        url: result.uri,
+      })
       return
     } catch (e: unknown) {
-      if (e instanceof DOMException && e.name === 'AbortError') return
+      if (e instanceof Error && e.message?.includes('cancel')) return
+      console.error('Capacitor share failed:', e)
     }
   }
 
   // 2. Desktop: blob download
-  if (!isCapacitor) {
-    try {
-      const blob = new Blob([content], { type: mimeType })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      return
-    } catch { /* fall through */ }
-  }
-
-  // 3. Capacitor fallback: copy to clipboard
   try {
-    await navigator.clipboard.writeText(content)
-    alert(`"${filename}" copied to clipboard`)
-    return
-  } catch { /* fall through */ }
-
-  // 4. Last resort: open in new window with proper styling
-  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  const win = window.open('', '_blank')
-  if (win) {
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:monospace;padding:20px;background:#fff;color:#000;white-space:pre-wrap;}</style></head><body><button onclick="try{window.close()}catch(e){history.back()}" style="margin-bottom:16px;padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;">Back</button><pre>${escape(content)}</pre></body></html>`)
-    win.document.close()
+    const blob = new Blob([content], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch {
+    // Last resort
+    const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px;background:#fff;color:#000;">${escape(content)}</pre>`)
+      win.document.close()
+    }
   }
 }
 

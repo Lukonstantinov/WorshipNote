@@ -86,60 +86,103 @@ function escapeHtml(str: string): string {
 
 /**
  * Triggers a file download or share, compatible with Capacitor/Android WebView.
- * Strategy: share file → share text → Blob download → open in new window.
+ * On Capacitor: writes file to device cache dir, then opens native share sheet.
+ * On desktop: uses standard blob download.
  */
 export async function downloadTextFile(content: string, filename: string): Promise<void> {
   const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor
 
-  // 1. On mobile/Capacitor: prefer Web Share API (blob download doesn't work in WebView)
-  if (isCapacitor && typeof navigator !== 'undefined' && navigator.share) {
+  // 1. On Capacitor: use native Filesystem + Share plugins
+  if (isCapacitor) {
     try {
-      const file = new File([content], filename, { type: 'text/plain' })
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename })
-        return
-      }
-    } catch (e: unknown) {
-      // Only fall through on non-abort errors (user cancel = stop)
-      if (e instanceof DOMException && e.name === 'AbortError') return
-    }
+      const { Filesystem, Directory } = await import('@capacitor/filesystem')
+      const { Share } = await import('@capacitor/share')
 
-    try {
-      await navigator.share({ title: filename, text: content })
+      const result = await Filesystem.writeFile({
+        path: filename,
+        data: btoa(unescape(encodeURIComponent(content))),
+        directory: Directory.Cache,
+      })
+
+      await Share.share({
+        title: filename,
+        url: result.uri,
+      })
       return
     } catch (e: unknown) {
-      if (e instanceof DOMException && e.name === 'AbortError') return
+      // AbortError = user cancelled share sheet — that's OK
+      if (e instanceof Error && e.message?.includes('cancel')) return
+      console.error('Capacitor share failed:', e)
     }
   }
 
   // 2. Desktop: blob download
-  if (!isCapacitor) {
+  try {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch {
+    // Last resort: open in new window
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(filename)}</title><style>body{font-family:monospace;padding:20px;background:#fff;color:#000;white-space:pre-wrap;word-wrap:break-word;}</style></head><body><button onclick="try{window.close()}catch(e){history.back()}" style="margin-bottom:16px;padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer;">Back</button><pre>${escapeHtml(content)}</pre></body></html>`)
+      win.document.close()
+    }
+  }
+}
+
+/**
+ * Downloads an HTML string as a file. On Capacitor uses native share.
+ * On desktop uses blob download.
+ */
+export async function downloadHTMLFile(htmlContent: string, filename: string): Promise<void> {
+  const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor
+
+  if (isCapacitor) {
     try {
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const { Filesystem, Directory } = await import('@capacitor/filesystem')
+      const { Share } = await import('@capacitor/share')
+
+      const result = await Filesystem.writeFile({
+        path: filename,
+        data: btoa(unescape(encodeURIComponent(htmlContent))),
+        directory: Directory.Cache,
+      })
+
+      await Share.share({
+        title: filename,
+        url: result.uri,
+      })
       return
-    } catch { /* fall through */ }
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message?.includes('cancel')) return
+      console.error('Capacitor share failed:', e)
+    }
   }
 
-  // 3. Capacitor fallback: copy to clipboard
+  // Desktop fallback
   try {
-    await navigator.clipboard.writeText(content)
-    alert(`"${filename}" copied to clipboard`)
-    return
-  } catch { /* fall through */ }
-
-  // 4. Last resort: open text in a new window so user can copy
-  const win = window.open('', '_blank')
-  if (win) {
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(filename)}</title><style>body{font-family:monospace;padding:20px;background:#fff;color:#000;white-space:pre-wrap;word-wrap:break-word;}</style></head><body><button onclick="try{window.close()}catch(e){history.back()}" style="margin-bottom:16px;padding:8px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer;">Back</button><pre>${escapeHtml(content)}</pre></body></html>`)
-    win.document.close()
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch {
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(htmlContent)
+      win.document.close()
+    }
   }
 }
 
@@ -191,7 +234,7 @@ ${formatTextAsHTML(content)}
  * Build a rich HTML page for a setlist, including vocalist names, structure, and back button.
  * Section headers are rendered in italic grey. All black & white for printing.
  */
-export function openSetlistHTML(setlist: Setlist, songs: Song[]): void {
+export async function openSetlistHTML(setlist: Setlist, songs: Song[]): Promise<void> {
   const sortedSongs = [...setlist.songs].sort((a, b) => a.sort_order - b.sort_order)
 
   const songBlocks: string[] = []
@@ -296,10 +339,15 @@ ${songBlocks.join('\n')}
 </body>
 </html>`
 
-  const win = window.open('', '_blank')
-  if (win) {
-    win.document.write(html)
-    win.document.close()
+  const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor
+  if (isCapacitor) {
+    await downloadHTMLFile(html, `${setlist.title}.html`)
+  } else {
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(html)
+      win.document.close()
+    }
   }
 }
 
