@@ -44,37 +44,61 @@ function collapseRepeats(chips: string[]): { label: string; count: number }[] {
 function DownloadMenu({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
   const { songs } = useSongStore()
 
-  const handleDownloadAll = async () => {
+  const handleTXT = async () => {
     const text = setlistToText(setlist, songs)
     await downloadTextFile(text, `${setlist.title}.txt`)
     onClose()
   }
 
-  const handleOpenHTML = () => {
-    openSetlistHTML(setlist, songs)
+  const handleHTML = async (colored: boolean) => {
+    await openSetlistHTML(setlist, songs, colored)
     onClose()
   }
+
+  const handlePDF = async () => {
+    // Open colored HTML in new window with print dialog for PDF
+    await openSetlistHTML(setlist, songs, true)
+    onClose()
+  }
+
+  const menuItemStyle: React.CSSProperties = { borderTop: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)' }
 
   return (
     <div
       className="absolute right-0 top-10 z-50 rounded-2xl overflow-hidden shadow-lg"
-      style={{ backgroundColor: 'var(--color-card-raised)', border: '1px solid var(--color-border)', minWidth: 200 }}
+      style={{ backgroundColor: 'var(--color-card-raised)', border: '1px solid var(--color-border)', minWidth: 220 }}
     >
       <button
-        onClick={handleDownloadAll}
+        onClick={handleTXT}
         className="w-full flex items-center gap-2 px-4 py-3 text-sm text-left transition-all hover-bg"
         style={{ color: 'var(--color-text-primary)' }}
       >
         <Download size={14} strokeWidth={1.5} />
-        Download as text (.txt)
+        TXT
       </button>
       <button
-        onClick={handleOpenHTML}
+        onClick={() => handleHTML(false)}
         className="w-full flex items-center gap-2 px-4 py-3 text-sm text-left transition-all hover-bg"
-        style={{ borderTop: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)' }}
+        style={menuItemStyle}
       >
         <Download size={14} strokeWidth={1.5} />
-        Open printable page
+        HTML (B&W)
+      </button>
+      <button
+        onClick={() => handleHTML(true)}
+        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-left transition-all hover-bg"
+        style={menuItemStyle}
+      >
+        <Download size={14} strokeWidth={1.5} />
+        HTML (Colored)
+      </button>
+      <button
+        onClick={handlePDF}
+        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-left transition-all hover-bg"
+        style={menuItemStyle}
+      >
+        <Download size={14} strokeWidth={1.5} />
+        PDF (Print)
       </button>
     </div>
   )

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { X, Download, Printer } from 'lucide-react'
 import type { Song } from '../types'
 import { downloadTextFile, downloadHTMLFile } from '../../../shared/lib/exportUtils'
+import { extractStructure } from '../lib/parser'
 
 interface ExportOptions {
   includeStructure: boolean
@@ -10,6 +11,7 @@ interface ExportOptions {
   includeChords: boolean
   includeChordRows: boolean
   includeProgressions: boolean
+  colored: boolean
 }
 
 interface Props {
@@ -17,8 +19,40 @@ interface Props {
   onClose: () => void
 }
 
+// Structure chip colors
+const STRUCTURE_COLORS: Record<string, string> = {
+  A: '#3478f6', B: '#af52de', C: '#ff9500', D: '#ff3b30', E: '#34c759',
+  F: '#5ac8fa', G: '#ff6482', H: '#ffd60a', I: '#5e5ce6', J: '#8e8e93',
+}
+
+function getStructureParts(song: Song): string[] {
+  if (song.structure) {
+    const hasSpaces = /\s/.test(song.structure)
+    return hasSpaces
+      ? song.structure.split(/\s+/).filter(Boolean)
+      : song.structure.split('').filter((c) => /[A-Za-z]/.test(c))
+  }
+  const { pattern } = extractStructure(song.content)
+  return pattern ? pattern.split(' ') : []
+}
+
+function collapseRepeats(parts: string[]): { label: string; count: number }[] {
+  const result: { label: string; count: number }[] = []
+  for (const p of parts) {
+    if (result.length && result[result.length - 1].label === p) {
+      result[result.length - 1].count++
+    } else {
+      result.push({ label: p, count: 1 })
+    }
+  }
+  return result
+}
+
 function buildSongText(song: Song, opts: ExportOptions): string {
   const lines: string[] = []
+
+  lines.push('CZK Church')
+  lines.push('')
 
   // Title
   lines.push(song.title)
@@ -28,20 +62,23 @@ function buildSongText(song: Song, opts: ExportOptions): string {
   if (song.original_key) lines.push(`Key: ${song.original_key}`)
   if (song.bpm) lines.push(`BPM: ${song.bpm}`)
   if (opts.includeVocalist && song.vocalist) lines.push(`Vocalist: ${song.vocalist}`)
-  lines.push('')
 
-  // Structure summary at top
-  if (opts.includeStructure && song.structure) {
-    lines.push(`Structure: ${song.structure}`)
-    lines.push('')
+  // Structure
+  if (opts.includeStructure) {
+    const parts = getStructureParts(song)
+    if (parts.length > 0) {
+      const collapsed = collapseRepeats(parts)
+      lines.push(`Structure: ${collapsed.map((r) => (r.count > 1 ? `${r.label}×${r.count}` : r.label)).join(' ')}`)
+    }
   }
+
+  lines.push('')
 
   // Song content
   const contentLines = song.content.split('\n')
   for (const line of contentLines) {
     const trimmed = line.trim()
 
-    // Cue / section line
     if (trimmed.startsWith('[!')) {
       const cue = trimmed.replace(/^\[!\s*/, '').replace(/\]$/, '').trim()
       if (opts.includeStructure) {
@@ -56,7 +93,6 @@ function buildSongText(song: Song, opts: ExportOptions): string {
     if (opts.includeChords) {
       lines.push(line)
     } else {
-      // Strip chord brackets
       const stripped = trimmed.replace(/\[[^\]!][^\]]*\]/g, '').trim()
       if (stripped || trimmed === '') lines.push(stripped)
     }
@@ -98,6 +134,9 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
 
   const parts: string[] = []
 
+  // CZK Church header
+  parts.push(`<div class="church-label">CZK Church</div>`)
+
   // Title
   parts.push(`<h1>${escape(song.title)}</h1>`)
 
@@ -108,9 +147,23 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
   if (opts.includeVocalist && song.vocalist) meta.push(`Vocalist: ${escape(song.vocalist)}`)
   if (meta.length > 0) parts.push(`<p class="meta">${meta.join(' &middot; ')}</p>`)
 
-  // Structure summary
-  if (opts.includeStructure && song.structure) {
-    parts.push(`<p class="structure">Structure: ${escape(song.structure)}</p>`)
+  // Structure
+  if (opts.includeStructure) {
+    const structParts = getStructureParts(song)
+    if (structParts.length > 0) {
+      const collapsed = collapseRepeats(structParts)
+      if (opts.colored) {
+        const chips = collapsed.map((r) => {
+          const bg = STRUCTURE_COLORS[r.label] ?? '#8e8e93'
+          const text = r.count > 1 ? `${r.label}×${r.count}` : r.label
+          return `<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;background:${bg};margin-right:4px;">${text}</span>`
+        })
+        parts.push(`<div class="structure">${chips.join('')}</div>`)
+      } else {
+        const text = collapsed.map((r) => r.count > 1 ? `${r.label}×${r.count}` : r.label).join(' ')
+        parts.push(`<p class="structure">Structure: ${escape(text)}</p>`)
+      }
+    }
   }
 
   // Song content
@@ -132,7 +185,6 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
     }
 
     if (opts.includeChords) {
-      // Render chords above text
       const chordRegex = /\[([^\]!][^\]]*)\]/g
       let hasChords = false
       let chordLine = ''
@@ -144,7 +196,6 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
         hasChords = true
         const before = trimmed.slice(lastIndex, match.index)
         textLine += escape(before)
-        // Pad chord position
         const spaces = '&nbsp;'.repeat(Math.max(0, before.length))
         chordLine += spaces + `<span class="chord">${escape(match[1])}</span>`
         lastIndex = match.index + match[0].length
@@ -186,22 +237,26 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
     }
   }
 
+  const chordColor = opts.colored ? '#30a14e' : '#666'
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(song.title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.7; color: #000; background: #fff; padding: 40px; max-width: 750px; margin: 0 auto; }
+  .church-label { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 4px; }
   h1 { font-size: 24px; font-weight: bold; margin-bottom: 4px; border-bottom: 2px solid #333; padding-bottom: 8px; }
   h2 { font-size: 16px; font-weight: bold; margin: 16px 0 8px; }
   .meta { font-size: 13px; color: #555; margin-bottom: 8px; }
   .structure { font-size: 13px; color: #333; font-weight: bold; margin-bottom: 12px; letter-spacing: 0.05em; }
   .section-header { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin: 20px 0 4px; font-style: italic; }
-  .chord-line { font-family: monospace; font-size: 13px; font-weight: bold; color: #666; margin-top: 8px; white-space: pre; font-style: italic; }
-  .chord { font-weight: bold; color: #666; font-style: italic; }
+  .chord-line { font-family: monospace; font-size: 13px; font-weight: bold; color: ${chordColor}; margin-top: 8px; white-space: pre; font-style: italic; }
+  .chord { font-weight: bold; color: ${chordColor}; font-style: italic; }
   p { margin-bottom: 2px; }
   .bar { font-family: monospace; font-size: 14px; margin-left: 16px; }
   .comment { font-size: 13px; color: #555; font-style: italic; margin-left: 16px; }
@@ -233,6 +288,7 @@ export function SongExportModal({ song, onClose }: Props) {
     includeChords: false,
     includeChordRows: false,
     includeProgressions: false,
+    colored: true,
   })
 
   const toggle = (key: keyof ExportOptions) =>
@@ -260,6 +316,7 @@ export function SongExportModal({ song, onClose }: Props) {
     { key: 'includeChords', label: t('exportIncludeChords'), show: true },
     { key: 'includeChordRows', label: t('exportIncludeChordRows'), show: (song.chordRows?.length ?? 0) > 0 },
     { key: 'includeProgressions', label: t('exportIncludeProgressions'), show: (song.barProgressions?.length ?? 0) > 0 },
+    { key: 'colored', label: t('exportColored') || 'Colored', show: opts.includeChords || opts.includeStructure },
   ]
 
   return (
@@ -302,7 +359,7 @@ export function SongExportModal({ song, onClose }: Props) {
             style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
           >
             <Download size={14} strokeWidth={2} />
-            {t('exportAsTXT')}
+            TXT
           </button>
           <button
             onClick={handleHTML}
@@ -310,7 +367,7 @@ export function SongExportModal({ song, onClose }: Props) {
             style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
           >
             <Printer size={14} strokeWidth={2} />
-            {t('exportAsHTML')}
+            HTML
           </button>
         </div>
       </div>

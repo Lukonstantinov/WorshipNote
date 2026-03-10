@@ -151,6 +151,7 @@
   "exportIncludeChords": "Аккорды",
   "exportIncludeChordRows": "Ряды аккордов",
   "exportIncludeProgressions": "Последовательности аккордов",
+  "exportColored": "Цветной (аккорды и структура)",
   "exportAsTXT": "Скачать TXT",
   "exportAsHTML": "Открыть для печати",
   "downloadSong": "Скачать"
