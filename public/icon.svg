@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1a1a2e"/>
+  <g transform="translate(256,256)">
+    <!-- Music note -->
+    <g fill="#a78bfa" stroke="none">
+      <!-- Note head 1 -->
+      <ellipse cx="-60" cy="80" rx="40" ry="30" transform="rotate(-20,-60,80)"/>
+      <!-- Note head 2 -->
+      <ellipse cx="60" cy="40" rx="40" ry="30" transform="rotate(-20,60,40)"/>
+      <!-- Stem 1 -->
+      <rect x="-26" y="-140" width="8" height="230"/>
+      <!-- Stem 2 -->
+      <rect x="94" y="-180" width="8" height="230"/>
+      <!-- Beam -->
+      <polygon points="-26,-140 102,-180 102,-160 -26,-120"/>
+    </g>
+    <!-- Cross -->
+    <g fill="#c4b5fd" stroke="none" transform="translate(0,-60)">
+      <rect x="-6" y="-180" width="12" height="50" rx="3"/>
+      <rect x="-18" y="-165" width="36" height="12" rx="3"/>
+    </g>
+  </g>
+</svg>
