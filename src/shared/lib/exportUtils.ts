@@ -75,7 +75,7 @@ export function songToText(song: Song, vocalist?: string): string {
  * Converts an entire setlist to congregation-style plain text.
  * Includes vocalist names from setlist song entries.
  */
-export function setlistToText(setlist: Setlist, songs: Song[]): string {
+export function setlistToText(setlist: Setlist, songs: Song[], includeChords = false): string {
   const parts: string[] = []
   parts.push('CZK Church')
   parts.push('')
@@ -92,12 +92,56 @@ export function setlistToText(setlist: Setlist, songs: Song[]): string {
     if (!song) return
     parts.push('')
     const vocalist = ss.vocalist ? `(${ss.vocalist}) ` : ''
-    parts.push(`${idx + 1}. ${vocalist}${songToText(song, ss.vocalist)}`)
+    parts.push(`${idx + 1}. ${vocalist}${songToTextWithChords(song, ss.vocalist, includeChords)}`)
     parts.push('')
     parts.push('─'.repeat(40))
   })
 
   return parts.join('\n')
+}
+
+function songToTextWithChords(song: Song, vocalist?: string, includeChords = false): string {
+  const lines: string[] = []
+  lines.push(song.title)
+  if (vocalist) lines.push(`Vocalist: ${vocalist}`)
+  if (song.original_key) lines.push(`Key: ${song.original_key}`)
+  if (song.bpm) lines.push(`BPM: ${song.bpm}`)
+
+  // Structure
+  let structureParts: string[] = []
+  if (song.structure) {
+    const hasSpaces = /\s/.test(song.structure)
+    structureParts = hasSpaces
+      ? song.structure.split(/\s+/).filter(Boolean)
+      : song.structure.split('').filter((c) => /[A-Za-z]/.test(c))
+  } else {
+    const { pattern } = extractStructure(song.content)
+    if (pattern) structureParts = pattern.split(' ')
+  }
+  if (structureParts.length > 0) {
+    lines.push(`Structure: ${collapseRepeats(structureParts)}`)
+  }
+
+  lines.push('')
+
+  const contentLines = song.content.split('\n')
+  for (const line of contentLines) {
+    const trimmed = line.trim()
+    const cueMatch = trimmed.match(/^\[!\s*(.*?)\]/)
+    if (cueMatch) {
+      lines.push(`\n── ${cueMatch[1].trim()} ──`)
+      continue
+    }
+    if (includeChords) {
+      // Keep chords in brackets as-is
+      lines.push(line)
+    } else {
+      const stripped = trimmed.replace(/\[[^\]]+\]/g, '')
+      lines.push(stripped.trim() || '')
+    }
+  }
+
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
 function escapeHtml(str: string): string {
@@ -295,11 +339,18 @@ function collapseRepeatsArray(parts: string[]): { label: string; count: number }
   return result
 }
 
+export interface SetlistExportOptions {
+  includeChords: boolean
+  colored: boolean
+}
+
 /**
  * Build a rich HTML page for a setlist.
- * @param colored If true, chords and structure chips are colored.
  */
-export async function openSetlistHTML(setlist: Setlist, songs: Song[], colored = false): Promise<void> {
+export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOrOpts: boolean | SetlistExportOptions = false): Promise<void> {
+  const opts: SetlistExportOptions = typeof coloredOrOpts === 'boolean'
+    ? { includeChords: coloredOrOpts, colored: coloredOrOpts }
+    : coloredOrOpts
   const sortedSongs = [...setlist.songs].sort((a, b) => a.sort_order - b.sort_order)
 
   const songBlocks: string[] = []
@@ -325,7 +376,7 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], colored =
 
     // Structure
     const structureParts = getStructureParts(song)
-    parts.push(buildStructureChipsHTML(structureParts, colored))
+    parts.push(buildStructureChipsHTML(structureParts, opts.colored))
 
     // Song content
     const contentLines = song.content.split('\n')
@@ -340,8 +391,8 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], colored =
         parts.push('<br />')
         continue
       }
-      if (colored) {
-        // Show chords inline in color
+      if (opts.includeChords) {
+        // Show chords above text
         const chordRegex = /\[([^\]!][^\]]*)\]/g
         let hasChords = false
         let chordLine = ''
@@ -369,9 +420,10 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], colored =
     songBlocks.push(parts.join('\n'))
   })
 
-  const chordColorCSS = colored
-    ? `.chord-line { font-family: monospace; font-size: 13px; font-weight: bold; color: #30a14e; margin-top: 8px; white-space: pre; }
-  .chord { font-weight: bold; color: #30a14e; }`
+  const chordColor = opts.colored ? '#30a14e' : '#666'
+  const chordColorCSS = opts.includeChords
+    ? `.chord-line { font-family: monospace; font-size: 13px; font-weight: bold; color: ${chordColor}; margin-top: 8px; white-space: pre; font-style: italic; }
+  .chord { font-weight: bold; color: ${chordColor}; font-style: italic; }`
     : ''
 
   const html = `<!DOCTYPE html>
