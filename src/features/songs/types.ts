@@ -114,6 +114,8 @@ export interface Song {
   /** snapshot of content saved as "original" for restore */
   snapshotContent?: string;
   snapshotSavedAt?: string;
+  /** marks this song as a preset variant of another song */
+  isPreset?: boolean;
   created_at: string;
   updated_at: string;
 }

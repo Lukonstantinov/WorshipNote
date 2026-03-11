@@ -1,6 +1,7 @@
-import type { Song } from '../../features/songs/types'
+import type { Song, GuitarTab } from '../../features/songs/types'
 import type { Setlist } from '../../store/setlistStore'
 import { extractStructure } from '../../features/songs/lib/parser'
+import { generateAsciiTab } from '../../features/songs/lib/tabUtils'
 
 function collapseRepeats(parts: string[]): string {
   const result: { label: string; count: number }[] = []
@@ -75,7 +76,13 @@ export function songToText(song: Song, vocalist?: string): string {
  * Converts an entire setlist to congregation-style plain text.
  * Includes vocalist names from setlist song entries.
  */
-export function setlistToText(setlist: Setlist, songs: Song[], includeChords = false): string {
+export function setlistToText(
+  setlist: Setlist,
+  songs: Song[],
+  includeChords = false,
+  includeExtras = false,
+  allTabs: GuitarTab[] = [],
+): string {
   const parts: string[] = []
   parts.push('CZK Church')
   parts.push('')
@@ -93,11 +100,71 @@ export function setlistToText(setlist: Setlist, songs: Song[], includeChords = f
     parts.push('')
     const vocalist = ss.vocalist ? `(${ss.vocalist}) ` : ''
     parts.push(`${idx + 1}. ${vocalist}${songToTextWithChords(song, ss.vocalist, includeChords)}`)
+
+    if (includeExtras) {
+      // Chord rows (non-tab rows)
+      const chordRowsText = buildChordRowsText(song)
+      if (chordRowsText) parts.push(chordRowsText)
+      // Bar progressions
+      const progressionsText = buildProgressionsText(song)
+      if (progressionsText) parts.push(progressionsText)
+      // Guitar tabs
+      const tabsText = buildTabsText(song, allTabs)
+      if (tabsText) parts.push(tabsText)
+    }
+
     parts.push('')
     parts.push('─'.repeat(40))
   })
 
   return parts.join('\n')
+}
+
+function buildChordRowsText(song: Song): string {
+  const rows = (song.chordRows ?? []).filter((r) => !r.tabId && r.visible !== false && r.chords?.length > 0)
+  if (rows.length === 0) return ''
+  const lines: string[] = ['']
+  for (const row of rows) {
+    const label = row.label ? `[${row.label}]: ` : ''
+    const comment = row.comment ? ` — ${row.comment}` : ''
+    lines.push(`  ${label}${row.chords.join('  ')}${comment}`)
+  }
+  return lines.join('\n')
+}
+
+function buildProgressionsText(song: Song): string {
+  const progs = song.barProgressions ?? []
+  if (progs.length === 0) return ''
+  const lines: string[] = ['']
+  for (const prog of progs) {
+    lines.push(`  [${prog.name}]:`)
+    for (const bar of prog.bars) {
+      const barStr = bar.map((b) => b.chord).join(' ')
+      lines.push(`    | ${barStr} |`)
+    }
+  }
+  return lines.join('\n')
+}
+
+function buildTabsText(song: Song, allTabs: GuitarTab[]): string {
+  const tabIds = song.tabIds ?? []
+  const tabRows = (song.chordRows ?? []).filter((r) => r.tabId && r.visible !== false).map((r) => r.tabId!)
+  const ids = [...new Set([...tabIds, ...tabRows])]
+  if (ids.length === 0) return ''
+  const lines: string[] = ['']
+  for (const id of ids) {
+    const tab = allTabs.find((t) => t.id === id)
+    if (!tab) continue
+    lines.push(`  [Tab: ${tab.name}]`)
+    lines.push(
+      generateAsciiTab(tab)
+        .split('\n')
+        .map((l) => `    ${l}`)
+        .join('\n'),
+    )
+    if (tab.description) lines.push(`    ${tab.description}`)
+  }
+  return lines.join('\n')
 }
 
 function songToTextWithChords(song: Song, vocalist?: string, includeChords = false): string {
@@ -341,16 +408,79 @@ function collapseRepeatsArray(parts: string[]): { label: string; count: number }
 
 export interface SetlistExportOptions {
   includeChords: boolean
+  /** include chord rows, bar progressions, and guitar tabs */
+  includeExtras: boolean
   colored: boolean
+}
+
+function buildExtrasHTML(song: Song, allTabs: GuitarTab[], colored: boolean): string {
+  const parts: string[] = []
+
+  // Chord rows
+  const chordRows = (song.chordRows ?? []).filter((r) => !r.tabId && r.visible !== false && r.chords?.length > 0)
+  if (chordRows.length > 0) {
+    parts.push('<div class="extras-section">')
+    parts.push('<div class="extras-label">Chord Progressions</div>')
+    for (const row of chordRows) {
+      const labelHtml = row.label ? `<span class="chord-row-label">${escapeHtml(row.label)}:</span>` : ''
+      const chordColor = colored ? '#30a14e' : '#333'
+      const chordsHtml = row.chords.map((c) => `<span style="color:${chordColor};font-weight:bold">${escapeHtml(c)}</span>`).join('&nbsp;&nbsp;')
+      const commentHtml = row.comment ? ` <span style="color:#888;font-size:11px">— ${escapeHtml(row.comment)}</span>` : ''
+      parts.push(`<div class="chord-row">${labelHtml}${chordsHtml}${commentHtml}</div>`)
+    }
+    parts.push('</div>')
+  }
+
+  // Bar progressions
+  const barProgs = song.barProgressions ?? []
+  if (barProgs.length > 0) {
+    parts.push('<div class="extras-section">')
+    parts.push('<div class="extras-label">Bar Progressions</div>')
+    for (const prog of barProgs) {
+      parts.push(`<div class="progression-name">${escapeHtml(prog.name)}</div>`)
+      const barsHtml = prog.bars.map((bar) => {
+        const txt = bar.map((b) => escapeHtml(b.chord)).join(' ')
+        return `<span class="bar">${txt}</span>`
+      }).join('')
+      parts.push(`<div style="margin-bottom:4px">${barsHtml}</div>`)
+    }
+    parts.push('</div>')
+  }
+
+  // Tabs
+  const tabIds = song.tabIds ?? []
+  const tabRowIds = (song.chordRows ?? []).filter((r) => r.tabId && r.visible !== false).map((r) => r.tabId!)
+  const ids = [...new Set([...tabIds, ...tabRowIds])]
+  const matchedTabs = ids.map((id) => allTabs.find((t) => t.id === id)).filter(Boolean) as GuitarTab[]
+  if (matchedTabs.length > 0) {
+    parts.push('<div class="extras-section">')
+    parts.push('<div class="extras-label">Tabs</div>')
+    for (const tab of matchedTabs) {
+      parts.push('<div class="tab-block">')
+      parts.push(`<div class="tab-name">${escapeHtml(tab.name)} (${escapeHtml(tab.instrument)})</div>`)
+      parts.push(`<pre class="tab-ascii">${escapeHtml(generateAsciiTab(tab))}</pre>`)
+      if (tab.description) parts.push(`<div style="font-size:11px;color:#888;margin-top:2px">${escapeHtml(tab.description)}</div>`)
+      parts.push('</div>')
+    }
+    parts.push('</div>')
+  }
+
+  return parts.join('\n')
 }
 
 /**
  * Build a rich HTML page for a setlist.
  */
-export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOrOpts: boolean | SetlistExportOptions = false): Promise<void> {
+/** Build and return the full HTML string for a setlist export. */
+export function buildSetlistHTMLString(
+  setlist: Setlist,
+  songs: Song[],
+  coloredOrOpts: boolean | SetlistExportOptions = false,
+  allTabs: GuitarTab[] = [],
+): string {
   const opts: SetlistExportOptions = typeof coloredOrOpts === 'boolean'
-    ? { includeChords: coloredOrOpts, colored: coloredOrOpts }
-    : coloredOrOpts
+    ? { includeChords: coloredOrOpts, includeExtras: false, colored: coloredOrOpts }
+    : { includeExtras: false, ...coloredOrOpts }
   const sortedSongs = [...setlist.songs].sort((a, b) => a.sort_order - b.sort_order)
 
   const songBlocks: string[] = []
@@ -416,6 +546,12 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOr
       }
     }
 
+    // Extras: chord rows, progressions, tabs
+    if (opts.includeExtras) {
+      const extrasHtml = buildExtrasHTML(song, allTabs, opts.colored)
+      if (extrasHtml) parts.push(extrasHtml)
+    }
+
     parts.push('</div>')
     songBlocks.push(parts.join('\n'))
   })
@@ -426,7 +562,7 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOr
   .chord { font-weight: bold; color: ${chordColor}; font-style: italic; }`
     : ''
 
-  const html = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -449,6 +585,15 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOr
   .song-title { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
   .meta { font-size: 13px; color: #666; font-style: italic; margin-bottom: 4px; }
   .structure { font-size: 13px; color: #333; font-weight: bold; margin-bottom: 8px; letter-spacing: 0.05em; }
+  .extras-section { margin-top: 12px; border-top: 1px dashed #ccc; padding-top: 10px; }
+  .extras-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #aaa; margin-bottom: 6px; }
+  .chord-row { font-family: monospace; font-size: 13px; margin-bottom: 4px; }
+  .chord-row-label { font-weight: 700; color: #555; margin-right: 6px; }
+  .progression-name { font-size: 11px; font-weight: 700; color: #888; margin-bottom: 2px; }
+  .bar { display: inline-block; border: 1px solid #ccc; padding: 2px 8px; margin: 2px; font-family: monospace; font-size: 13px; border-radius: 4px; }
+  .tab-block { margin-top: 8px; }
+  .tab-name { font-size: 11px; font-weight: 700; color: #888; margin-bottom: 4px; }
+  .tab-ascii { font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre; background: #f8f8f8; padding: 8px; border-radius: 4px; border: 1px solid #eee; overflow-x: auto; }
   ${chordColorCSS}
   .toolbar { margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
   .toolbar button { padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
@@ -472,7 +617,19 @@ ${setlist.notes ? `<div class="notes">${escapeHtml(setlist.notes)}</div>` : ''}
 ${songBlocks.join('\n')}
 </body>
 </html>`
+}
 
+/**
+ * Build a rich HTML page for a setlist and open/download it.
+ * On Capacitor: downloads to device. On desktop: opens in new window.
+ */
+export async function openSetlistHTML(
+  setlist: Setlist,
+  songs: Song[],
+  coloredOrOpts: boolean | SetlistExportOptions = false,
+  allTabs: GuitarTab[] = [],
+): Promise<void> {
+  const html = buildSetlistHTMLString(setlist, songs, coloredOrOpts, allTabs)
   const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor
   if (isCapacitor) {
     await downloadHTMLFile(html, `${setlist.title}.html`)

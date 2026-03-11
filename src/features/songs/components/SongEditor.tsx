@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft, Camera, RotateCcw, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft, Camera, RotateCcw, Sparkles, Copy } from 'lucide-react'
 import type { Song } from '../types'
 import { useSongStore } from '../../../store/songStore'
 import { useFolderStore } from '../../../store/folderStore'
@@ -34,6 +34,8 @@ export function SongEditor({ song }: Props) {
   const [showPreview, setShowPreview] = useState(false)
   const [editorMode, setEditorMode] = useState<'simple' | 'advanced'>('advanced')
   const [snapshotMsg, setSnapshotMsg] = useState<string | null>(null)
+  const [showPresetDialog, setShowPresetDialog] = useState(false)
+  const [presetName, setPresetName] = useState('')
 
   const parsed = useMemo(() => parseSong(content), [content])
 
@@ -77,6 +79,25 @@ export function SongEditor({ song }: Props) {
     if (confirm('Restore to saved original? Current content will be replaced.')) {
       setContent(song.snapshotContent)
     }
+  }
+
+  const handleCreatePreset = () => {
+    if (!song || !presetName.trim()) return
+    const now = new Date().toISOString()
+    const newSong: Song = {
+      ...song,
+      id: generateId(),
+      title: `${song.title} (${presetName.trim()})`,
+      isPreset: true,
+      snapshotContent: undefined,
+      snapshotSavedAt: undefined,
+      created_at: now,
+      updated_at: now,
+    }
+    addSong(newSong)
+    setShowPresetDialog(false)
+    setPresetName('')
+    navigate(`/songs/${newSong.id}/edit`)
   }
 
   const inputStyle: React.CSSProperties = {
@@ -295,7 +316,7 @@ export function SongEditor({ song }: Props) {
 
         {/* Snapshot actions (only for existing songs) */}
         {song && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={handleSaveSnapshot}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
@@ -316,6 +337,53 @@ export function SongEditor({ song }: Props) {
                 Restore original
               </button>
             )}
+            <button
+              onClick={() => { setShowPresetDialog((p) => !p); setPresetName('') }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+              style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-accent)', border: '1px solid var(--color-border)' }}
+              title="Create a preset copy of this psalm"
+            >
+              <Copy size={13} strokeWidth={1.5} />
+              Create new preset
+            </button>
+          </div>
+        )}
+
+        {/* Preset name dialog */}
+        {showPresetDialog && song && (
+          <div
+            className="rounded-xl p-3 flex flex-col gap-2"
+            style={{ backgroundColor: 'var(--color-card-raised)', border: '1px solid var(--color-accent)44' }}
+          >
+            <p className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              Preset name — will create: <em style={{ color: 'var(--color-accent)' }}>{song.title} ({presetName || '…'})</em>
+            </p>
+            <div className="flex gap-2">
+              <input
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleCreatePreset() }}
+                autoFocus
+                placeholder="e.g. Fast version, Key of D…"
+                className="flex-1 text-xs px-3 py-2 rounded-xl outline-none"
+                style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+              />
+              <button
+                onClick={handleCreatePreset}
+                disabled={!presetName.trim()}
+                className="px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-40"
+                style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
+              >
+                Create
+              </button>
+              <button
+                onClick={() => setShowPresetDialog(false)}
+                className="px-3 py-2 rounded-xl text-xs transition-all"
+                style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-tertiary)', border: '1px solid var(--color-border)' }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 

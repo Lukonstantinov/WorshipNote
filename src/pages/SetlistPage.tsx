@@ -6,7 +6,7 @@ import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import { extractStructure } from '../features/songs/lib/parser'
-import { setlistToText, downloadTextFile, openSetlistHTML } from '../shared/lib/exportUtils'
+import { setlistToText, downloadTextFile, downloadHTMLFile, openSetlistHTML, buildSetlistHTMLString } from '../shared/lib/exportUtils'
 import type { SetlistExportOptions } from '../shared/lib/exportUtils'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
 import { TabViewer } from '../features/songs/components/TabViewer'
@@ -44,22 +44,41 @@ function collapseRepeats(chips: string[]): { label: string; count: number }[] {
   return result
 }
 
+type ExportLevel = 'structure' | 'chords' | 'full'
+
+const EXPORT_LEVEL_OPTIONS: { value: ExportLevel; label: string; desc: string }[] = [
+  { value: 'structure', label: 'Psalms', desc: 'Structure only' },
+  { value: 'chords', label: '+ Chords', desc: 'Structure + chords' },
+  { value: 'full', label: '+ Tabs', desc: 'Chords + progressions & tabs' },
+]
+
 function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
   const { t } = useTranslation()
   const { songs } = useSongStore()
-  const [includeChords, setIncludeChords] = useState(false)
+  const { tabs } = useChordLibraryStore()
+  const [level, setLevel] = useState<ExportLevel>('structure')
   const [colored, setColored] = useState(true)
 
-  const exportOpts: SetlistExportOptions = { includeChords, colored }
+  const exportOpts: SetlistExportOptions = {
+    includeChords: level !== 'structure',
+    includeExtras: level === 'full',
+    colored,
+  }
 
   const handleTXT = async () => {
-    const text = setlistToText(setlist, songs, includeChords)
+    const text = setlistToText(setlist, songs, exportOpts.includeChords, exportOpts.includeExtras, tabs)
     await downloadTextFile(text, `${setlist.title}.txt`)
     onClose()
   }
 
-  const handleHTML = async () => {
-    await openSetlistHTML(setlist, songs, exportOpts)
+  const handleDownloadHTML = async () => {
+    const html = buildSetlistHTMLString(setlist, songs, exportOpts, tabs)
+    await downloadHTMLFile(html, `${setlist.title}.html`)
+    onClose()
+  }
+
+  const handleViewHTML = async () => {
+    await openSetlistHTML(setlist, songs, exportOpts, tabs)
     onClose()
   }
 
@@ -81,22 +100,32 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
           </button>
         </div>
 
-        {/* Options */}
-        <div className="px-4 py-3 space-y-3">
-          <p className="text-xs font-medium" style={{ color: 'var(--color-text-tertiary)' }}>
-            {t('exportIncludeStructure')}: ✓ &nbsp; {t('exportIncludeVocalist')}: ✓
+        {/* Export level selector */}
+        <div className="px-4 pt-3 pb-1">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
+            Content level
           </p>
+          <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--color-border)' }}>
+            {EXPORT_LEVEL_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setLevel(opt.value)}
+                className="flex-1 flex flex-col items-center py-2 px-1 text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: level === opt.value ? 'var(--color-accent)' : 'var(--color-card-raised)',
+                  color: level === opt.value ? '#fff' : 'var(--color-text-tertiary)',
+                  borderRight: opt.value !== 'full' ? '1px solid var(--color-border)' : undefined,
+                }}
+              >
+                <span className="font-semibold">{opt.label}</span>
+                <span className="text-[10px] opacity-70">{opt.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={includeChords}
-              onChange={() => setIncludeChords((v) => !v)}
-              style={checkboxStyle}
-            />
-            <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('exportIncludeChords')}</span>
-          </label>
-
+        {/* Color toggle */}
+        <div className="px-4 py-3">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -109,23 +138,32 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 px-4 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex flex-col gap-2 px-4 pb-4 pt-1 border-t" style={{ borderColor: 'var(--color-border)' }}>
           <button
-            onClick={handleTXT}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+            onClick={handleViewHTML}
+            className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
             style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
           >
-            <Download size={14} strokeWidth={2} />
-            TXT
+            View HTML
           </button>
-          <button
-            onClick={handleHTML}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
-            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
-          >
-            <Download size={14} strokeWidth={2} />
-            HTML
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleTXT}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
+            >
+              <Download size={14} strokeWidth={2} />
+              TXT
+            </button>
+            <button
+              onClick={handleDownloadHTML}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
+            >
+              <Download size={14} strokeWidth={2} />
+              HTML
+            </button>
+          </div>
         </div>
       </div>
     </div>
