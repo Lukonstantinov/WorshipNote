@@ -14,6 +14,7 @@ import { SongStructure } from '../features/songs/components/SongStructure'
 import { ChordDiagramPanel } from '../features/songs/components/ChordDiagramPanel'
 import { ChordRowsPanel } from '../features/songs/components/ChordRowsPanel'
 import { BarProgressions } from '../features/songs/components/BarProgressions'
+import { SongTabsPanel } from '../features/songs/components/SongTabsPanel'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
 import { useSettingsStore } from '../store/settingsStore'
 import type { Role } from '../store/settingsStore'
@@ -386,6 +387,13 @@ export default function SongPage() {
             <BarProgressions
               progressions={song.barProgressions ?? []}
               onChange={(progs) => updateSong(song.id, { barProgressions: progs })}
+            />
+          )}
+          {/* Guitar tabs */}
+          {capabilities.showChords && (
+            <SongTabsPanel
+              tabIds={song.tabIds ?? []}
+              onChange={(ids) => updateSong(song.id, { tabIds: ids })}
             />
           )}
           {/* Musician comment */}

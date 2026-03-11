@@ -155,5 +155,17 @@
   "exportColored": "Цветной (аккорды и структура)",
   "exportAsTXT": "Скачать TXT",
   "exportAsHTML": "Открыть для печати",
-  "downloadSong": "Скачать"
+  "downloadSong": "Скачать",
+  "guitarTabs": "Гитарные табулатуры",
+  "newTab": "Новая табулатура",
+  "editTab": "Редактировать табулатуру",
+  "tabName": "Название",
+  "tabInstrument": "Инструмент",
+  "addBarLine": "Такт",
+  "addColumn": "Столбец",
+  "noTabs": "Нет табулатур. Создайте первую!",
+  "addTabFromLibrary": "Из библиотеки",
+  "guitarSixString": "Гитара (6 струн)",
+  "bassFourString": "Бас (4 струны)",
+  "ukuleleFourString": "Укулеле (4 струны)"
 }
