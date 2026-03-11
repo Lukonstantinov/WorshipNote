@@ -58,34 +58,34 @@ jobs:
 
       - name: Create GitHub Release on master push
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ github.run_number }}
-          name: "WorshipNote v${{ github.run_number }}"
-          body: |
-            ## WorshipNote Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          gh release create "v${{ github.run_number }}" \
+            android/app/build/outputs/apk/release/app-release.apk \
+            --title "WorshipNote v${{ github.run_number }}" \
+            --notes "## WorshipNote Release
 
-            Built from commit ${{ github.sha }}
+          Built from commit ${{ github.sha }}
 
-            ### Install / Update on Android
+          ### Install / Update on Android
 
-            **First-time install:**
-            1. Download `app-release-*.apk`
-            2. On your Android device go to **Settings → Security → Install unknown apps** and allow your browser or file manager
-            3. Open the APK and tap Install
+          **First-time install:**
+          1. Download \`app-release-*.apk\`
+          2. On your Android device go to **Settings → Security → Install unknown apps** and allow your browser or file manager
+          3. Open the APK and tap Install
 
-            **Updating (if keystore signing is configured):**
-            - Download and install the new APK directly over the old one — no uninstall needed!
-            - The app data (songs, settings) is preserved automatically.
+          **Updating (if keystore signing is configured):**
+          - Download and install the new APK directly over the old one — no uninstall needed!
+          - The app data (songs, settings) is preserved automatically.
 
-            **If you see "Package conflict" error:**
-            - This means the previous APK was unsigned or signed with a different key.
-            - Uninstall the old app first (songs are backed up in your browser's localStorage).
-            - **Export your songs first** via Settings → Export Songs (JSON) to preserve your data.
-            - Then install the new APK.
-            - See the repository README for how to configure keystore signing to avoid this in future.
+          **If you see \"Package conflict\" error:**
+          - This means the previous APK was unsigned or signed with a different key.
+          - Uninstall the old app first (songs are backed up in your browser's localStorage).
+          - **Export your songs first** via Settings → Export Songs (JSON) to preserve your data.
+          - Then install the new APK.
+          - See the repository README for how to configure keystore signing to avoid this in future.
 
-            ### What's new in this build
-            See [CHANGELOG](../../blob/master/CHANGELOG.md) for details.
-          files: android/app/build/outputs/apk/release/app-release.apk
-          prerelease: false
+          ### What's new in this build
+          See [CHANGELOG](../../blob/master/CHANGELOG.md) for details."
