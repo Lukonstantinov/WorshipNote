@@ -33,7 +33,17 @@ cd android && ./gradlew assembleRelease
 
 - **Keystore:** `android/app/worshiphub-release.jks` (alias: `worshiphub`, password: `worshiphub123`)
 - **Signing config:** Embedded in `android/app/build.gradle` → `signingConfigs.release`
-- **CI:** GitHub Actions workflow (`.github/workflows/android.yml`) builds and uploads the signed APK automatically. Pushes to `master` also create a GitHub Release.
+- **CI:** GitHub Actions workflow (`.github/workflows/android.yml`) builds and uploads the signed APK automatically. Pushes to `main` also create a GitHub Release.
+
+### Web App (GitHub Pages — for iOS users)
+
+- **URL:** `https://lukonstantinov.github.io/WorshipNote/`
+- **CI:** `.github/workflows/deploy.yml` — automatically builds and deploys on every push to `main`
+- **iOS install:** Open the URL in Safari → Share → "Add to Home Screen" → acts like a native app
+- **Data:** Each user's data is stored **locally in their own browser** (localStorage). Completely separate per device — no shared server, no accounts needed.
+- **Vite base:** `base: '/WorshipNote/'` in `vite.config.ts` — required for GitHub Pages subdirectory
+- **Router:** Uses `BrowserRouter` — GitHub Pages needs the 404.html redirect trick if users deep-link directly (currently not needed since users navigate from home screen)
+- **Chord diagrams on mobile:** When `chordDisplayPosition` is `'side'`, the side panel is desktop-only (`md:flex`). On mobile, diagrams automatically fall back to the top position.
 
 ## Project Structure
 
