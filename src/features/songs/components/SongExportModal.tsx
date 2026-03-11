@@ -399,8 +399,8 @@ export function SongExportModal({ song, onClose }: Props) {
   const [opts, setOpts] = useState<ExportOptions>({
     includeStructure: true,
     includeVocalist: !!song.vocalist,
-    includeChords: false,
-    includeDiagrams: false,
+    includeChords: true,
+    includeDiagrams: true,
     includeChordRows: (song.chordRows?.filter((r) => r.visible !== false).length ?? 0) > 0,
     includeProgressions: (song.barProgressions?.length ?? 0) > 0,
     colored: true,
