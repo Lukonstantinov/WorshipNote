@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, Eye, EyeOff, Library } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, Eye, EyeOff, Library, TableProperties } from 'lucide-react'
 import { useSettingsStore } from '../../../store/settingsStore'
+import { useChordLibraryStore } from '../../../store/chordLibraryStore'
 import { GuitarDiagram } from './GuitarDiagram'
 import { PianoDiagram } from './PianoDiagram'
 import { BassDiagram } from './BassDiagram'
+import { TabViewer } from './TabViewer'
 import { ProgressionPickerModal } from '../../chordLibrary/components/ProgressionPickerModal'
 import type { ChordRow } from '../types'
 import { generateId } from '../../../shared/lib/storage'
@@ -33,10 +35,13 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
     customChords, customPianoChords,
     guitarDotColor, pianoHighlightColor, guitarFlipped, diagramScale,
   } = useSettingsStore()
+  const { tabs } = useChordLibraryStore()
 
   const [collapsed, setCollapsed] = useState(false)
   const [editingRowId, setEditingRowId] = useState<string | null>(null)
   const [showPicker, setShowPicker] = useState(false)
+  const [showTabPicker, setShowTabPicker] = useState(false)
+  const [tabPickerQuery, setTabPickerQuery] = useState('')
 
   const instrument = instruments.find((i) => i.id === selectedInstrument)
   const instrType = instrument?.type ?? 'guitar'
@@ -64,6 +69,22 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
     onChange([...chordRows, { ...row, visible: true }])
   }
 
+  const addTabFromLibrary = (tabId: string) => {
+    const tab = tabs.find((t) => t.id === tabId)
+    if (!tab) return
+    const newRow: ChordRow = {
+      id: generateId(),
+      label: tab.name,
+      tabId: tab.id,
+      chords: [],
+      fromLibrary: true,
+      visible: true,
+    }
+    onChange([...chordRows, newRow])
+    setShowTabPicker(false)
+    setTabPickerQuery('')
+  }
+
   const removeRow = (id: string) => onChange(chordRows.filter((r) => r.id !== id))
 
   const updateRow = (id: string, patch: Partial<ChordRow>) =>
@@ -74,13 +95,74 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
 
   const visibleCount = chordRows.filter((r) => r.visible !== false).length
 
+  // Tabs already used in rows (to exclude from picker)
+  const usedTabIds = chordRows.map((r) => r.tabId).filter(Boolean) as string[]
+  const availableTabs = tabs.filter((t) => !usedTabIds.includes(t.id))
+  const filteredTabs = availableTabs.filter((t) =>
+    t.name.toLowerCase().includes(tabPickerQuery.toLowerCase())
+  )
+
+  const TabPickerDropdown = () => (
+    <div
+      className="rounded-2xl overflow-hidden mb-2"
+      style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card-raised)' }}
+    >
+      <div className="p-2">
+        <input
+          autoFocus
+          value={tabPickerQuery}
+          onChange={(e) => setTabPickerQuery(e.target.value)}
+          placeholder="Search tabs…"
+          className="w-full px-3 py-2 rounded-xl text-xs outline-none"
+          style={{
+            backgroundColor: 'var(--color-input-bg)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-primary)',
+          }}
+        />
+      </div>
+      {filteredTabs.length === 0 ? (
+        <p className="px-4 pb-3 text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
+          {availableTabs.length === 0 ? 'No tabs in library yet.' : 'No matching tabs.'}
+        </p>
+      ) : (
+        <div className="max-h-48 overflow-y-auto">
+          {filteredTabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => addTabFromLibrary(t.id)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all hover-bg"
+              style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+            >
+              <TableProperties size={13} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
+              <span className="text-xs flex-1 truncate" style={{ color: 'var(--color-text-primary)' }}>{t.name}</span>
+              <span
+                className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+              >
+                {t.instrument}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
   if (chordRows.length === 0 && !collapsed) {
     return (
       <>
         <div className="flex items-center gap-2 px-3 py-2">
           <span className="text-xs flex-1" style={{ color: 'var(--color-text-muted)' }}>Chord rows</span>
           <button
-            onClick={() => setShowPicker(true)}
+            onClick={() => { setShowTabPicker((p) => !p); setShowPicker(false) }}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
+            style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+          >
+            <TableProperties size={12} strokeWidth={2} /> Tab
+          </button>
+          <button
+            onClick={() => { setShowPicker(true); setShowTabPicker(false) }}
             className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
             style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
           >
@@ -94,6 +176,7 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
             <Plus size={12} strokeWidth={2} /> Add row
           </button>
         </div>
+        {showTabPicker && <div className="px-3 pb-1"><TabPickerDropdown /></div>}
         {showPicker && (
           <ProgressionPickerModal
             onSelect={addFromLibrary}
@@ -113,7 +196,14 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
           <span className="text-xs">Chord rows ({visibleCount}/{chordRows.length})</span>
         </button>
         <button
-          onClick={() => setShowPicker(true)}
+          onClick={() => { setShowTabPicker((p) => !p); setShowPicker(false) }}
+          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
+          style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+        >
+          <TableProperties size={12} strokeWidth={2} /> Tab
+        </button>
+        <button
+          onClick={() => { setShowPicker(true); setShowTabPicker(false) }}
           className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
           style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
         >
@@ -130,9 +220,12 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
 
       {!collapsed && (
         <div className="space-y-2 p-2">
+          {showTabPicker && <TabPickerDropdown />}
           {chordRows.map((row) => {
             const isEditing = editingRowId === row.id
             const isHidden = row.visible === false
+            const isTabRow = !!row.tabId
+            const resolvedTab = isTabRow ? tabs.find((t) => t.id === row.tabId) : undefined
             return (
               <div
                 key={row.id}
@@ -147,7 +240,9 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                 <div className="flex items-center gap-2 px-2 py-1.5">
                   <GripVertical size={14} style={{ color: 'var(--color-text-muted)' }} />
                   {row.fromLibrary && (
-                    <Library size={11} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                    isTabRow
+                      ? <TableProperties size={11} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                      : <Library size={11} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
                   )}
                   {row.label ? (
                     <span className="text-xs font-semibold" style={{ color: row.color && row.color !== 'transparent' ? row.color : 'var(--color-text-tertiary)', minWidth: 60 }}>
@@ -186,14 +281,16 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                       className="w-full rounded-lg px-2 py-1.5 text-xs outline-none"
                       style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-primary)', border: 'none' }}
                     />
-                    <input
-                      type="text"
-                      placeholder="Chords (e.g. G D Em C)"
-                      value={row.chords.join(' ')}
-                      onChange={(e) => updateRow(row.id, { chords: parseChordList(e.target.value) })}
-                      className="w-full rounded-lg px-2 py-1.5 text-xs outline-none font-mono"
-                      style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-chord)', border: 'none' }}
-                    />
+                    {!isTabRow && (
+                      <input
+                        type="text"
+                        placeholder="Chords (e.g. G D Em C)"
+                        value={row.chords.join(' ')}
+                        onChange={(e) => updateRow(row.id, { chords: parseChordList(e.target.value) })}
+                        className="w-full rounded-lg px-2 py-1.5 text-xs outline-none font-mono"
+                        style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-chord)', border: 'none' }}
+                      />
+                    )}
                     <input
                       type="text" placeholder="Comment (below row)..." value={row.comment ?? ''}
                       onChange={(e) => updateRow(row.id, { comment: e.target.value })}
@@ -216,35 +313,44 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                         />
                       ))}
                     </div>
-                    {/* Dot colour */}
-                    <div className="flex items-center gap-1.5 pt-0.5">
-                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Dots:</span>
-                      <button
-                        onClick={() => updateRow(row.id, { dotColor: undefined })}
-                        className="rounded-full flex-shrink-0 text-xs"
-                        style={{ width: 18, height: 18, backgroundColor: 'var(--color-card-raised)', border: !row.dotColor ? '2px solid #fff' : '2px solid transparent', fontSize: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}
-                        title="Use global setting"
-                      >
-                        A
-                      </button>
-                      {DOT_COLORS.map((c) => (
+                    {/* Dot colour — only for chord rows */}
+                    {!isTabRow && (
+                      <div className="flex items-center gap-1.5 pt-0.5">
+                        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Dots:</span>
                         <button
-                          key={c}
-                          onClick={() => updateRow(row.id, { dotColor: c })}
-                          className="rounded-full flex-shrink-0"
-                          style={{
-                            width: 18, height: 18,
-                            backgroundColor: c,
-                            border: row.dotColor === c ? '2px solid #fff' : '2px solid transparent',
-                          }}
-                        />
-                      ))}
-                    </div>
+                          onClick={() => updateRow(row.id, { dotColor: undefined })}
+                          className="rounded-full flex-shrink-0 text-xs"
+                          style={{ width: 18, height: 18, backgroundColor: 'var(--color-card-raised)', border: !row.dotColor ? '2px solid #fff' : '2px solid transparent', fontSize: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}
+                          title="Use global setting"
+                        >
+                          A
+                        </button>
+                        {DOT_COLORS.map((c) => (
+                          <button
+                            key={c}
+                            onClick={() => updateRow(row.id, { dotColor: c })}
+                            className="rounded-full flex-shrink-0"
+                            style={{
+                              width: 18, height: 18,
+                              backgroundColor: c,
+                              border: row.dotColor === c ? '2px solid #fff' : '2px solid transparent',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Chord diagrams — scrollable row (only when visible) */}
-                {!isHidden && row.chords.length > 0 && (
+                {/* Tab content */}
+                {!isHidden && isTabRow && (
+                  resolvedTab
+                    ? <div className="px-2 pb-2"><TabViewer tab={resolvedTab} /></div>
+                    : <p className="text-xs px-3 pb-2" style={{ color: 'var(--color-text-muted)' }}>Tab was deleted from library.</p>
+                )}
+
+                {/* Chord diagrams — scrollable row (only when visible and not a tab row) */}
+                {!isHidden && !isTabRow && row.chords.length > 0 && (
                   <div className="flex gap-0 overflow-x-auto scrollbar-none">
                     {/* Left side label for display */}
                     {row.label && !isEditing && (
@@ -270,7 +376,7 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                   </div>
                 )}
 
-                {!isHidden && row.chords.length === 0 && !isEditing && (
+                {!isHidden && !isTabRow && row.chords.length === 0 && !isEditing && (
                   <p className="text-xs px-3 pb-2" style={{ color: 'var(--color-text-muted)' }}>
                     Click "edit" to add chords
                   </p>
