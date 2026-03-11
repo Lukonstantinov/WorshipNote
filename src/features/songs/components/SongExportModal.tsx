@@ -72,9 +72,10 @@ function renderChordSVG(
   customPianoChords: Record<string, CustomPianoChordDiagram>,
   colored: boolean,
   size = 80,
+  overrideDotColor?: string,
 ): string {
-  const dotColor = colored ? '#bf5af2' : '#444444'
-  const highlightColor = colored ? '#32d74b' : '#555555'
+  const dotColor = overrideDotColor ?? (colored ? '#bf5af2' : '#444444')
+  const highlightColor = overrideDotColor ?? (colored ? '#32d74b' : '#555555')
 
   if (instrumentType === 'piano' || instrumentType === 'keyboard') {
     return renderToString(
@@ -97,10 +98,11 @@ function buildDiagramsGrid(
   customChords: Record<string, CustomChordDiagram>,
   customPianoChords: Record<string, CustomPianoChordDiagram>,
   colored: boolean,
+  overrideDotColor?: string,
 ): string {
   if (chords.length === 0) return ''
   const items = chords.map((chord) => {
-    const svg = renderChordSVG(chord, instrumentType, customChords, customPianoChords, colored)
+    const svg = renderChordSVG(chord, instrumentType, customChords, customPianoChords, colored, 80, overrideDotColor)
     return `<div class="diagram-item">${svg}</div>`
   }).join('')
   return `<div class="diagrams-grid">${items}</div>`
@@ -137,6 +139,19 @@ function buildSongText(song: Song, opts: ExportOptions): string {
     }
   }
 
+  // Chord rows — before lyrics
+  if (opts.includeChordRows && song.chordRows && song.chordRows.length > 0) {
+    lines.push('')
+    lines.push('─'.repeat(40))
+    lines.push('CHORD ROWS')
+    for (const row of song.chordRows) {
+      if (row.visible === false) continue
+      const label = row.label || 'Row'
+      lines.push(`  ${label}: ${row.chords.join(' ')}`)
+      if (row.comment) lines.push(`    ${row.comment}`)
+    }
+  }
+
   lines.push('')
 
   // Song content
@@ -160,19 +175,6 @@ function buildSongText(song: Song, opts: ExportOptions): string {
     } else {
       const stripped = trimmed.replace(/\[[^\]!][^\]]*\]/g, '').trim()
       if (stripped || trimmed === '') lines.push(stripped)
-    }
-  }
-
-  // Chord rows
-  if (opts.includeChordRows && song.chordRows && song.chordRows.length > 0) {
-    lines.push('')
-    lines.push('─'.repeat(40))
-    lines.push('CHORD ROWS')
-    for (const row of song.chordRows) {
-      if (row.visible === false) continue
-      const label = row.label || 'Row'
-      lines.push(`  ${label}: ${row.chords.join(' ')}`)
-      if (row.comment) lines.push(`    ${row.comment}`)
     }
   }
 
@@ -241,6 +243,26 @@ function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpt
     }
   }
 
+  // Chord rows — before lyrics, after chord diagrams
+  if (opts.includeChordRows && song.chordRows && song.chordRows.length > 0) {
+    const visibleRows = song.chordRows.filter((r) => r.visible !== false)
+    if (visibleRows.length > 0) {
+      parts.push('<h2>Chord Rows</h2>')
+      for (const row of visibleRows) {
+        const label = row.label || 'Row'
+        if (opts.includeDiagrams && diagramOpts && row.chords.length > 0) {
+          const grid = buildDiagramsGrid(row.chords, diagramOpts.instrumentType, diagramOpts.customChords, diagramOpts.customPianoChords, opts.colored, row.dotColor)
+          parts.push(`<div class="chord-row-block"><strong class="chord-row-label">${escape(label)}</strong>${grid}</div>`)
+          if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
+        } else {
+          parts.push(`<p><strong>${escape(label)}:</strong> ${row.chords.map(escape).join(', ')}</p>`)
+          if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
+        }
+      }
+      parts.push('<hr class="separator" />')
+    }
+  }
+
   // Song content
   const contentLines = song.content.split('\n')
   for (const line of contentLines) {
@@ -284,25 +306,6 @@ function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpt
     } else {
       const stripped = trimmed.replace(/\[[^\]!][^\]]*\]/g, '').trim()
       if (stripped) parts.push(`<p>${escape(stripped)}</p>`)
-    }
-  }
-
-  // Chord rows
-  if (opts.includeChordRows && song.chordRows && song.chordRows.length > 0) {
-    parts.push('<hr class="separator" />')
-    parts.push('<h2>Chord Rows</h2>')
-    for (const row of song.chordRows) {
-      if (row.visible === false) continue
-      const label = row.label || 'Row'
-      if (opts.includeDiagrams && diagramOpts && row.chords.length > 0) {
-        // Render chord row diagrams with label
-        const grid = buildDiagramsGrid(row.chords, diagramOpts.instrumentType, diagramOpts.customChords, diagramOpts.customPianoChords, opts.colored)
-        parts.push(`<div class="chord-row-block"><strong class="chord-row-label">${escape(label)}</strong>${grid}</div>`)
-        if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
-      } else {
-        parts.push(`<p><strong>${escape(label)}:</strong> ${row.chords.map(escape).join(', ')}</p>`)
-        if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
-      }
     }
   }
 
