@@ -70,6 +70,26 @@ export interface BarProgressionData {
   beatsPerBar: number;
 }
 
+export type TabInstrument = 'guitar' | 'bass' | 'ukulele'
+
+export interface TabColumn {
+  id: string;
+  /** true = this column is a bar line separator (|) */
+  isSeparator?: boolean;
+  /** one cell per string (high → low); null = empty (dash) */
+  cells: (number | string | null)[];
+}
+
+export interface GuitarTab {
+  id: string;
+  name: string;
+  instrument: TabInstrument;
+  columns: TabColumn[];
+  description?: string;
+  folderId?: string;
+  createdAt: string;
+}
+
 export interface Song {
   id: string;
   title: string;
@@ -83,6 +103,8 @@ export interface Song {
   chordRows?: ChordRow[];
   /** bar-by-bar chord progressions saved for this song */
   barProgressions?: BarProgressionData[];
+  /** IDs of guitar tabs from the library attached to this song */
+  tabIds?: string[];
   /** main vocalist for this song */
   vocalist?: string;
   /** personal musician notes/comments shown below the song in view mode */

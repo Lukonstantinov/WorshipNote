@@ -155,5 +155,17 @@
   "exportColored": "Spalvotas (akordai ir struktūra)",
   "exportAsTXT": "Atsisiųsti TXT",
   "exportAsHTML": "Atidaryti spausdinimui",
-  "downloadSong": "Atsisiųsti"
+  "downloadSong": "Atsisiųsti",
+  "guitarTabs": "Gitaros tabulatūros",
+  "newTab": "Nauja tabulatūra",
+  "editTab": "Redaguoti tabulatūrą",
+  "tabName": "Pavadinimas",
+  "tabInstrument": "Instrumentas",
+  "addBarLine": "Takto linija",
+  "addColumn": "Stulpelis",
+  "noTabs": "Nėra tabulatūrų. Sukurkite pirmą!",
+  "addTabFromLibrary": "Iš bibliotekos",
+  "guitarSixString": "Gitara (6 stygų)",
+  "bassFourString": "Bosas (4 stygos)",
+  "ukuleleFourString": "Ukulelė (4 stygos)"
 }

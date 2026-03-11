@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { generateId } from '../shared/lib/storage'
+import type { GuitarTab } from '../features/songs/types'
+
+export type { GuitarTab }
 
 export interface ChordLibraryFolder {
   id: string
@@ -26,6 +29,7 @@ export interface ChordProgression {
 interface ChordLibraryStore {
   progressions: ChordProgression[]
   folders: ChordLibraryFolder[]
+  tabs: GuitarTab[]
   addProgression: (data: Omit<ChordProgression, 'id' | 'createdAt'>) => ChordProgression
   updateProgression: (id: string, updates: Partial<ChordProgression>) => void
   deleteProgression: (id: string) => void
@@ -34,6 +38,9 @@ interface ChordLibraryStore {
   addFolder: (name: string, color: string) => ChordLibraryFolder
   updateFolder: (id: string, updates: Partial<Pick<ChordLibraryFolder, 'name' | 'color'>>) => void
   deleteFolder: (id: string) => void
+  addTab: (data: Omit<GuitarTab, 'id' | 'createdAt'>) => GuitarTab
+  updateTab: (id: string, updates: Partial<GuitarTab>) => void
+  deleteTab: (id: string) => void
 }
 
 export const useChordLibraryStore = create<ChordLibraryStore>()(
@@ -41,6 +48,7 @@ export const useChordLibraryStore = create<ChordLibraryStore>()(
     (set) => ({
       progressions: [],
       folders: [],
+      tabs: [],
       addProgression: (data) => {
         const progression: ChordProgression = {
           ...data,
@@ -77,7 +85,17 @@ export const useChordLibraryStore = create<ChordLibraryStore>()(
         set((s) => ({
           folders: s.folders.filter((f) => f.id !== id),
           progressions: s.progressions.map((p) => (p.folderId === id ? { ...p, folderId: undefined } : p)),
+          tabs: s.tabs.map((t) => (t.folderId === id ? { ...t, folderId: undefined } : t)),
         })),
+      addTab: (data) => {
+        const tab: GuitarTab = { ...data, id: generateId(), createdAt: new Date().toISOString() }
+        set((s) => ({ tabs: [...s.tabs, tab] }))
+        return tab
+      },
+      updateTab: (id, updates) =>
+        set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? { ...t, ...updates } : t)) })),
+      deleteTab: (id) =>
+        set((s) => ({ tabs: s.tabs.filter((t) => t.id !== id) })),
     }),
     { name: 'worshiphub:chord-library' }
   )

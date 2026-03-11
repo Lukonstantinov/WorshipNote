@@ -1,7 +1,11 @@
 import { useState, useMemo, useRef } from 'react'
-import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight, ChevronDown, Pencil } from 'lucide-react'
+import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquare, Square, FolderInput, X, ChevronRight, ChevronDown, Pencil, TableProperties } from 'lucide-react'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import type { ChordProgression, ChordLibraryFolder } from '../store/chordLibraryStore'
+import { TabEditor } from '../features/songs/components/TabEditor'
+import { TabViewer } from '../features/songs/components/TabViewer'
+import type { GuitarTab } from '../features/songs/types'
+import { generateAsciiTab } from '../features/songs/lib/tabUtils'
 import { useSettingsStore } from '../store/settingsStore'
 import { GuitarDiagram } from '../features/songs/components/GuitarDiagram'
 import { MiniGuitarDiagram } from '../features/songs/components/MiniGuitarDiagram'
@@ -17,7 +21,7 @@ import type { ChordCategory } from '../features/songs/lib/chordData'
 import { getAllUkuleleChordNames } from '../features/songs/lib/ukuleleChordData'
 import { getAllBassChordNames } from '../features/songs/lib/bassChordData'
 
-type Tab = 'progressions' | 'reference'
+type Tab = 'progressions' | 'reference' | 'tabs'
 
 const CHORD_COLORS = ['var(--color-accent)', 'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-info)']
 
@@ -63,7 +67,7 @@ function ProgressionDiagrams({ chords, onEditChord }: { chords: string[]; onEdit
 }
 
 export default function ChordLibraryPage() {
-  const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder } = useChordLibraryStore()
+  const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder, tabs, addTab, updateTab, deleteTab } = useChordLibraryStore()
   const { guitarDotColor, guitarFlipped, customChords, customPianoChords, deleteCustomChord, deleteCustomPianoChord, pianoHighlightColor } = useSettingsStore()
 
   const [tab, setTab] = useState<Tab>('progressions')
@@ -78,6 +82,12 @@ export default function ChordLibraryPage() {
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [showFolderPicker, setShowFolderPicker] = useState(false)
+
+  // Tabs tab
+  const [tabQuery, setTabQuery] = useState('')
+  const [showTabEditor, setShowTabEditor] = useState(false)
+  const [editingTab, setEditingTab] = useState<GuitarTab | undefined>()
+  const [tabActiveFolderId, setTabActiveFolderId] = useState<string | null>(null)
 
   // Reference tab
   const [refQuery, setRefQuery] = useState('')
@@ -143,6 +153,15 @@ export default function ChordLibraryPage() {
     return names
   }, [allChordNames, allUkuleleNames, refQuery, refInstrument, refCategory, customChords])
 
+  const filteredTabs = useMemo(() => {
+    const q = tabQuery.toLowerCase()
+    return tabs.filter((t) => {
+      const matchQuery = t.name.toLowerCase().includes(q) || (t.description?.toLowerCase().includes(q) ?? false)
+      const matchFolder = tabActiveFolderId ? t.folderId === tabActiveFolderId : true
+      return matchQuery && matchFolder
+    })
+  }, [tabs, tabQuery, tabActiveFolderId])
+
   const handleEdit = (p: ChordProgression) => { setEditingProgression(p); setShowBuilder(true) }
   const handleAdd = () => { setEditingProgression(undefined); setShowBuilder(true) }
 
@@ -201,6 +220,16 @@ export default function ChordLibraryPage() {
               </button>
             </>
           )}
+          {tab === 'tabs' && (
+            <button
+              onClick={() => { setEditingTab(undefined); setShowTabEditor(true) }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
+              style={{ backgroundColor: 'var(--color-accent)', color: '#fff', minHeight: 44 }}
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              New Tab
+            </button>
+          )}
         </div>
       </div>
 
@@ -208,7 +237,8 @@ export default function ChordLibraryPage() {
       <div className="flex gap-1 mb-4 rounded-2xl p-1" style={{ backgroundColor: 'var(--color-card)' }}>
         {([
           { key: 'progressions' as Tab, label: 'Progressions', icon: <Music2 size={14} strokeWidth={1.5} /> },
-          { key: 'reference' as Tab, label: 'Chord Reference', icon: <Guitar size={14} strokeWidth={1.5} /> },
+          { key: 'reference' as Tab, label: 'Reference', icon: <Guitar size={14} strokeWidth={1.5} /> },
+          { key: 'tabs' as Tab, label: 'Tabs', icon: <TableProperties size={14} strokeWidth={1.5} /> },
         ]).map(({ key, label, icon }) => (
           <button
             key={key}
@@ -681,6 +711,139 @@ export default function ChordLibraryPage() {
         </>
       )}
 
+      {/* ── Tabs section ─────────────────────────────────────── */}
+      {tab === 'tabs' && (
+        <>
+          {/* Folder filter */}
+          {folders.length > 0 && (
+            <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-none pb-1">
+              <button
+                onClick={() => setTabActiveFolderId(null)}
+                className="flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: tabActiveFolderId === null ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: tabActiveFolderId === null ? '#fff' : 'var(--color-text-tertiary)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                All
+              </button>
+              {folders.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setTabActiveFolderId(tabActiveFolderId === f.id ? null : f.id)}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: tabActiveFolderId === f.id ? f.color : 'var(--color-card)',
+                    color: tabActiveFolderId === f.id ? '#fff' : 'var(--color-text-tertiary)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: f.color }} />
+                  {f.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-muted)' }} />
+            <input
+              value={tabQuery}
+              onChange={(e) => setTabQuery(e.target.value)}
+              placeholder="Search tabs…"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none"
+              style={{
+                backgroundColor: 'var(--color-card)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-primary)',
+              }}
+            />
+          </div>
+
+          {/* Tab cards */}
+          {filteredTabs.length === 0 ? (
+            <div className="text-center py-16" style={{ color: 'var(--color-text-muted)' }}>
+              <TableProperties size={32} strokeWidth={1} className="mx-auto mb-3 opacity-30" />
+              <p className="text-sm">{tabs.length === 0 ? 'No tabs yet. Create the first one!' : 'No tabs match your search.'}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredTabs.map((t) => (
+                <div
+                  key={t.id}
+                  className="rounded-2xl overflow-hidden"
+                  style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)' }}
+                >
+                  {/* Card header */}
+                  <div
+                    className="flex items-center gap-2 px-4 py-2.5"
+                    style={{ backgroundColor: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border-subtle)' }}
+                  >
+                    <span className="font-semibold text-sm flex-1 truncate" style={{ color: 'var(--color-text-primary)' }}>
+                      {t.name}
+                    </span>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                      style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+                    >
+                      {t.instrument === 'guitar' ? 'Guitar' : t.instrument === 'bass' ? 'Bass' : 'Ukulele'}
+                    </span>
+                    {folders.find((f) => f.id === t.folderId) && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                        style={{
+                          backgroundColor: `${folders.find((f) => f.id === t.folderId)?.color}22`,
+                          color: folders.find((f) => f.id === t.folderId)?.color,
+                        }}
+                      >
+                        {folders.find((f) => f.id === t.folderId)?.name}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => { setEditingTab(t); setShowTabEditor(true) }}
+                      className="flex items-center justify-center rounded-lg p-1.5 transition-all hover-bg flex-shrink-0"
+                      title="Edit"
+                    >
+                      <Pencil size={13} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
+                    </button>
+                    <button
+                      onClick={() => { if (confirm(`Delete tab "${t.name}"?`)) deleteTab(t.id) }}
+                      className="flex items-center justify-center rounded-lg p-1.5 transition-all hover-bg flex-shrink-0"
+                      title="Delete"
+                    >
+                      <Trash2 size={13} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
+                    </button>
+                  </div>
+                  {/* ASCII preview (truncated) */}
+                  <div className="overflow-x-auto">
+                    <pre
+                      className="px-4 py-3 text-xs leading-relaxed"
+                      style={{
+                        fontFamily: 'JetBrains Mono, Fira Code, Menlo, Courier New, monospace',
+                        color: 'var(--color-text-secondary)',
+                        whiteSpace: 'pre',
+                        margin: 0,
+                        maxHeight: 120,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {t.columns.length === 0 ? '(empty tab)' : generateAsciiTab(t)}
+                    </pre>
+                  </div>
+                  {t.description && (
+                    <p className="px-4 pb-3 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                      {t.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       {/* Modals */}
       {showFolderManager && <ChordLibraryFolderManager onClose={() => setShowFolderManager(false)} />}
       {showBuilder && (
@@ -720,6 +883,46 @@ export default function ChordLibraryPage() {
             setEditingProgression(undefined)
           }}
         />
+      )}
+
+      {/* Tab Editor modal */}
+      {showTabEditor && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col overflow-auto"
+          style={{ backgroundColor: 'var(--color-bg)' }}
+        >
+          <div
+            className="flex items-center gap-2 px-4 py-3 border-b flex-shrink-0"
+            style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
+          >
+            <button
+              onClick={() => { setShowTabEditor(false); setEditingTab(undefined) }}
+              className="flex items-center justify-center rounded-xl transition-all active:scale-95"
+              style={{ color: 'var(--color-accent)', minWidth: 44, minHeight: 44 }}
+            >
+              <X size={20} strokeWidth={2} />
+            </button>
+            <h2 className="text-base font-semibold flex-1">
+              {editingTab ? 'Edit Tab' : 'New Tab'}
+            </h2>
+          </div>
+          <div className="flex-1 overflow-auto">
+            <TabEditor
+              initial={editingTab}
+              folders={folders}
+              onCancel={() => { setShowTabEditor(false); setEditingTab(undefined) }}
+              onSave={(data) => {
+                if (editingTab) {
+                  updateTab(editingTab.id, data)
+                } else {
+                  addTab(data)
+                }
+                setShowTabEditor(false)
+                setEditingTab(undefined)
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   )

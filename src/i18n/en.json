@@ -155,5 +155,17 @@
   "exportColored": "Colored (chords & structure)",
   "exportAsTXT": "Download TXT",
   "exportAsHTML": "Open printable page",
-  "downloadSong": "Download"
+  "downloadSong": "Download",
+  "guitarTabs": "Guitar Tabs",
+  "newTab": "New Tab",
+  "editTab": "Edit Tab",
+  "tabName": "Tab Name",
+  "tabInstrument": "Instrument",
+  "addBarLine": "Bar Line",
+  "addColumn": "Column",
+  "noTabs": "No tabs yet. Create the first one!",
+  "addTabFromLibrary": "Add from library",
+  "guitarSixString": "Guitar (6-string)",
+  "bassFourString": "Bass (4-string)",
+  "ukuleleFourString": "Ukulele (4-string)"
 }
