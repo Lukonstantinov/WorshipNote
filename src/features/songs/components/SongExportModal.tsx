@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { useTranslation } from 'react-i18next'
 import { X, Download, Printer } from 'lucide-react'
-import type { Song } from '../types'
+import type { Song, GuitarTab } from '../types'
 import type { CustomChordDiagram, CustomPianoChordDiagram } from '../types'
 import { downloadTextFile, downloadHTMLFile } from '../../../shared/lib/exportUtils'
 import { extractStructure } from '../lib/parser'
+import { generateAsciiTab } from '../lib/tabUtils'
 import { useSettingsStore } from '../../../store/settingsStore'
+import { useChordLibraryStore } from '../../../store/chordLibraryStore'
 import { GuitarDiagram } from './GuitarDiagram'
 import { PianoDiagram } from './PianoDiagram'
 import { BassDiagram } from './BassDiagram'
@@ -18,6 +20,7 @@ interface ExportOptions {
   includeDiagrams: boolean
   includeChordRows: boolean
   includeProgressions: boolean
+  includeTabs: boolean
   colored: boolean
 }
 
@@ -195,7 +198,7 @@ function buildSongText(song: Song, opts: ExportOptions): string {
   return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
-function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpts): string {
+function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpts, allTabs: GuitarTab[] = []): string {
   const escape = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
@@ -243,12 +246,12 @@ function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpt
     }
   }
 
-  // Chord rows — before lyrics, after chord diagrams
+  // Chord rows — before lyrics, after chord diagrams (exclude tab rows)
   if (opts.includeChordRows && song.chordRows && song.chordRows.length > 0) {
-    const visibleRows = song.chordRows.filter((r) => r.visible !== false)
-    if (visibleRows.length > 0) {
+    const chordOnlyRows = song.chordRows.filter((r) => r.visible !== false && !r.tabId)
+    if (chordOnlyRows.length > 0) {
       parts.push('<h2>Chord Rows</h2>')
-      for (const row of visibleRows) {
+      for (const row of chordOnlyRows) {
         const label = row.label || 'Row'
         if (opts.includeDiagrams && diagramOpts && row.chords.length > 0) {
           const grid = buildDiagramsGrid(row.chords, diagramOpts.instrumentType, diagramOpts.customChords, diagramOpts.customPianoChords, opts.colored, row.dotColor)
@@ -258,6 +261,27 @@ function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpt
           parts.push(`<p><strong>${escape(label)}:</strong> ${row.chords.map(escape).join(', ')}</p>`)
           if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
         }
+      }
+      parts.push('<hr class="separator" />')
+    }
+  }
+
+  // Guitar tabs (tab chord rows + song.tabIds)
+  if (opts.includeTabs) {
+    const tabRowIds = (song.chordRows ?? []).filter((r) => r.tabId && r.visible !== false).map((r) => ({ tabId: r.tabId!, label: r.label }))
+    const directTabIds = (song.tabIds ?? []).map((id) => ({ tabId: id, label: undefined }))
+    const allTabRefs = [...tabRowIds, ...directTabIds.filter((d) => !tabRowIds.find((t) => t.tabId === d.tabId))]
+    if (allTabRefs.length > 0) {
+      parts.push('<h2>Tabs</h2>')
+      for (const ref of allTabRefs) {
+        const tab = allTabs.find((t) => t.id === ref.tabId)
+        if (!tab) continue
+        const label = ref.label || tab.name
+        parts.push('<div class="tab-block">')
+        parts.push(`<div class="tab-name">${escape(label)} (${escape(tab.instrument)})</div>`)
+        parts.push(`<pre class="tab-ascii">${escape(generateAsciiTab(tab))}</pre>`)
+        if (tab.description) parts.push(`<div class="comment">${escape(tab.description)}</div>`)
+        parts.push('</div>')
       }
       parts.push('<hr class="separator" />')
     }
@@ -369,6 +393,9 @@ function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpt
   .diagram-item { display: inline-block; }
   .chord-row-block { margin: 8px 0 4px; }
   .chord-row-label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-family: system-ui, sans-serif; }
+  .tab-block { margin: 8px 0 12px; }
+  .tab-name { font-size: 11px; font-weight: 700; color: #888; margin-bottom: 4px; font-family: system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.08em; }
+  .tab-ascii { font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre; background: #f8f8f8; padding: 8px; border-radius: 4px; border: 1px solid #eee; overflow-x: auto; }
   .toolbar { margin-bottom: 20px; display: flex; gap: 8px; }
   .toolbar button { padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
   .toolbar button:hover { background: #555; }
@@ -391,18 +418,23 @@ ${parts.join('\n')}
 export function SongExportModal({ song, onClose }: Props) {
   const { t } = useTranslation()
   const { instruments, selectedInstrument, customChords, customPianoChords } = useSettingsStore()
+  const { tabs: allTabs } = useChordLibraryStore()
 
   const inst = instruments.find((i) => i.id === selectedInstrument)
   const instrumentType = inst?.type ?? 'guitar'
   const instrumentLabel = inst?.name ?? 'Guitar'
+
+  const hasTabs = (song.tabIds?.length ?? 0) > 0 || (song.chordRows?.some((r) => !!r.tabId && r.visible !== false) ?? false)
+  const hasChordOnlyRows = (song.chordRows?.filter((r) => r.visible !== false && !r.tabId).length ?? 0) > 0
 
   const [opts, setOpts] = useState<ExportOptions>({
     includeStructure: true,
     includeVocalist: !!song.vocalist,
     includeChords: false,
     includeDiagrams: false,
-    includeChordRows: (song.chordRows?.filter((r) => r.visible !== false).length ?? 0) > 0,
+    includeChordRows: hasChordOnlyRows,
     includeProgressions: (song.barProgressions?.length ?? 0) > 0,
+    includeTabs: hasTabs,
     colored: true,
   })
 
@@ -416,7 +448,7 @@ export function SongExportModal({ song, onClose }: Props) {
   }
 
   const handleHTML = async () => {
-    const html = buildSongHTML(song, opts, { instrumentType, instrumentLabel, customChords, customPianoChords })
+    const html = buildSongHTML(song, opts, { instrumentType, instrumentLabel, customChords, customPianoChords }, allTabs)
     await downloadHTMLFile(html, `${song.title}.html`)
     onClose()
   }
@@ -430,8 +462,9 @@ export function SongExportModal({ song, onClose }: Props) {
     { key: 'includeVocalist', label: t('exportIncludeVocalist'), show: !!song.vocalist },
     { key: 'includeChords', label: t('exportIncludeChords'), show: true },
     { key: 'includeDiagrams', label: t('exportIncludeDiagrams') || `Diagrams (${instrumentLabel})`, show: opts.includeChords, indent: true },
-    { key: 'includeChordRows', label: t('exportIncludeChordRows'), show: (song.chordRows?.length ?? 0) > 0 },
+    { key: 'includeChordRows', label: t('exportIncludeChordRows'), show: hasChordOnlyRows },
     { key: 'includeProgressions', label: t('exportIncludeProgressions'), show: (song.barProgressions?.length ?? 0) > 0 },
+    { key: 'includeTabs', label: t('exportIncludeTabs') || 'Guitar tabs', show: hasTabs },
     { key: 'colored', label: t('exportColored') || 'Colored', show: opts.includeChords || opts.includeStructure },
   ]
 

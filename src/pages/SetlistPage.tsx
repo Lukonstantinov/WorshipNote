@@ -4,10 +4,13 @@ import { useTranslation } from 'react-i18next'
 import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
+import { useFolderStore } from '../store/folderStore'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import { extractStructure } from '../features/songs/lib/parser'
 import { setlistToText, downloadTextFile, downloadHTMLFile, openSetlistHTML, buildSetlistHTMLString } from '../shared/lib/exportUtils'
 import type { SetlistExportOptions } from '../shared/lib/exportUtils'
+import { exportSongsAsJSON } from '../features/songs/lib/exportImport'
+import { downloadFile } from '../features/songs/lib/exportImport'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
 import { TabViewer } from '../features/songs/components/TabViewer'
 import type { Setlist } from '../store/setlistStore'
@@ -55,6 +58,7 @@ const EXPORT_LEVEL_OPTIONS: { value: ExportLevel; label: string; desc: string }[
 function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
   const { t } = useTranslation()
   const { songs } = useSongStore()
+  const { folders } = useFolderStore()
   const { tabs } = useChordLibraryStore()
   const [level, setLevel] = useState<ExportLevel>('structure')
   const [colored, setColored] = useState(true)
@@ -79,6 +83,15 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
 
   const handleViewHTML = async () => {
     await openSetlistHTML(setlist, songs, exportOpts, tabs)
+    onClose()
+  }
+
+  const handleDownloadJSON = async () => {
+    const setlistSongIds = new Set(setlist.songs.map((ss) => ss.song_id))
+    const setlistSongs = songs.filter((s) => setlistSongIds.has(s.id))
+    const json = exportSongsAsJSON(setlistSongs, folders)
+    const dateStr = new Date().toISOString().slice(0, 10)
+    await downloadFile(json, `${setlist.title}-songs-${dateStr}.json`, 'application/json')
     onClose()
   }
 
@@ -164,6 +177,15 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
               HTML
             </button>
           </div>
+          <button
+            onClick={handleDownloadJSON}
+            className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
+            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', borderTop: '1px solid var(--color-border-subtle)', marginTop: 2 }}
+            title="Export songs as JSON — import on another device"
+          >
+            <Download size={14} strokeWidth={2} />
+            JSON ({setlist.songs.length} {setlist.songs.length === 1 ? 'song' : 'songs'})
+          </button>
         </div>
       </div>
     </div>

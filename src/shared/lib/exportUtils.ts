@@ -98,8 +98,14 @@ export function setlistToText(
     const song = songs.find((s) => s.id === ss.song_id)
     if (!song) return
     parts.push('')
-    const vocalist = ss.vocalist ? `(${ss.vocalist}) ` : ''
-    parts.push(`${idx + 1}. ${vocalist}${songToTextWithChords(song, ss.vocalist, includeChords)}`)
+    const vocalist = ss.vocalist ? ` (${ss.vocalist})` : ''
+    const songText = songToTextWithChords(song, ss.vocalist, includeChords)
+    // Insert vocalist after the title line (first line)
+    const songLines = songText.split('\n')
+    if (vocalist && songLines.length > 0) {
+      songLines[0] = songLines[0] + vocalist
+    }
+    parts.push(`${idx + 1}. ${songLines.join('\n')}`)
 
     if (includeExtras) {
       // Chord rows (non-tab rows)
@@ -490,12 +496,12 @@ export function buildSetlistHTMLString(
 
     const parts: string[] = []
     const vocalistHtml = ss.vocalist
-      ? `<span class="vocalist">(${escapeHtml(ss.vocalist)})</span> `
+      ? ` <span class="vocalist">(${escapeHtml(ss.vocalist)})</span>`
       : ''
     parts.push(`<div class="song-block">`)
     // CZK Church label per song
     parts.push(`<div class="church-label">CZK Church</div>`)
-    parts.push(`<div class="song-title">${idx + 1}. ${vocalistHtml}${escapeHtml(song.title)}</div>`)
+    parts.push(`<div class="song-title">${idx + 1}. ${escapeHtml(song.title)}${vocalistHtml}</div>`)
 
     // Meta
     const meta: string[] = []

@@ -152,6 +152,7 @@
   "exportIncludeDiagrams": "Akordų diagramos",
   "exportIncludeChordRows": "Akordų eilutės",
   "exportIncludeProgressions": "Akordų sekos",
+  "exportIncludeTabs": "Gitaros tabulatūros",
   "exportColored": "Spalvotas (akordai ir struktūra)",
   "exportAsTXT": "Atsisiųsti TXT",
   "exportAsHTML": "Atidaryti spausdinimui",
