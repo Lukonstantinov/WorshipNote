@@ -40,8 +40,6 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
   const [collapsed, setCollapsed] = useState(false)
   const [editingRowId, setEditingRowId] = useState<string | null>(null)
   const [showPicker, setShowPicker] = useState(false)
-  const [showTabPicker, setShowTabPicker] = useState(false)
-  const [tabPickerQuery, setTabPickerQuery] = useState('')
 
   const instrument = instruments.find((i) => i.id === selectedInstrument)
   const instrType = instrument?.type ?? 'guitar'
@@ -69,22 +67,6 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
     onChange([...chordRows, { ...row, visible: true }])
   }
 
-  const addTabFromLibrary = (tabId: string) => {
-    const tab = tabs.find((t) => t.id === tabId)
-    if (!tab) return
-    const newRow: ChordRow = {
-      id: generateId(),
-      label: tab.name,
-      tabId: tab.id,
-      chords: [],
-      fromLibrary: true,
-      visible: true,
-    }
-    onChange([...chordRows, newRow])
-    setShowTabPicker(false)
-    setTabPickerQuery('')
-  }
-
   const removeRow = (id: string) => onChange(chordRows.filter((r) => r.id !== id))
 
   const updateRow = (id: string, patch: Partial<ChordRow>) =>
@@ -95,74 +77,13 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
 
   const visibleCount = chordRows.filter((r) => r.visible !== false).length
 
-  // Tabs already used in rows (to exclude from picker)
-  const usedTabIds = chordRows.map((r) => r.tabId).filter(Boolean) as string[]
-  const availableTabs = tabs.filter((t) => !usedTabIds.includes(t.id))
-  const filteredTabs = availableTabs.filter((t) =>
-    t.name.toLowerCase().includes(tabPickerQuery.toLowerCase())
-  )
-
-  const TabPickerDropdown = () => (
-    <div
-      className="rounded-2xl overflow-hidden mb-2"
-      style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card-raised)' }}
-    >
-      <div className="p-2">
-        <input
-          autoFocus
-          value={tabPickerQuery}
-          onChange={(e) => setTabPickerQuery(e.target.value)}
-          placeholder="Search tabs…"
-          className="w-full px-3 py-2 rounded-xl text-xs outline-none"
-          style={{
-            backgroundColor: 'var(--color-input-bg)',
-            border: '1px solid var(--color-border)',
-            color: 'var(--color-text-primary)',
-          }}
-        />
-      </div>
-      {filteredTabs.length === 0 ? (
-        <p className="px-4 pb-3 text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
-          {availableTabs.length === 0 ? 'No tabs in library yet.' : 'No matching tabs.'}
-        </p>
-      ) : (
-        <div className="max-h-48 overflow-y-auto">
-          {filteredTabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => addTabFromLibrary(t.id)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all hover-bg"
-              style={{ borderTop: '1px solid var(--color-border-subtle)' }}
-            >
-              <TableProperties size={13} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
-              <span className="text-xs flex-1 truncate" style={{ color: 'var(--color-text-primary)' }}>{t.name}</span>
-              <span
-                className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
-              >
-                {t.instrument}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-
   if (chordRows.length === 0 && !collapsed) {
     return (
       <>
         <div className="flex items-center gap-2 px-3 py-2">
           <span className="text-xs flex-1" style={{ color: 'var(--color-text-muted)' }}>Chord rows</span>
           <button
-            onClick={() => { setShowTabPicker((p) => !p); setShowPicker(false) }}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
-            style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
-          >
-            <TableProperties size={12} strokeWidth={2} /> Tab
-          </button>
-          <button
-            onClick={() => { setShowPicker(true); setShowTabPicker(false) }}
+            onClick={() => setShowPicker(true)}
             className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
             style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
           >
@@ -176,7 +97,6 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
             <Plus size={12} strokeWidth={2} /> Add row
           </button>
         </div>
-        {showTabPicker && <div className="px-3 pb-1"><TabPickerDropdown /></div>}
         {showPicker && (
           <ProgressionPickerModal
             onSelect={addFromLibrary}
@@ -196,14 +116,7 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
           <span className="text-xs">Chord rows ({visibleCount}/{chordRows.length})</span>
         </button>
         <button
-          onClick={() => { setShowTabPicker((p) => !p); setShowPicker(false) }}
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
-        >
-          <TableProperties size={12} strokeWidth={2} /> Tab
-        </button>
-        <button
-          onClick={() => { setShowPicker(true); setShowTabPicker(false) }}
+          onClick={() => setShowPicker(true)}
           className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
           style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
         >
@@ -220,7 +133,6 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
 
       {!collapsed && (
         <div className="space-y-2 p-2">
-          {showTabPicker && <TabPickerDropdown />}
           {chordRows.map((row) => {
             const isEditing = editingRowId === row.id
             const isHidden = row.visible === false
