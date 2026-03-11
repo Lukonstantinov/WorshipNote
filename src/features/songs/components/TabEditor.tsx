@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
-import { Plus, Minus, AlignJustify, X } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, Minus, AlignJustify } from 'lucide-react'
 import type { GuitarTab, TabColumn, TabInstrument } from '../types'
 import {
   STRINGS_BY_INSTRUMENT,
@@ -7,7 +7,6 @@ import {
   createSeparatorColumn,
   generateAsciiTab,
 } from '../lib/tabUtils'
-import { generateId } from '../../../shared/lib/storage'
 
 const INSTRUMENT_OPTIONS: { value: TabInstrument; label: string }[] = [
   { value: 'guitar', label: 'Guitar (6-string)' },

@@ -3,7 +3,6 @@ import { Search, Plus, Trash2, FolderOpen, Settings2, Music2, Guitar, CheckSquar
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import type { ChordProgression, ChordLibraryFolder } from '../store/chordLibraryStore'
 import { TabEditor } from '../features/songs/components/TabEditor'
-import { TabViewer } from '../features/songs/components/TabViewer'
 import type { GuitarTab } from '../features/songs/types'
 import { generateAsciiTab } from '../features/songs/lib/tabUtils'
 import { useSettingsStore } from '../store/settingsStore'
