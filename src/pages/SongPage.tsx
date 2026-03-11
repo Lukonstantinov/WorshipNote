@@ -14,11 +14,12 @@ import { SongStructure } from '../features/songs/components/SongStructure'
 import { ChordDiagramPanel } from '../features/songs/components/ChordDiagramPanel'
 import { ChordRowsPanel } from '../features/songs/components/ChordRowsPanel'
 import { BarProgressions } from '../features/songs/components/BarProgressions'
-import { SongTabsPanel } from '../features/songs/components/SongTabsPanel'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
 import { useSettingsStore } from '../store/settingsStore'
+import { useChordLibraryStore } from '../store/chordLibraryStore'
+import { generateId } from '../shared/lib/storage'
 import type { Role } from '../store/settingsStore'
-import type { Instrument } from '../features/songs/types'
+import type { ChordRow, Instrument } from '../features/songs/types'
 
 const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
   guitar:   <Guitar size={14} strokeWidth={1.5} />,
@@ -41,6 +42,7 @@ export default function SongPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { getSongById, deleteSong, updateSong } = useSongStore()
+  const { tabs: libraryTabs } = useChordLibraryStore()
   const {
     role, setRole,
     instruments, selectedInstrument, setSelectedInstrument,
@@ -99,6 +101,23 @@ export default function SongPage() {
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
   }, [handleKey])
+
+  // Migrate legacy song.tabIds → ChordRow entries with tabId
+  useEffect(() => {
+    if (!song?.tabIds?.length) return
+    const tabRows: ChordRow[] = song.tabIds.map((tabId) => ({
+      id: generateId(),
+      label: libraryTabs.find((t) => t.id === tabId)?.name ?? 'Tab',
+      tabId,
+      chords: [],
+      fromLibrary: true,
+      visible: true,
+    }))
+    updateSong(song.id, {
+      chordRows: [...(song.chordRows ?? []), ...tabRows],
+      tabIds: [],
+    })
+  }, [song?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!song) {
     return (
@@ -387,13 +406,6 @@ export default function SongPage() {
             <BarProgressions
               progressions={song.barProgressions ?? []}
               onChange={(progs) => updateSong(song.id, { barProgressions: progs })}
-            />
-          )}
-          {/* Guitar tabs */}
-          {capabilities.showChords && (
-            <SongTabsPanel
-              tabIds={song.tabIds ?? []}
-              onChange={(ids) => updateSong(song.id, { tabIds: ids })}
             />
           )}
           {/* Musician comment */}

@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X } from 'lucide-react'
+import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
+import { useChordLibraryStore } from '../store/chordLibraryStore'
 import { extractStructure } from '../features/songs/lib/parser'
 import { setlistToText, downloadTextFile, openSetlistHTML } from '../shared/lib/exportUtils'
 import type { SetlistExportOptions } from '../shared/lib/exportUtils'
 import { SongExportModal } from '../features/songs/components/SongExportModal'
+import { TabViewer } from '../features/songs/components/TabViewer'
 import type { Setlist } from '../store/setlistStore'
 import type { Song } from '../features/songs/types'
 
@@ -130,6 +132,36 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
   )
 }
 
+function SongTabRows({ song }: { song: Song }) {
+  const { tabs } = useChordLibraryStore()
+  const [expanded, setExpanded] = useState(false)
+
+  const tabRows = (song.chordRows ?? []).filter((r) => r.tabId && r.visible !== false)
+  if (tabRows.length === 0) return null
+
+  return (
+    <div style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
+      <button
+        onClick={() => setExpanded((p) => !p)}
+        className="flex items-center gap-2 w-full px-4 py-1.5 text-left transition-all"
+        style={{ color: 'var(--color-text-muted)' }}
+      >
+        {expanded ? <ChevronUp size={11} strokeWidth={2} /> : <ChevronDown size={11} strokeWidth={2} />}
+        <span className="text-xs">{tabRows.length === 1 ? '1 tab' : `${tabRows.length} tabs`}</span>
+      </button>
+      {expanded && (
+        <div className="px-4 pb-3 space-y-2">
+          {tabRows.map((row) => {
+            const tab = tabs.find((t) => t.id === row.tabId)
+            if (!tab) return null
+            return <TabViewer key={row.id} tab={tab} />
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function SetlistPage() {
   const { t } = useTranslation()
   const { setlists, deleteSetlist } = useSetlistStore()
@@ -240,8 +272,10 @@ export default function SetlistPage() {
                       return (
                         <div
                           key={ss.id}
-                          className="flex items-start gap-3 px-4 py-2.5 transition-all hover-bg"
                           style={{ borderTop: idx > 0 ? '1px solid rgba(44,44,46,0.5)' : undefined }}
+                        >
+                        <div
+                          className="flex items-start gap-3 px-4 py-2.5 transition-all hover-bg"
                         >
                           <Link
                             to={`/songs/${song.id}`}
@@ -306,6 +340,8 @@ export default function SetlistPage() {
                           >
                             <Download size={13} strokeWidth={1.5} />
                           </button>
+                        </div>
+                        <SongTabRows song={song} />
                         </div>
                       )
                     })}
