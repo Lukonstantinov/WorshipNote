@@ -149,6 +149,7 @@
   "exportIncludeStructure": "Structure labels",
   "exportIncludeVocalist": "Vocalist",
   "exportIncludeChords": "Chords",
+  "exportIncludeDiagrams": "Chord diagrams",
   "exportIncludeChordRows": "Chord rows",
   "exportIncludeProgressions": "Bar progressions",
   "exportColored": "Colored (chords & structure)",

@@ -1,14 +1,21 @@
 import { useState } from 'react'
+import { renderToString } from 'react-dom/server'
 import { useTranslation } from 'react-i18next'
 import { X, Download, Printer } from 'lucide-react'
 import type { Song } from '../types'
+import type { CustomChordDiagram, CustomPianoChordDiagram } from '../types'
 import { downloadTextFile, downloadHTMLFile } from '../../../shared/lib/exportUtils'
 import { extractStructure } from '../lib/parser'
+import { useSettingsStore } from '../../../store/settingsStore'
+import { GuitarDiagram } from './GuitarDiagram'
+import { PianoDiagram } from './PianoDiagram'
+import { BassDiagram } from './BassDiagram'
 
 interface ExportOptions {
   includeStructure: boolean
   includeVocalist: boolean
   includeChords: boolean
+  includeDiagrams: boolean
   includeChordRows: boolean
   includeProgressions: boolean
   colored: boolean
@@ -46,6 +53,64 @@ function collapseRepeats(parts: string[]): { label: string; count: number }[] {
     }
   }
   return result
+}
+
+function extractSongChords(content: string): string[] {
+  const chordRegex = /\[([A-G][^\]]*)\]/g
+  const seen = new Set<string>()
+  let m
+  while ((m = chordRegex.exec(content)) !== null) {
+    seen.add(m[1])
+  }
+  return Array.from(seen)
+}
+
+function renderChordSVG(
+  chord: string,
+  instrumentType: string,
+  customChords: Record<string, CustomChordDiagram>,
+  customPianoChords: Record<string, CustomPianoChordDiagram>,
+  colored: boolean,
+  size = 80,
+): string {
+  const dotColor = colored ? '#bf5af2' : '#444444'
+  const highlightColor = colored ? '#32d74b' : '#555555'
+
+  if (instrumentType === 'piano' || instrumentType === 'keyboard') {
+    return renderToString(
+      <PianoDiagram chord={chord} size={size} highlightColor={highlightColor} customDiagram={customPianoChords[chord]} />
+    )
+  } else if (instrumentType === 'bass') {
+    return renderToString(
+      <BassDiagram chord={chord} size={size} dotColor={dotColor} customDiagram={customChords[chord]} />
+    )
+  } else {
+    return renderToString(
+      <GuitarDiagram chord={chord} size={size} dotColor={dotColor} customDiagram={customChords[chord]} />
+    )
+  }
+}
+
+function buildDiagramsGrid(
+  chords: string[],
+  instrumentType: string,
+  customChords: Record<string, CustomChordDiagram>,
+  customPianoChords: Record<string, CustomPianoChordDiagram>,
+  colored: boolean,
+): string {
+  if (chords.length === 0) return ''
+  const items = chords.map((chord) => {
+    const svg = renderChordSVG(chord, instrumentType, customChords, customPianoChords, colored)
+    return `<div class="diagram-item">${svg}</div>`
+  }).join('')
+  return `<div class="diagrams-grid">${items}</div>`
+}
+
+interface DiagramOpts {
+  instrumentType: string
+  instrumentLabel: string
+  customChords: Record<string, CustomChordDiagram>
+  customPianoChords: Record<string, CustomPianoChordDiagram>
 }
 
 function buildSongText(song: Song, opts: ExportOptions): string {
@@ -128,7 +193,7 @@ function buildSongText(song: Song, opts: ExportOptions): string {
   return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
-function buildSongHTML(song: Song, opts: ExportOptions): string {
+function buildSongHTML(song: Song, opts: ExportOptions, diagramOpts?: DiagramOpts): string {
   const escape = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
@@ -163,6 +228,16 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
         const text = collapsed.map((r) => r.count > 1 ? `${r.label}×${r.count}` : r.label).join(' ')
         parts.push(`<p class="structure">Structure: ${escape(text)}</p>`)
       }
+    }
+  }
+
+  // Chord diagrams — all unique song chords, above lyrics
+  if (opts.includeDiagrams && opts.includeChords && diagramOpts) {
+    const songChords = extractSongChords(song.content)
+    if (songChords.length > 0) {
+      const grid = buildDiagramsGrid(songChords, diagramOpts.instrumentType, diagramOpts.customChords, diagramOpts.customPianoChords, opts.colored)
+      parts.push(`<div class="diagrams-section"><h2 class="diagrams-title">Chords (${escape(diagramOpts.instrumentLabel)})</h2>${grid}</div>`)
+      parts.push('<hr class="separator" />')
     }
   }
 
@@ -219,8 +294,15 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
     for (const row of song.chordRows) {
       if (row.visible === false) continue
       const label = row.label || 'Row'
-      parts.push(`<p><strong>${escape(label)}:</strong> ${row.chords.map(escape).join(', ')}</p>`)
-      if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
+      if (opts.includeDiagrams && diagramOpts && row.chords.length > 0) {
+        // Render chord row diagrams with label
+        const grid = buildDiagramsGrid(row.chords, diagramOpts.instrumentType, diagramOpts.customChords, diagramOpts.customPianoChords, opts.colored)
+        parts.push(`<div class="chord-row-block"><strong class="chord-row-label">${escape(label)}</strong>${grid}</div>`)
+        if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
+      } else {
+        parts.push(`<p><strong>${escape(label)}:</strong> ${row.chords.map(escape).join(', ')}</p>`)
+        if (row.comment) parts.push(`<p class="comment">${escape(row.comment)}</p>`)
+      }
     }
   }
 
@@ -238,6 +320,8 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
   }
 
   const chordColor = opts.colored ? '#30a14e' : '#666'
+  const diagramDotColor = opts.colored ? '#bf5af2' : '#444444'
+  const diagramHighlightColor = opts.colored ? '#32d74b' : '#555555'
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -247,8 +331,23 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
 <title>${escape(song.title)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --color-diagram-text: #111111;
+    --color-diagram-stroke: #cccccc;
+    --color-diagram-fret: #555555;
+    --color-text-secondary: #666666;
+    --color-text-tertiary: #888888;
+    --color-text-muted: #aaaaaa;
+    --color-piano-white: #f8f8f8;
+    --color-piano-black: #222222;
+    --color-piano-stroke: #999999;
+    --color-info: ${diagramHighlightColor};
+    --color-accent: ${diagramDotColor};
+    --color-chord: ${diagramHighlightColor};
+    --color-card: #f5f5f5;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.7; color: #000; background: #fff; padding: 40px; max-width: 750px; margin: 0 auto; }
+  body { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.7; color: #000; background: #fff; padding: 40px; max-width: 800px; margin: 0 auto; }
   .church-label { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 700; color: #333; margin-bottom: 4px; }
   h1 { font-size: 24px; font-weight: bold; margin-bottom: 4px; border-bottom: 2px solid #333; padding-bottom: 8px; }
   h2 { font-size: 16px; font-weight: bold; margin: 16px 0 8px; }
@@ -261,6 +360,12 @@ function buildSongHTML(song: Song, opts: ExportOptions): string {
   .bar { font-family: monospace; font-size: 14px; margin-left: 16px; }
   .comment { font-size: 13px; color: #555; font-style: italic; margin-left: 16px; }
   .separator { border: none; border-top: 1px solid #999; margin: 24px 0; }
+  .diagrams-section { margin: 16px 0 8px; }
+  .diagrams-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 8px; font-family: system-ui, sans-serif; border: none; }
+  .diagrams-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .diagram-item { display: inline-block; }
+  .chord-row-block { margin: 8px 0 4px; }
+  .chord-row-label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-family: system-ui, sans-serif; }
   .toolbar { margin-bottom: 20px; display: flex; gap: 8px; }
   .toolbar button { padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
   .toolbar button:hover { background: #555; }
@@ -282,10 +387,17 @@ ${parts.join('\n')}
 
 export function SongExportModal({ song, onClose }: Props) {
   const { t } = useTranslation()
+  const { instruments, selectedInstrument, customChords, customPianoChords } = useSettingsStore()
+
+  const inst = instruments.find((i) => i.id === selectedInstrument)
+  const instrumentType = inst?.type ?? 'guitar'
+  const instrumentLabel = inst?.name ?? 'Guitar'
+
   const [opts, setOpts] = useState<ExportOptions>({
     includeStructure: true,
     includeVocalist: !!song.vocalist,
     includeChords: false,
+    includeDiagrams: false,
     includeChordRows: false,
     includeProgressions: false,
     colored: true,
@@ -301,7 +413,7 @@ export function SongExportModal({ song, onClose }: Props) {
   }
 
   const handleHTML = async () => {
-    const html = buildSongHTML(song, opts)
+    const html = buildSongHTML(song, opts, { instrumentType, instrumentLabel, customChords, customPianoChords })
     await downloadHTMLFile(html, `${song.title}.html`)
     onClose()
   }
@@ -310,10 +422,11 @@ export function SongExportModal({ song, onClose }: Props) {
     width: 18, height: 18, accentColor: 'var(--color-accent)',
   }
 
-  const options: { key: keyof ExportOptions; label: string; show: boolean }[] = [
+  const options: { key: keyof ExportOptions; label: string; show: boolean; indent?: boolean }[] = [
     { key: 'includeStructure', label: t('exportIncludeStructure'), show: true },
     { key: 'includeVocalist', label: t('exportIncludeVocalist'), show: !!song.vocalist },
     { key: 'includeChords', label: t('exportIncludeChords'), show: true },
+    { key: 'includeDiagrams', label: t('exportIncludeDiagrams') || `Diagrams (${instrumentLabel})`, show: opts.includeChords, indent: true },
     { key: 'includeChordRows', label: t('exportIncludeChordRows'), show: (song.chordRows?.length ?? 0) > 0 },
     { key: 'includeProgressions', label: t('exportIncludeProgressions'), show: (song.barProgressions?.length ?? 0) > 0 },
     { key: 'colored', label: t('exportColored') || 'Colored', show: opts.includeChords || opts.includeStructure },
@@ -339,7 +452,7 @@ export function SongExportModal({ song, onClose }: Props) {
             Base: lyrics + song info
           </p>
           {options.filter((o) => o.show).map((o) => (
-            <label key={o.key} className="flex items-center gap-3 cursor-pointer">
+            <label key={o.key} className={`flex items-center gap-3 cursor-pointer${o.indent ? ' ml-6' : ''}`}>
               <input
                 type="checkbox"
                 checked={opts[o.key]}

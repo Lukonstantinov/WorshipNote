@@ -149,6 +149,7 @@
   "exportIncludeStructure": "Обозначения структуры",
   "exportIncludeVocalist": "Вокалист",
   "exportIncludeChords": "Аккорды",
+  "exportIncludeDiagrams": "Схемы аккордов",
   "exportIncludeChordRows": "Ряды аккордов",
   "exportIncludeProgressions": "Последовательности аккордов",
   "exportColored": "Цветной (аккорды и структура)",

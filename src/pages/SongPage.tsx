@@ -337,8 +337,9 @@ export default function SongPage() {
       )}
 
       {/* Chord diagrams — top position (with hide toggle) */}
-      {showChordDiagrams && chordDisplayPosition === 'top' && (
-        <div className="flex-shrink-0">
+      {/* Also shown on mobile when 'side' is selected (side panel is desktop-only) */}
+      {showChordDiagrams && (chordDisplayPosition === 'top' || chordDisplayPosition === 'side') && (
+        <div className={`flex-shrink-0${chordDisplayPosition === 'side' ? ' md:hidden' : ''}`}>
           <div className="flex items-center">
             <div className="flex-1 overflow-hidden">
               {!hideMainChords && <ChordDiagramPanel parsed={parsed} position="top" />}
