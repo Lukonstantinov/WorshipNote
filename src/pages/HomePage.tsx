@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, Plus, Music2, ChevronDown, FolderOpen, Settings2, CheckSquare, Square, Trash2, FolderInput, X } from 'lucide-react'
+import { Search, Plus, Music2, ChevronDown, FolderOpen, Settings2, CheckSquare, Square, Trash2, FolderInput, X, Sparkles } from 'lucide-react'
 import { useSongStore } from '../store/songStore'
 import { useFolderStore } from '../store/folderStore'
 import { useSettingsStore } from '../store/settingsStore'
@@ -405,7 +405,18 @@ function SongCard({
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-base leading-snug truncate">{song.title}</h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h3 className="font-semibold text-base leading-snug truncate">{song.title}</h3>
+            {song.isPreset && (
+              <span
+                className="flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
+                style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+              >
+                <Sparkles size={9} strokeWidth={2} />
+                preset
+              </span>
+            )}
+          </div>
           {folder && (
             <div className="flex items-center gap-1 mt-0.5">
               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: folder.color }} />
