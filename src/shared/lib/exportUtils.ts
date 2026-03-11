@@ -480,7 +480,7 @@ export function buildSetlistHTMLString(
 ): string {
   const opts: SetlistExportOptions = typeof coloredOrOpts === 'boolean'
     ? { includeChords: coloredOrOpts, includeExtras: false, colored: coloredOrOpts }
-    : { includeExtras: false, ...coloredOrOpts }
+    : coloredOrOpts
   const sortedSongs = [...setlist.songs].sort((a, b) => a.sort_order - b.sort_order)
 
   const songBlocks: string[] = []
