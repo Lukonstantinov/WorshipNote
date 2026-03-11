@@ -152,6 +152,7 @@
   "exportIncludeDiagrams": "Схемы аккордов",
   "exportIncludeChordRows": "Ряды аккордов",
   "exportIncludeProgressions": "Последовательности аккордов",
+  "exportIncludeTabs": "Гитарные табы",
   "exportColored": "Цветной (аккорды и структура)",
   "exportAsTXT": "Скачать TXT",
   "exportAsHTML": "Открыть для печати",

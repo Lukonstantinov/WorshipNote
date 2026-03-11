@@ -152,6 +152,7 @@
   "exportIncludeDiagrams": "Chord diagrams",
   "exportIncludeChordRows": "Chord rows",
   "exportIncludeProgressions": "Bar progressions",
+  "exportIncludeTabs": "Guitar tabs",
   "exportColored": "Colored (chords & structure)",
   "exportAsTXT": "Download TXT",
   "exportAsHTML": "Open printable page",
