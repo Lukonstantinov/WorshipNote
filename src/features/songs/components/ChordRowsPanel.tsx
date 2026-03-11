@@ -18,6 +18,8 @@ const ROW_COLORS = [
   'var(--color-chord)', 'var(--color-info)', 'var(--color-warning)', 'var(--color-accent)', 'var(--color-error)', 'var(--color-info)', '#ffd60a', 'transparent',
 ]
 
+const DOT_COLORS = ['#bf5af2', '#32d74b', '#0a84ff', '#ff9f0a', '#ff453a', '#ffd60a', '#ffffff']
+
 function parseChordList(input: string): string[] {
   return input
     .split(/[\s,]+/)
@@ -43,10 +45,12 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
   const scale = diagramScale ?? 1
   const diagSz = Math.round(80 * scale)
 
-  const DiagramComp = ({ chord }: { chord: string }) => {
-    if (showPiano) return <PianoDiagram chord={chord} customDiagram={customPianoChords[chord]} size={diagSz} highlightColor={pianoHighlightColor} />
-    if (showBass) return <BassDiagram chord={chord} customDiagram={customChords[chord]} size={diagSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
-    return <GuitarDiagram chord={chord} customDiagram={customChords[chord]} size={diagSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
+  const DiagramComp = ({ chord, dotColor }: { chord: string; dotColor?: string }) => {
+    const dc = dotColor ?? guitarDotColor
+    const hc = dotColor ?? pianoHighlightColor
+    if (showPiano) return <PianoDiagram chord={chord} customDiagram={customPianoChords[chord]} size={diagSz} highlightColor={hc} />
+    if (showBass) return <BassDiagram chord={chord} customDiagram={customChords[chord]} size={diagSz} dotColor={dc} flipped={guitarFlipped} />
+    return <GuitarDiagram chord={chord} customDiagram={customChords[chord]} size={diagSz} dotColor={dc} flipped={guitarFlipped} />
   }
 
   const addRow = () => {
@@ -212,6 +216,30 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                         />
                       ))}
                     </div>
+                    {/* Dot colour */}
+                    <div className="flex items-center gap-1.5 pt-0.5">
+                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Dots:</span>
+                      <button
+                        onClick={() => updateRow(row.id, { dotColor: undefined })}
+                        className="rounded-full flex-shrink-0 text-xs"
+                        style={{ width: 18, height: 18, backgroundColor: 'var(--color-card-raised)', border: !row.dotColor ? '2px solid #fff' : '2px solid transparent', fontSize: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}
+                        title="Use global setting"
+                      >
+                        A
+                      </button>
+                      {DOT_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => updateRow(row.id, { dotColor: c })}
+                          className="rounded-full flex-shrink-0"
+                          style={{
+                            width: 18, height: 18,
+                            backgroundColor: c,
+                            border: row.dotColor === c ? '2px solid #fff' : '2px solid transparent',
+                          }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -235,7 +263,7 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                     <div className="flex gap-1 p-2 overflow-x-auto scrollbar-none" style={{ flex: 1 }}>
                       {row.chords.map((ch, ci) => (
                         <div key={`${ch}-${ci}`} className="flex-shrink-0">
-                          <DiagramComp chord={ch} />
+                          <DiagramComp chord={ch} dotColor={row.dotColor} />
                         </div>
                       ))}
                     </div>

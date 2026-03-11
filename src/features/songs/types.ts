@@ -53,6 +53,8 @@ export interface ChordRow {
   chords: string[];
   /** colour tag for visual distinction */
   color?: string;
+  /** dot/highlight colour for chord diagrams in this row */
+  dotColor?: string;
   /** true if this row was imported from the chord library */
   fromLibrary?: boolean;
   /** ID of the source progression in chord library */
