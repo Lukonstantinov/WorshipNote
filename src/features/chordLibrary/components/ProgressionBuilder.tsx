@@ -49,6 +49,7 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
   const [chords, setChords] = useState<string[]>(progression?.chords ?? initialChords ?? [])
   const [newChord, setNewChord] = useState('')
   const [color, setColor] = useState(progression?.color ?? '')
+  const [instrument, setInstrument] = useState<'guitar' | 'piano' | 'bass' | 'ukulele' | ''>(progression?.instrument ?? '')
 
   const isMinorKey = key.endsWith('m') || key.toLowerCase().endsWith('min')
   const keyRoot = key.replace(/m(in)?$/, '').trim()
@@ -82,6 +83,7 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
       chords,
       folderId: folderId || undefined,
       color: color || undefined,
+      instrument: (instrument || undefined) as 'guitar' | 'piano' | 'bass' | 'ukulele' | undefined,
     }
     if (progression) {
       updateProgression(progression.id, data)
@@ -103,10 +105,38 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
     minHeight: 44,
   }
 
-  const COMMON_CHORDS = ['C', 'Cm', 'D', 'Dm', 'E', 'Em', 'F', 'Fm', 'G', 'Gm', 'A', 'Am', 'B', 'Bm',
-    'C7', 'D7', 'E7', 'G7', 'A7', 'Cmaj7', 'Dmaj7', 'Emaj7', 'Gmaj7', 'Amaj7',
-    'Dm7', 'Em7', 'Am7', 'Bm7', 'Csus2', 'Dsus2', 'Gsus2', 'Asus2',
-    'Cadd9', 'Gadd9', 'Aadd9']
+  const COMMON_CHORDS = [
+    // Triads — major
+    'C', 'D', 'E', 'F', 'G', 'A', 'B',
+    'C#', 'D#', 'F#', 'G#', 'A#',
+    // Triads — minor
+    'Cm', 'Dm', 'Em', 'Fm', 'Gm', 'Am', 'Bm',
+    'C#m', 'D#m', 'F#m', 'G#m', 'A#m',
+    // Dominant 7ths
+    'C7', 'D7', 'E7', 'F7', 'G7', 'A7', 'B7',
+    // Major 7ths
+    'Cmaj7', 'Dmaj7', 'Emaj7', 'Fmaj7', 'Gmaj7', 'Amaj7', 'Bmaj7',
+    // Minor 7ths
+    'Cm7', 'Dm7', 'Em7', 'Fm7', 'Gm7', 'Am7', 'Bm7',
+    // Sus chords
+    'Csus2', 'Dsus2', 'Esus2', 'Gsus2', 'Asus2',
+    'Csus4', 'Dsus4', 'Esus4', 'Fsus4', 'Gsus4', 'Asus4',
+    // Add9
+    'Cadd9', 'Dadd9', 'Eadd9', 'Gadd9', 'Aadd9',
+    // Diminished / Augmented
+    'Cdim', 'Ddim', 'Edim', 'Fdim', 'Gdim', 'Adim', 'Bdim',
+    'Caug', 'Daug', 'Eaug', 'Faug', 'Gaug', 'Aaug',
+    // 6th chords
+    'C6', 'D6', 'E6', 'G6', 'A6',
+    'Cm6', 'Dm6', 'Em6', 'Am6',
+    // 9th chords
+    'C9', 'D9', 'G9', 'A9',
+    'Cm9', 'Dm9', 'Gm9', 'Am9',
+    // Minor/Major 7
+    'CmMaj7', 'AmMaj7',
+    // Half-diminished
+    'Bm7b5', 'Em7b5', 'Am7b5',
+  ]
 
   return (
     <div
@@ -188,6 +218,29 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
               style={inputStyle}
               placeholder="Used in the chorus, slow strum…"
             />
+          </div>
+
+          {/* Instrument selector */}
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Instrument (diagrams)
+            </label>
+            <div className="flex gap-1 rounded-xl p-1" style={{ backgroundColor: 'var(--color-card)' }}>
+              {(['', 'guitar', 'piano', 'bass', 'ukulele'] as const).map((instr) => (
+                <button
+                  key={instr}
+                  type="button"
+                  onClick={() => setInstrument(instr)}
+                  className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all capitalize"
+                  style={{
+                    backgroundColor: instrument === instr ? 'var(--color-accent)' : 'transparent',
+                    color: instrument === instr ? '#fff' : 'var(--color-text-tertiary)',
+                  }}
+                >
+                  {instr || 'Auto'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Color accent */}

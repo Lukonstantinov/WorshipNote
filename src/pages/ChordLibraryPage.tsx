@@ -24,17 +24,33 @@ type Tab = 'progressions' | 'reference' | 'tabs'
 
 const CHORD_COLORS = ['var(--color-accent)', 'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-info)']
 
-function ProgressionDiagrams({ chords, onEditChord }: { chords: string[]; onEditChord: (chord: string) => void }) {
+function ProgressionDiagrams({
+  chords,
+  progressionInstrument,
+  onEditChord,
+}: {
+  chords: string[]
+  progressionInstrument?: 'guitar' | 'piano' | 'bass' | 'ukulele'
+  onEditChord: (chord: string) => void
+}) {
   const {
     selectedInstrument, instruments,
     customChords, customPianoChords,
     guitarDotColor, pianoHighlightColor, guitarFlipped, diagramScale,
   } = useSettingsStore()
 
-  const instrument = instruments.find((i) => i.id === selectedInstrument)
-  const instrType = instrument?.type ?? 'guitar'
+  // Use progression's explicit instrument if set; otherwise fall back to settings
+  let instrType: string
+  if (progressionInstrument) {
+    instrType = progressionInstrument
+  } else {
+    const instrument = instruments.find((i) => i.id === selectedInstrument)
+    instrType = instrument?.type ?? 'guitar'
+  }
+
   const showPiano = instrType === 'piano' || instrType === 'keyboard'
   const showBass = instrType === 'bass'
+  const showUkulele = instrType === 'ukulele'
   const scale = diagramScale ?? 1
   const miniSz = Math.round(64 * scale)
 
@@ -54,6 +70,8 @@ function ProgressionDiagrams({ chords, onEditChord }: { chords: string[]; onEdit
             <MiniPianoDiagram chord={chord} customDiagram={customPianoChords[chord]} size={miniSz} highlightColor={pianoHighlightColor} />
           ) : showBass ? (
             <MiniBassDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
+          ) : showUkulele ? (
+            <UkuleleDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
           ) : (
             <MiniGuitarDiagram chord={chord} customDiagram={customChords[chord]} size={miniSz} dotColor={guitarDotColor} flipped={guitarFlipped} />
           )}
@@ -439,7 +457,7 @@ export default function ChordLibraryPage() {
 
                     {/* Expanded chord diagrams — tap to edit */}
                     {isExpanded && p.chords.length > 0 && (
-                      <ProgressionDiagrams chords={p.chords} onEditChord={(chord) => setEditingProgressionChord(chord)} />
+                      <ProgressionDiagrams chords={p.chords} progressionInstrument={p.instrument} onEditChord={(chord) => setEditingProgressionChord(chord)} />
                     )}
                   </div>
                 )

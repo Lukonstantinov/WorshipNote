@@ -23,6 +23,8 @@ export interface ChordProgression {
   folderId?: string
   /** Optional hex color for gradient card background */
   color?: string
+  /** Which instrument to show diagrams for when this progression is expanded */
+  instrument?: 'guitar' | 'piano' | 'bass' | 'ukulele'
   createdAt: string
 }
 

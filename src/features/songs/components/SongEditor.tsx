@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft, Camera, RotateCcw, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, FolderOpen, Columns2, AlignLeft, Camera, RotateCcw, Sparkles, Copy, Check } from 'lucide-react'
 import type { Song } from '../types'
 import { useSongStore } from '../../../store/songStore'
 import { useFolderStore } from '../../../store/folderStore'
@@ -34,6 +34,8 @@ export function SongEditor({ song }: Props) {
   const [showPreview, setShowPreview] = useState(false)
   const [editorMode, setEditorMode] = useState<'simple' | 'advanced'>('advanced')
   const [snapshotMsg, setSnapshotMsg] = useState<string | null>(null)
+  const [showPresetInput, setShowPresetInput] = useState(false)
+  const [presetNameInput, setPresetNameInput] = useState('')
 
   const parsed = useMemo(() => parseSong(content), [content])
 
@@ -77,6 +79,31 @@ export function SongEditor({ song }: Props) {
     if (confirm('Restore to saved original? Current content will be replaced.')) {
       setContent(song.snapshotContent)
     }
+  }
+
+  const handleCreatePreset = () => {
+    if (!song || !presetNameInput.trim()) return
+    const now = new Date().toISOString()
+    const parsedTags = tags.split(',').map((t) => t.trim()).filter(Boolean)
+    const presetSong: Song = {
+      id: generateId(),
+      title: `${title} (${presetNameInput.trim()})`,
+      original_key: originalKey || undefined,
+      bpm: bpm ? parseInt(bpm) : undefined,
+      vocalist: vocalist.trim() || undefined,
+      content,
+      tags: parsedTags,
+      folderId: folderId || undefined,
+      structure: structure.trim() || undefined,
+      isPreset: true,
+      presetOf: song.id,
+      created_at: now,
+      updated_at: now,
+    }
+    addSong(presetSong)
+    setShowPresetInput(false)
+    setPresetNameInput('')
+    navigate(`/songs/${presetSong.id}/edit`)
   }
 
   const inputStyle: React.CSSProperties = {
@@ -295,26 +322,63 @@ export function SongEditor({ song }: Props) {
 
         {/* Snapshot actions (only for existing songs) */}
         {song && (
-          <div className="flex gap-2">
-            <button
-              onClick={handleSaveSnapshot}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
-              style={{ backgroundColor: 'var(--color-card)', color: snapshotMsg ? 'var(--color-chord)' : 'var(--color-text-tertiary)', border: '1px solid var(--color-border)' }}
-              title="Save current content as the 'original' you can restore to"
-            >
-              <Camera size={13} strokeWidth={1.5} />
-              {snapshotMsg ?? 'Save as original'}
-            </button>
-            {song.snapshotContent && (
+          <div className="space-y-2">
+            <div className="flex gap-2 flex-wrap">
               <button
-                onClick={handleRestoreSnapshot}
+                onClick={handleSaveSnapshot}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
-                style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-warning)', border: '1px solid var(--color-border)' }}
-                title={`Restore to snapshot saved on ${song.snapshotSavedAt ? new Date(song.snapshotSavedAt).toLocaleDateString() : 'unknown date'}`}
+                style={{ backgroundColor: 'var(--color-card)', color: snapshotMsg ? 'var(--color-chord)' : 'var(--color-text-tertiary)', border: '1px solid var(--color-border)' }}
+                title="Save current content as the 'original' you can restore to"
               >
-                <RotateCcw size={13} strokeWidth={1.5} />
-                Restore original
+                <Camera size={13} strokeWidth={1.5} />
+                {snapshotMsg ?? 'Save as original'}
               </button>
+              {song.snapshotContent && (
+                <button
+                  onClick={handleRestoreSnapshot}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+                  style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-warning)', border: '1px solid var(--color-border)' }}
+                  title={`Restore to snapshot saved on ${song.snapshotSavedAt ? new Date(song.snapshotSavedAt).toLocaleDateString() : 'unknown date'}`}
+                >
+                  <RotateCcw size={13} strokeWidth={1.5} />
+                  Restore original
+                </button>
+              )}
+              <button
+                onClick={() => setShowPresetInput((p) => !p)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+                style={{
+                  backgroundColor: showPresetInput ? 'var(--color-accent-dim)' : 'var(--color-card)',
+                  color: showPresetInput ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                  border: `1px solid ${showPresetInput ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                }}
+                title="Save a copy of this song as a named preset"
+              >
+                <Copy size={13} strokeWidth={1.5} />
+                Create preset
+              </button>
+            </div>
+            {showPresetInput && (
+              <div className="flex gap-2">
+                <input
+                  value={presetNameInput}
+                  onChange={(e) => setPresetNameInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCreatePreset() }}
+                  autoFocus
+                  placeholder="Preset name (e.g. Capo 3, Transposed…)"
+                  className="flex-1 text-xs px-3 py-2 rounded-xl"
+                  style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', outline: 'none' }}
+                />
+                <button
+                  onClick={handleCreatePreset}
+                  disabled={!presetNameInput.trim()}
+                  className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-40"
+                  style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
+                >
+                  <Check size={13} strokeWidth={2} />
+                  Create
+                </button>
+              </div>
             )}
           </div>
         )}

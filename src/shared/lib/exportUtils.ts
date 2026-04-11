@@ -1,6 +1,7 @@
-import type { Song } from '../../features/songs/types'
+import type { Song, GuitarTab } from '../../features/songs/types'
 import type { Setlist } from '../../store/setlistStore'
 import { extractStructure } from '../../features/songs/lib/parser'
+import { generateAsciiTab } from '../../features/songs/lib/tabUtils'
 
 function collapseRepeats(parts: string[]): string {
   const result: { label: string; count: number }[] = []
@@ -74,8 +75,20 @@ export function songToText(song: Song, vocalist?: string): string {
 /**
  * Converts an entire setlist to congregation-style plain text.
  * Includes vocalist names from setlist song entries.
+ * level 1 = lyrics only, 2 = + chords, 3 = + chord rows / tabs
  */
-export function setlistToText(setlist: Setlist, songs: Song[], includeChords = false): string {
+export function setlistToText(
+  setlist: Setlist,
+  songs: Song[],
+  optsOrLegacy: SetlistExportOptions | boolean = false,
+  tabs: GuitarTab[] = []
+): string {
+  const opts: SetlistExportOptions = typeof optsOrLegacy === 'boolean'
+    ? { level: optsOrLegacy ? 2 : 1, colored: false }
+    : optsOrLegacy
+  const includeChords = opts.level >= 2
+  const includeChordRows = opts.level >= 3
+
   const parts: string[] = []
   parts.push('CZK Church')
   parts.push('')
@@ -93,6 +106,26 @@ export function setlistToText(setlist: Setlist, songs: Song[], includeChords = f
     parts.push('')
     const vocalist = ss.vocalist ? `(${ss.vocalist}) ` : ''
     parts.push(`${idx + 1}. ${vocalist}${songToTextWithChords(song, ss.vocalist, includeChords)}`)
+
+    // Level 3: append chord rows and tabs
+    if (includeChordRows && song.chordRows?.length) {
+      const visibleRows = song.chordRows.filter((r) => r.visible !== false)
+      for (const row of visibleRows) {
+        if (row.tabId) {
+          const tab = tabs.find((t) => t.id === row.tabId)
+          if (tab) {
+            parts.push('')
+            if (row.label) parts.push(`── ${row.label} ──`)
+            parts.push(generateAsciiTab(tab))
+          }
+        } else if (row.chords?.length) {
+          parts.push('')
+          const label = row.label ? `${row.label}: ` : ''
+          parts.push(`${label}${row.chords.join(' → ')}`)
+        }
+      }
+    }
+
     parts.push('')
     parts.push('─'.repeat(40))
   })
@@ -340,17 +373,20 @@ function collapseRepeatsArray(parts: string[]): { label: string; count: number }
 }
 
 export interface SetlistExportOptions {
-  includeChords: boolean
+  /** 1 = structure + lyrics only, 2 = + chords, 3 = + chord rows / tabs */
+  level: 1 | 2 | 3
   colored: boolean
 }
 
 /**
  * Build a rich HTML page for a setlist.
  */
-export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOrOpts: boolean | SetlistExportOptions = false): Promise<void> {
-  const opts: SetlistExportOptions = typeof coloredOrOpts === 'boolean'
-    ? { includeChords: coloredOrOpts, colored: coloredOrOpts }
-    : coloredOrOpts
+export async function openSetlistHTML(setlist: Setlist, songs: Song[], optsOrLegacy: boolean | SetlistExportOptions = false, tabs: GuitarTab[] = []): Promise<void> {
+  const opts: SetlistExportOptions = typeof optsOrLegacy === 'boolean'
+    ? { level: optsOrLegacy ? 2 : 1, colored: optsOrLegacy }
+    : optsOrLegacy
+  const includeChords = opts.level >= 2
+  const includeChordRows = opts.level >= 3
   const sortedSongs = [...setlist.songs].sort((a, b) => a.sort_order - b.sort_order)
 
   const songBlocks: string[] = []
@@ -391,7 +427,7 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOr
         parts.push('<br />')
         continue
       }
-      if (opts.includeChords) {
+      if (includeChords) {
         // Show chords above text
         const chordRegex = /\[([^\]!][^\]]*)\]/g
         let hasChords = false
@@ -416,15 +452,44 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOr
       }
     }
 
+    // Level 3: chord rows and tab blocks
+    if (includeChordRows && song.chordRows?.length) {
+      const visibleRows = song.chordRows.filter((r) => r.visible !== false)
+      for (const row of visibleRows) {
+        if (row.tabId) {
+          const tab = tabs.find((t) => t.id === row.tabId)
+          if (tab) {
+            const label = row.label ? `<div class="chord-row-label">${escapeHtml(row.label)}</div>` : ''
+            const ascii = generateAsciiTab(tab)
+            parts.push(`<div class="tab-block">${label}<pre class="tab-pre">${escapeHtml(ascii)}</pre></div>`)
+          }
+        } else if (row.chords?.length) {
+          const chordPills = row.chords.map((c) =>
+            `<span class="prog-chord">${escapeHtml(c)}</span>`
+          ).join('<span class="prog-arrow">→</span>')
+          const label = row.label ? `<span class="chord-row-label-inline">${escapeHtml(row.label)}: </span>` : ''
+          parts.push(`<div class="prog-row">${label}${chordPills}</div>`)
+        }
+      }
+    }
+
     parts.push('</div>')
     songBlocks.push(parts.join('\n'))
   })
 
   const chordColor = opts.colored ? '#30a14e' : '#666'
-  const chordColorCSS = opts.includeChords
+  const chordColorCSS = includeChords
     ? `.chord-line { font-family: monospace; font-size: 13px; font-weight: bold; color: ${chordColor}; margin-top: 8px; white-space: pre; font-style: italic; }
   .chord { font-weight: bold; color: ${chordColor}; font-style: italic; }`
     : ''
+  const chordRowsCSS = includeChordRows ? `
+  .tab-block { margin-top: 12px; background: #f7f7f7; border-radius: 8px; padding: 10px 12px; }
+  .tab-pre { font-family: monospace; font-size: 13px; line-height: 1.5; white-space: pre; overflow-x: auto; margin: 0; }
+  .chord-row-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+  .prog-row { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .chord-row-label-inline { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #888; }
+  .prog-chord { display: inline-block; padding: 2px 10px; border-radius: 20px; font-weight: 700; font-size: 13px; background: ${chordColor}18; color: ${chordColor}; border: 1px solid ${chordColor}44; }
+  .prog-arrow { font-size: 12px; color: #aaa; padding: 0 2px; }` : ''
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -450,6 +515,7 @@ export async function openSetlistHTML(setlist: Setlist, songs: Song[], coloredOr
   .meta { font-size: 13px; color: #666; font-style: italic; margin-bottom: 4px; }
   .structure { font-size: 13px; color: #333; font-weight: bold; margin-bottom: 8px; letter-spacing: 0.05em; }
   ${chordColorCSS}
+  ${chordRowsCSS}
   .toolbar { margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
   .toolbar button { padding: 8px 16px; background: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
   .toolbar button:hover { background: #555; }

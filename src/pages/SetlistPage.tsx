@@ -47,25 +47,32 @@ function collapseRepeats(chips: string[]): { label: string; count: number }[] {
 function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
   const { t } = useTranslation()
   const { songs } = useSongStore()
-  const [includeChords, setIncludeChords] = useState(false)
+  const { tabs } = useChordLibraryStore()
+  const [level, setLevel] = useState<1 | 2 | 3>(1)
   const [colored, setColored] = useState(true)
 
-  const exportOpts: SetlistExportOptions = { includeChords, colored }
+  const exportOpts: SetlistExportOptions = { level, colored }
 
   const handleTXT = async () => {
-    const text = setlistToText(setlist, songs, includeChords)
+    const text = setlistToText(setlist, songs, exportOpts, tabs)
     await downloadTextFile(text, `${setlist.title}.txt`)
     onClose()
   }
 
   const handleHTML = async () => {
-    await openSetlistHTML(setlist, songs, exportOpts)
+    await openSetlistHTML(setlist, songs, exportOpts, tabs)
     onClose()
   }
 
   const checkboxStyle: React.CSSProperties = {
     width: 18, height: 18, accentColor: 'var(--color-accent)',
   }
+
+  const LEVELS: { value: 1 | 2 | 3; label: string }[] = [
+    { value: 1, label: t('exportIncludeStructure') },
+    { value: 2, label: `+ ${t('exportIncludeChords')}` },
+    { value: 3, label: `+ ${t('exportIncludeChordRows')}` },
+  ]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
@@ -81,23 +88,29 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
           </button>
         </div>
 
-        {/* Options */}
+        {/* Level selector */}
         <div className="px-4 py-3 space-y-3">
-          <p className="text-xs font-medium" style={{ color: 'var(--color-text-tertiary)' }}>
-            {t('exportIncludeStructure')}: ✓ &nbsp; {t('exportIncludeVocalist')}: ✓
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-tertiary)' }}>
+            Content level
           </p>
+          <div className="space-y-1.5">
+            {LEVELS.map(({ value, label }) => (
+              <label key={value} className="flex items-center gap-3 cursor-pointer py-1">
+                <input
+                  type="radio"
+                  name="export-level"
+                  checked={level === value}
+                  onChange={() => setLevel(value)}
+                  style={checkboxStyle}
+                />
+                <span className="text-sm" style={{ color: level === value ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}>
+                  {label}
+                </span>
+              </label>
+            ))}
+          </div>
 
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={includeChords}
-              onChange={() => setIncludeChords((v) => !v)}
-              style={checkboxStyle}
-            />
-            <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('exportIncludeChords')}</span>
-          </label>
-
-          <label className="flex items-center gap-3 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer pt-1 border-t" style={{ borderColor: 'var(--color-border)' }}>
             <input
               type="checkbox"
               checked={colored}
