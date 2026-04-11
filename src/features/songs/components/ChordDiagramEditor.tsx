@@ -13,7 +13,6 @@ interface Props {
 
 const GUITAR_STRING_COUNT = 6
 const BASS_STRING_COUNT = 4
-const UKULELE_STRING_COUNT = 4
 const FRET_COUNT = 5
 
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
@@ -218,7 +217,7 @@ export function ChordDiagramEditor({ chordName, instrumentType = 'guitar', onClo
         {isPiano ? (
           <PianoEditor chordName={chordName} onClose={onClose} />
         ) : (
-          <FretEditor chordName={chordName} stringCount={isBass || isUkulele ? UKULELE_STRING_COUNT : GUITAR_STRING_COUNT} onClose={onClose} />
+          <FretEditor chordName={chordName} stringCount={isBass || isUkulele ? BASS_STRING_COUNT : GUITAR_STRING_COUNT} onClose={onClose} />
         )}
       </div>
     </div>

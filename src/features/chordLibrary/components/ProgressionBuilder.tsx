@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Plus, GripVertical } from 'lucide-react'
+import { X, Plus, GripVertical, Guitar, Piano, Music } from 'lucide-react'
 import { useChordLibraryStore } from '../../../store/chordLibraryStore'
 import type { ChordProgression } from '../../../store/chordLibraryStore'
 
@@ -49,6 +49,9 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
   const [chords, setChords] = useState<string[]>(progression?.chords ?? initialChords ?? [])
   const [newChord, setNewChord] = useState('')
   const [color, setColor] = useState(progression?.color ?? '')
+  const [instrumentType, setInstrumentType] = useState<'guitar' | 'piano' | 'bass' | 'ukulele'>(
+    progression?.instrumentType ?? 'guitar'
+  )
 
   const isMinorKey = key.endsWith('m') || key.toLowerCase().endsWith('min')
   const keyRoot = key.replace(/m(in)?$/, '').trim()
@@ -82,6 +85,7 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
       chords,
       folderId: folderId || undefined,
       color: color || undefined,
+      instrumentType,
     }
     if (progression) {
       updateProgression(progression.id, data)
@@ -231,6 +235,36 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
                 Preview gradient
               </div>
             )}
+          </div>
+
+          {/* Diagram type */}
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Diagram Type
+            </label>
+            <div className="flex gap-2">
+              {([
+                { type: 'guitar' as const, label: 'Guitar', icon: <Guitar size={14} strokeWidth={1.5} /> },
+                { type: 'piano' as const, label: 'Piano', icon: <Piano size={14} strokeWidth={1.5} /> },
+                { type: 'bass' as const, label: 'Bass', icon: <Music size={14} strokeWidth={1.5} /> },
+                { type: 'ukulele' as const, label: 'Ukulele', icon: <Guitar size={14} strokeWidth={1.5} /> },
+              ]).map(({ type, label, icon }) => (
+                <button
+                  key={type}
+                  onClick={() => setInstrumentType(type)}
+                  className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+                  style={{
+                    backgroundColor: instrumentType === type ? 'var(--color-accent)' : 'var(--color-card-raised)',
+                    color: instrumentType === type ? '#fff' : 'var(--color-text-secondary)',
+                    border: instrumentType === type ? 'none' : '1px solid var(--color-border)',
+                    minHeight: 44,
+                  }}
+                >
+                  {icon}
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Chord sequence display */}

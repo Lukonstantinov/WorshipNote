@@ -24,16 +24,18 @@ type Tab = 'progressions' | 'reference' | 'tabs'
 
 const CHORD_COLORS = ['var(--color-accent)', 'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-info)']
 
-function ProgressionDiagrams({ chords, onEditChord }: { chords: string[]; onEditChord: (chord: string) => void }) {
+function ProgressionDiagrams({ chords, instrumentType, onEditChord }: {
+  chords: string[]
+  instrumentType?: 'guitar' | 'piano' | 'bass' | 'ukulele'
+  onEditChord: (chord: string) => void
+}) {
   const {
-    selectedInstrument, instruments,
     customChords, customPianoChords,
     guitarDotColor, pianoHighlightColor, guitarFlipped, diagramScale,
   } = useSettingsStore()
 
-  const instrument = instruments.find((i) => i.id === selectedInstrument)
-  const instrType = instrument?.type ?? 'guitar'
-  const showPiano = instrType === 'piano' || instrType === 'keyboard'
+  const instrType = instrumentType ?? 'guitar'
+  const showPiano = instrType === 'piano'
   const showBass = instrType === 'bass'
   const scale = diagramScale ?? 1
   const miniSz = Math.round(64 * scale)
@@ -67,9 +69,7 @@ function ProgressionDiagrams({ chords, onEditChord }: { chords: string[]; onEdit
 
 export default function ChordLibraryPage() {
   const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder, tabs, addTab, updateTab, deleteTab } = useChordLibraryStore()
-  const { guitarDotColor, guitarFlipped, customChords, customPianoChords, deleteCustomChord, deleteCustomPianoChord, pianoHighlightColor, selectedInstrument, instruments } = useSettingsStore()
-  const progInstrument = instruments.find((i) => i.id === selectedInstrument)
-  const progInstrType = progInstrument?.type ?? 'guitar'
+  const { guitarDotColor, guitarFlipped, customChords, customPianoChords, deleteCustomChord, deleteCustomPianoChord, pianoHighlightColor } = useSettingsStore()
 
   const [tab, setTab] = useState<Tab>('progressions')
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -102,6 +102,7 @@ export default function ChordLibraryPage() {
   const [refSelectedChords, setRefSelectedChords] = useState<string[]>([])
   // Edit diagram within expanded progression card
   const [editingProgressionChord, setEditingProgressionChord] = useState<string | null>(null)
+  const [editingProgressionInstrType, setEditingProgressionInstrType] = useState<'guitar' | 'piano' | 'bass' | 'ukulele'>('guitar')
   // Chord detail modal (enlarged view + suggested progressions)
   const [detailChord, setDetailChord] = useState<string | null>(null)
   const customChordInputRef = useRef<HTMLInputElement>(null)
@@ -441,7 +442,14 @@ export default function ChordLibraryPage() {
 
                     {/* Expanded chord diagrams — tap to edit */}
                     {isExpanded && p.chords.length > 0 && (
-                      <ProgressionDiagrams chords={p.chords} onEditChord={(chord) => setEditingProgressionChord(chord)} />
+                      <ProgressionDiagrams
+                        chords={p.chords}
+                        instrumentType={p.instrumentType}
+                        onEditChord={(chord) => {
+                          setEditingProgressionChord(chord)
+                          setEditingProgressionInstrType(p.instrumentType ?? 'guitar')
+                        }}
+                      />
                     )}
                   </div>
                 )
@@ -864,7 +872,7 @@ export default function ChordLibraryPage() {
       {editingProgressionChord && (
         <ChordDiagramEditor
           chordName={editingProgressionChord}
-          instrumentType={progInstrType}
+          instrumentType={editingProgressionInstrType}
           onClose={() => setEditingProgressionChord(null)}
         />
       )}
