@@ -180,6 +180,19 @@ export const useSettingsStore = create<SettingsStore>()(
           songPresets: s.songPresets.map((p) => ({ ...p, isDefault: p.id === id })),
         })),
     }),
-    { name: 'worshiphub-settings' }
+    {
+      name: 'worshiphub-settings',
+      merge: (persistedState, currentState) => {
+        const ps = persistedState as Partial<SettingsStore>
+        const knownTypes: Partial<Record<string, Instrument['type']>> = {
+          guitar: 'guitar', piano: 'piano', bass: 'bass',
+          ukulele: 'ukulele', keyboard: 'keyboard', drums: 'drums',
+        }
+        const instruments = (ps.instruments ?? currentState.instruments).map(
+          (i: Instrument) => ({ ...i, type: i.type ?? knownTypes[i.id] ?? 'other' })
+        )
+        return { ...currentState, ...ps, instruments }
+      },
+    }
   )
 )

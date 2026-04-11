@@ -194,6 +194,7 @@ export function ChordDiagramEditor({ chordName, instrumentType = 'guitar', onClo
   const { t } = useTranslation()
   const isPiano = instrumentType === 'piano' || instrumentType === 'keyboard'
   const isBass = instrumentType === 'bass'
+  const isUkulele = instrumentType === 'ukulele'
 
   return (
     <div
@@ -207,6 +208,7 @@ export function ChordDiagramEditor({ chordName, instrumentType = 'guitar', onClo
             {t('editChordDiagram')}: {chordName}
             {isPiano && <span className="ml-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>(piano)</span>}
             {isBass && <span className="ml-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>(bass)</span>}
+            {isUkulele && <span className="ml-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>(ukulele)</span>}
           </h3>
           <button onClick={onClose}>
             <X size={16} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
@@ -215,7 +217,7 @@ export function ChordDiagramEditor({ chordName, instrumentType = 'guitar', onClo
         {isPiano ? (
           <PianoEditor chordName={chordName} onClose={onClose} />
         ) : (
-          <FretEditor chordName={chordName} stringCount={isBass ? BASS_STRING_COUNT : GUITAR_STRING_COUNT} onClose={onClose} />
+          <FretEditor chordName={chordName} stringCount={isBass || isUkulele ? BASS_STRING_COUNT : GUITAR_STRING_COUNT} onClose={onClose} />
         )}
       </div>
     </div>
