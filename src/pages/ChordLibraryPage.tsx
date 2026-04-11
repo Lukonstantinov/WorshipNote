@@ -67,7 +67,9 @@ function ProgressionDiagrams({ chords, onEditChord }: { chords: string[]; onEdit
 
 export default function ChordLibraryPage() {
   const { progressions, folders, deleteProgression, deleteProgressions, moveProgressionsToFolder, tabs, addTab, updateTab, deleteTab } = useChordLibraryStore()
-  const { guitarDotColor, guitarFlipped, customChords, customPianoChords, deleteCustomChord, deleteCustomPianoChord, pianoHighlightColor } = useSettingsStore()
+  const { guitarDotColor, guitarFlipped, customChords, customPianoChords, deleteCustomChord, deleteCustomPianoChord, pianoHighlightColor, selectedInstrument, instruments } = useSettingsStore()
+  const progInstrument = instruments.find((i) => i.id === selectedInstrument)
+  const progInstrType = progInstrument?.type ?? 'guitar'
 
   const [tab, setTab] = useState<Tab>('progressions')
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -862,6 +864,7 @@ export default function ChordLibraryPage() {
       {editingProgressionChord && (
         <ChordDiagramEditor
           chordName={editingProgressionChord}
+          instrumentType={progInstrType}
           onClose={() => setEditingProgressionChord(null)}
         />
       )}
