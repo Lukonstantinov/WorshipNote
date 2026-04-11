@@ -3,8 +3,12 @@ import { GuitarDiagram } from './GuitarDiagram'
 import { BassDiagram } from './BassDiagram'
 import { PianoDiagram } from './PianoDiagram'
 import { UkuleleDiagram } from './UkuleleDiagram'
+import { MiniGuitarDiagram } from './MiniGuitarDiagram'
+import { MiniPianoDiagram } from './MiniPianoDiagram'
+import { MiniBassDiagram } from './MiniBassDiagram'
 import { getGuitarChord } from '../lib/chordData'
 import type { CustomChordDiagram, CustomPianoChordDiagram } from '../types'
+import { useSettingsStore } from '../../../store/settingsStore'
 
 interface Props {
   chord: string
@@ -100,6 +104,7 @@ export function ChordDetailModal({
   onBuildProgression,
 }: Props) {
   const progressions = suggestProgressions(chord)
+  const { customChords, customPianoChords, guitarDotColor, pianoHighlightColor, guitarFlipped } = useSettingsStore()
 
   return (
     <div
@@ -185,18 +190,22 @@ export function ChordDetailModal({
                     onClose()
                   }}
                 >
-                  <p className="text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{name}</p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <p className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>{name}</p>
+                  <div className="flex items-end gap-1.5 overflow-x-auto scrollbar-none">
                     {chords.map((c, j) => (
-                      <span key={j} className="flex items-center gap-1">
-                        <span
-                          className="text-sm font-bold px-2 py-0.5 rounded-lg"
-                          style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-chord)' }}
-                        >
-                          {c}
+                      <span key={j} className="flex items-center gap-1 flex-shrink-0">
+                        <span className="flex flex-col items-center gap-1">
+                          {instrument === 'piano' ? (
+                            <MiniPianoDiagram chord={c} customDiagram={customPianoChords[c]} size={52} highlightColor={pianoHighlightColor} />
+                          ) : instrument === 'bass' ? (
+                            <MiniBassDiagram chord={c} customDiagram={customChords[c]} size={52} dotColor={guitarDotColor} flipped={guitarFlipped} />
+                          ) : (
+                            <MiniGuitarDiagram chord={c} customDiagram={customChords[c]} size={52} dotColor={guitarDotColor} flipped={guitarFlipped} />
+                          )}
+                          <span className="text-xs font-bold" style={{ color: 'var(--color-chord)' }}>{c}</span>
                         </span>
                         {j < chords.length - 1 && (
-                          <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>→</span>
+                          <span style={{ color: 'var(--color-text-muted)', fontSize: 11, marginBottom: 14 }}>→</span>
                         )}
                       </span>
                     ))}
