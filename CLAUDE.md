@@ -86,13 +86,13 @@ src/
 │   │
 │   ├── pianoTrainer/                    # Piano chord-learning trainer
 │   │   ├── components/
-│   │   │   ├── PianoRoll.tsx             # Horizontal piano roll: RH/LH notes over bars
+│   │   │   ├── PianoChordStrip.tsx       # Horizontal row of MiniPianoDiagram chord cards
 │   │   │   ├── KeyPicker.tsx             # Root + mode select
 │   │   │   ├── ChordChips.tsx            # Diatonic chord chips with roman numerals
 │   │   │   ├── ProgressionStrip.tsx      # Current progression with reorder/remove
 │   │   │   ├── LevelPicker.tsx           # L1–L4 difficulty levels
 │   │   │   ├── BassPatternPicker.tsx     # LH pattern select (L4 only)
-│   │   │   └── InfoBlock.tsx             # Reusable explainer card
+│   │   │   └── InfoBlock.tsx             # Collapsible explainer card (click to expand)
 │   │   └── lib/
 │   │       ├── keyChords.ts              # Diatonic chords + preset progressions (+ tests)
 │   │       ├── voicings.ts               # Triad voicing + fingering + voice leading (+ tests)
