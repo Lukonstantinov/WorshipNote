@@ -10,7 +10,7 @@ import { ChordChips, MAJOR_ROMANS, MINOR_ROMANS } from '../features/pianoTrainer
 import { ProgressionStrip } from '../features/pianoTrainer/components/ProgressionStrip'
 import { LevelPicker } from '../features/pianoTrainer/components/LevelPicker'
 import { BassPatternPicker } from '../features/pianoTrainer/components/BassPatternPicker'
-import { PianoRoll } from '../features/pianoTrainer/components/PianoRoll'
+import { PianoChordStrip } from '../features/pianoTrainer/components/PianoChordStrip'
 
 export default function PianoTrainerPage() {
   const {
@@ -41,6 +41,15 @@ export default function PianoTrainerPage() {
 
   const chordsInKey = useMemo(() => diatonicChords(key), [key])
   const romans = key.mode === 'major' ? MAJOR_ROMANS : MINOR_ROMANS
+
+  /** Roman numeral for each progression chord based on its position in the current key. */
+  const progressionRomans = useMemo(
+    () => progression.map((c) => {
+      const idx = chordsInKey.indexOf(c)
+      return idx >= 0 ? romans[idx] : ''
+    }),
+    [progression, chordsInKey, romans]
+  )
 
   // Playhead animation
   const rafRef = useRef<number | null>(null)
@@ -272,17 +281,16 @@ export default function PianoTrainerPage() {
           </section>
         )}
 
-        {/* PIANO ROLL */}
+        {/* PIANO CHORDS */}
         <section className="space-y-3">
-          <InfoBlock title="Piano roll">
-            Every chord in your progression unfolded over time. Green blocks = right hand notes, blue blocks = left hand notes. The number inside each block is the finger you use (1 = thumb, 5 = pinky). Row labels on the left show which note each row is.
+          <InfoBlock title="Piano chords">
+            Each chord in your progression shown as a little piano icon with the keys highlighted. Tap one to focus it — it glows when the metronome is on that chord.
           </InfoBlock>
-          <PianoRoll
-            progression={progression}
-            level={level}
-            bassPatternId={bassPatternId}
-            playheadBeat={playheadBeat}
-            focusIndex={focusIndex}
+          <PianoChordStrip
+            chords={progression}
+            romanNumerals={progressionRomans}
+            focusedIndex={focusIndex}
+            onFocus={(i) => { setManualFocus(i); setPlaying(false) }}
           />
         </section>
       </div>
