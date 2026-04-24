@@ -20,11 +20,11 @@ interface BarData {
   lhNotes: BassNote[]
 }
 
-const ROW_HEIGHT = 12
-const BEAT_WIDTH = 36
+const ROW_HEIGHT = 14
+const BEAT_WIDTH = 42
 const BAR_WIDTH = BEAT_WIDTH * 4
-const LABEL_COL_W = 40
-const CHORD_LABEL_H = 26
+const LABEL_COL_W = 44
+const CHORD_LABEL_H = 34
 
 const BLACK_KEY_PCS = new Set([1, 3, 6, 8, 10])
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -77,15 +77,18 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
   if (bars.length === 0) {
     return (
       <div
-        className="rounded-2xl p-8 text-center text-sm"
-        style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-muted)' }}
+        className="rounded-2xl p-10 text-center text-sm"
+        style={{
+          background: 'linear-gradient(135deg, var(--color-card) 0%, var(--color-card-raised) 100%)',
+          color: 'var(--color-text-muted)',
+          border: '1px dashed var(--color-border)',
+        }}
       >
         Your piano roll will appear here once you add chords to the progression.
       </div>
     )
   }
 
-  // Pitch range: find min/max used, pad, clamp to a musical range.
   const allMidis: number[] = []
   for (const b of bars) {
     for (const n of b.rhNotes) allMidis.push(n)
@@ -103,16 +106,13 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
 
   const yOf = (midi: number) => CHORD_LABEL_H + (maxMidi - midi) * ROW_HEIGHT
 
-  const RH_FILL = 'var(--color-chord)'
-  const LH_FILL = 'var(--color-info)'
-  const NOTE_TEXT = '#000'
-
   return (
     <div
       className="rounded-2xl overflow-hidden"
       style={{
-        backgroundColor: 'var(--color-card)',
+        background: 'linear-gradient(180deg, var(--color-card) 0%, var(--color-card-raised) 100%)',
         border: '1px solid var(--color-border)',
+        boxShadow: '0 2px 8px var(--color-shadow)',
       }}
     >
       <div className="overflow-x-auto" style={{ maxWidth: '100%' }}>
@@ -121,7 +121,28 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
           height={totalHeight}
           style={{ display: 'block', minWidth: '100%' }}
         >
-          {/* Pitch row stripes */}
+          <defs>
+            <linearGradient id="rhGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-chord)" stopOpacity="1" />
+              <stop offset="100%" stopColor="var(--color-chord)" stopOpacity="0.75" />
+            </linearGradient>
+            <linearGradient id="lhGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-info)" stopOpacity="1" />
+              <stop offset="100%" stopColor="var(--color-info)" stopOpacity="0.75" />
+            </linearGradient>
+            <linearGradient id="playheadGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="1" />
+              <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.3" />
+            </linearGradient>
+            <filter id="noteShadow" x="-10%" y="-10%" width="120%" height="130%">
+              <feDropShadow dx="0" dy="1" stdDeviation="0.8" floodOpacity="0.35" />
+            </filter>
+            <filter id="labelGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodOpacity="0.3" />
+            </filter>
+          </defs>
+
+          {/* Pitch row stripes (alternating white/black key backgrounds) */}
           {Array.from({ length: pitchCount }).map((_, i) => {
             const midi = maxMidi - i
             const y = CHORD_LABEL_H + i * ROW_HEIGHT
@@ -133,12 +154,58 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
                 width={totalWidth}
                 height={ROW_HEIGHT}
                 fill={isBlack(midi) ? 'var(--color-card-raised)' : 'var(--color-card)'}
-                opacity={0.55}
+                opacity={isBlack(midi) ? 0.8 : 0.4}
               />
             )
           })}
 
-          {/* Horizontal pitch lines */}
+          {/* Subtle alternating bar background (every other bar slightly tinted) */}
+          {bars.map((_, barIdx) => {
+            if (barIdx % 2 === 1) return null
+            return (
+              <rect
+                key={'alt-' + barIdx}
+                x={LABEL_COL_W + barIdx * BAR_WIDTH}
+                y={CHORD_LABEL_H}
+                width={BAR_WIDTH}
+                height={rollHeight}
+                fill="var(--color-text-primary)"
+                opacity={0.02}
+              />
+            )
+          })}
+
+          {/* Bar focus highlight with accent glow */}
+          {focusIndex >= 0 && focusIndex < bars.length && (
+            <>
+              <rect
+                x={LABEL_COL_W + focusIndex * BAR_WIDTH}
+                y={0}
+                width={BAR_WIDTH}
+                height={totalHeight}
+                fill="var(--color-accent)"
+                opacity={0.1}
+              />
+              <rect
+                x={LABEL_COL_W + focusIndex * BAR_WIDTH}
+                y={0}
+                width={2}
+                height={totalHeight}
+                fill="var(--color-accent)"
+                opacity={0.7}
+              />
+              <rect
+                x={LABEL_COL_W + (focusIndex + 1) * BAR_WIDTH - 2}
+                y={0}
+                width={2}
+                height={totalHeight}
+                fill="var(--color-accent)"
+                opacity={0.7}
+              />
+            </>
+          )}
+
+          {/* Horizontal pitch separator lines (lighter, every semitone) */}
           {Array.from({ length: pitchCount + 1 }).map((_, i) => (
             <line
               key={i}
@@ -148,9 +215,27 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
               y2={CHORD_LABEL_H + i * ROW_HEIGHT}
               stroke="var(--color-border-subtle)"
               strokeWidth={0.5}
-              opacity={0.4}
+              opacity={0.35}
             />
           ))}
+
+          {/* Emphasized line between each octave (at every C) */}
+          {Array.from({ length: pitchCount + 1 }).map((_, i) => {
+            const midi = maxMidi - i
+            if (pitchClass(midi) !== 0) return null
+            return (
+              <line
+                key={'oct-' + midi}
+                x1={0}
+                x2={totalWidth}
+                y1={CHORD_LABEL_H + i * ROW_HEIGHT}
+                y2={CHORD_LABEL_H + i * ROW_HEIGHT}
+                stroke="var(--color-border)"
+                strokeWidth={0.75}
+                opacity={0.5}
+              />
+            )
+          })}
 
           {/* Left column pitch labels (only on C notes) */}
           {Array.from({ length: pitchCount }).map((_, i) => {
@@ -159,11 +244,12 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
             return (
               <text
                 key={midi}
-                x={LABEL_COL_W - 6}
-                y={CHORD_LABEL_H + i * ROW_HEIGHT + ROW_HEIGHT - 2}
+                x={LABEL_COL_W - 8}
+                y={CHORD_LABEL_H + i * ROW_HEIGHT + ROW_HEIGHT - 3}
                 textAnchor="end"
                 fontSize={10}
-                fontFamily="system-ui, sans-serif"
+                fontWeight={600}
+                fontFamily="system-ui, -apple-system, sans-serif"
                 fill="var(--color-text-tertiary)"
               >
                 {midiLabel(midi)}
@@ -181,24 +267,11 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
             strokeWidth={1}
           />
 
-          {/* Bar focus highlight */}
-          {focusIndex >= 0 && focusIndex < bars.length && (
-            <rect
-              x={LABEL_COL_W + focusIndex * BAR_WIDTH}
-              y={0}
-              width={BAR_WIDTH}
-              height={totalHeight}
-              fill="var(--color-accent-dim)"
-              opacity={0.5}
-            />
-          )}
-
           {/* Vertical grid: beat lines + strong bar lines */}
           {bars.map((_, barIdx) => {
             const barX = LABEL_COL_W + barIdx * BAR_WIDTH
             return (
               <g key={'grid-' + barIdx}>
-                {/* beat subdivisions */}
                 {[1, 2, 3].map((beat) => (
                   <line
                     key={beat}
@@ -208,10 +281,10 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
                     y2={totalHeight}
                     stroke="var(--color-border-subtle)"
                     strokeWidth={0.5}
-                    opacity={0.5}
+                    opacity={0.35}
+                    strokeDasharray={beat === 2 ? undefined : '2,3'}
                   />
                 ))}
-                {/* strong bar line */}
                 <line
                   x1={barX}
                   x2={barX}
@@ -223,7 +296,6 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
               </g>
             )
           })}
-          {/* final bar line */}
           <line
             x1={LABEL_COL_W + bars.length * BAR_WIDTH}
             x2={LABEL_COL_W + bars.length * BAR_WIDTH}
@@ -233,22 +305,36 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
             strokeWidth={1}
           />
 
-          {/* Chord labels */}
+          {/* Chord labels as pills */}
           {bars.map((bar, barIdx) => {
             const cx = LABEL_COL_W + barIdx * BAR_WIDTH + BAR_WIDTH / 2
+            const isActive = focusIndex === barIdx
+            const pillW = Math.max(40, bar.chord.length * 10 + 14)
+            const pillH = 22
             return (
-              <text
-                key={'label-' + barIdx}
-                x={cx}
-                y={17}
-                textAnchor="middle"
-                fontSize={13}
-                fontWeight={700}
-                fontFamily="system-ui, sans-serif"
-                fill={focusIndex === barIdx ? 'var(--color-accent)' : 'var(--color-text-primary)'}
-              >
-                {bar.chord}
-              </text>
+              <g key={'label-' + barIdx} filter={isActive ? 'url(#labelGlow)' : undefined}>
+                <rect
+                  x={cx - pillW / 2}
+                  y={5}
+                  width={pillW}
+                  height={pillH}
+                  rx={11}
+                  fill={isActive ? 'var(--color-accent)' : 'var(--color-card-raised)'}
+                  stroke={isActive ? 'var(--color-accent)' : 'var(--color-border)'}
+                  strokeWidth={1}
+                />
+                <text
+                  x={cx}
+                  y={20}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fontWeight={700}
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                  fill={isActive ? '#fff' : 'var(--color-text-primary)'}
+                >
+                  {bar.chord}
+                </text>
+              </g>
             )
           })}
 
@@ -261,24 +347,34 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
                 {bar.rhNotes.map((midi, noteIdx) => {
                   const y = yOf(midi)
                   return (
-                    <g key={'rh-' + noteIdx}>
+                    <g key={'rh-' + noteIdx} filter="url(#noteShadow)">
                       <rect
-                        x={barX + 2}
-                        y={y + 1}
-                        width={BAR_WIDTH - 4}
-                        height={ROW_HEIGHT - 2}
-                        rx={3}
-                        fill={RH_FILL}
-                        opacity={0.9}
+                        x={barX + 3}
+                        y={y + 1.5}
+                        width={BAR_WIDTH - 6}
+                        height={ROW_HEIGHT - 3}
+                        rx={4}
+                        fill="url(#rhGrad)"
+                      />
+                      <rect
+                        x={barX + 3}
+                        y={y + 1.5}
+                        width={BAR_WIDTH - 6}
+                        height={ROW_HEIGHT - 3}
+                        rx={4}
+                        fill="none"
+                        stroke="rgba(0,0,0,0.18)"
+                        strokeWidth={0.5}
                       />
                       <text
                         x={barX + BAR_WIDTH / 2}
-                        y={y + ROW_HEIGHT - 2}
+                        y={y + ROW_HEIGHT - 3}
                         textAnchor="middle"
-                        fontSize={8}
-                        fontWeight={700}
-                        fontFamily="system-ui, sans-serif"
-                        fill={NOTE_TEXT}
+                        fontSize={9}
+                        fontWeight={800}
+                        fontFamily="system-ui, -apple-system, sans-serif"
+                        fill="#000"
+                        opacity={0.85}
                       >
                         {bar.rhFingers[noteIdx]}
                       </text>
@@ -292,23 +388,32 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
                   const nw = note.beats * BEAT_WIDTH
                   const y = yOf(note.midi)
                   return (
-                    <g key={'lh-' + noteIdx}>
+                    <g key={'lh-' + noteIdx} filter="url(#noteShadow)">
                       <rect
-                        x={nx + 2}
-                        y={y + 1}
-                        width={nw - 4}
-                        height={ROW_HEIGHT - 2}
-                        rx={3}
-                        fill={LH_FILL}
-                        opacity={0.9}
+                        x={nx + 3}
+                        y={y + 1.5}
+                        width={nw - 6}
+                        height={ROW_HEIGHT - 3}
+                        rx={4}
+                        fill="url(#lhGrad)"
+                      />
+                      <rect
+                        x={nx + 3}
+                        y={y + 1.5}
+                        width={nw - 6}
+                        height={ROW_HEIGHT - 3}
+                        rx={4}
+                        fill="none"
+                        stroke="rgba(0,0,0,0.22)"
+                        strokeWidth={0.5}
                       />
                       <text
                         x={nx + nw / 2}
-                        y={y + ROW_HEIGHT - 2}
+                        y={y + ROW_HEIGHT - 3}
                         textAnchor="middle"
-                        fontSize={8}
-                        fontWeight={700}
-                        fontFamily="system-ui, sans-serif"
+                        fontSize={9}
+                        fontWeight={800}
+                        fontFamily="system-ui, -apple-system, sans-serif"
                         fill="#fff"
                       >
                         {note.finger}
@@ -322,33 +427,58 @@ export function PianoRoll({ progression, level, bassPatternId, playheadBeat = -1
 
           {/* Playhead */}
           {playheadBeat >= 0 && (
-            <line
-              x1={LABEL_COL_W + playheadBeat * BEAT_WIDTH}
-              x2={LABEL_COL_W + playheadBeat * BEAT_WIDTH}
-              y1={0}
-              y2={totalHeight}
-              stroke="var(--color-accent)"
-              strokeWidth={2}
-            />
+            <g>
+              <line
+                x1={LABEL_COL_W + playheadBeat * BEAT_WIDTH}
+                x2={LABEL_COL_W + playheadBeat * BEAT_WIDTH}
+                y1={0}
+                y2={totalHeight}
+                stroke="url(#playheadGrad)"
+                strokeWidth={2.5}
+              />
+              <circle
+                cx={LABEL_COL_W + playheadBeat * BEAT_WIDTH}
+                cy={4}
+                r={4}
+                fill="var(--color-accent)"
+                stroke="var(--color-bg)"
+                strokeWidth={1.5}
+              />
+            </g>
           )}
         </svg>
       </div>
 
       {/* Legend */}
       <div
-        className="flex items-center gap-4 px-4 py-2 text-xs"
+        className="flex items-center gap-4 px-4 py-2.5 text-xs flex-wrap"
         style={{
           borderTop: '1px solid var(--color-border-subtle)',
           color: 'var(--color-text-secondary)',
+          background: 'linear-gradient(180deg, transparent 0%, var(--color-card) 100%)',
         }}
       >
         <span className="flex items-center gap-1.5">
-          <span className="inline-block rounded-sm" style={{ width: 10, height: 10, backgroundColor: 'var(--color-chord)' }} />
-          Right hand
+          <span
+            className="inline-block rounded"
+            style={{
+              width: 12, height: 12,
+              background: 'linear-gradient(180deg, var(--color-chord) 0%, var(--color-chord) 100%)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+            }}
+          />
+          <span className="font-medium">Right hand</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block rounded-sm" style={{ width: 10, height: 10, backgroundColor: 'var(--color-info)' }} />
-          Left hand
+          <span
+            className="inline-block rounded"
+            style={{
+              width: 12, height: 12,
+              background: 'linear-gradient(180deg, var(--color-info) 0%, var(--color-info) 100%)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+            }}
+          />
+          <span className="font-medium">Left hand</span>
         </span>
         <span style={{ color: 'var(--color-text-muted)' }}>Numbers = finger (1 thumb … 5 pinky)</span>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Play, Pause, Sparkles, BookmarkPlus, Minus, Plus, X } from 'lucide-react'
+import { ArrowLeft, Play, Pause, Sparkles, BookmarkPlus, Minus, Plus, X, Piano } from 'lucide-react'
 import { usePianoTrainerStore } from '../store/pianoTrainerStore'
 import { useChordLibraryStore } from '../store/chordLibraryStore'
 import { diatonicChords, suggestProgression } from '../features/pianoTrainer/lib/keyChords'
@@ -84,74 +84,92 @@ export default function PianoTrainerPage() {
     setPlaying((p) => !p)
   }
 
-  const sectionLabel: React.CSSProperties = {
-    fontSize: 11,
-    color: 'var(--color-text-tertiary)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    marginBottom: 8,
-    paddingLeft: 4,
-  }
-
   return (
     <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100%' }}>
-      {/* Header */}
+      {/* Hero header */}
       <div
-        className="flex items-center gap-2 px-4 py-3 border-b"
-        style={{ borderColor: 'var(--color-border-subtle)' }}
+        className="relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, var(--color-accent-dim) 0%, transparent 70%)',
+          borderBottom: '1px solid var(--color-border-subtle)',
+        }}
       >
-        <Link
-          to="/settings"
-          className="p-2 rounded-xl"
-          style={{ backgroundColor: 'var(--color-card-raised)', minHeight: 40, minWidth: 40, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-          aria-label="Back to settings"
-        >
-          <ArrowLeft size={18} strokeWidth={2} style={{ color: 'var(--color-text-secondary)' }} />
-        </Link>
-        <h1 className="flex-1 text-xl font-bold tracking-tight">Piano Trainer</h1>
-        <button
-          onClick={() => setSaveOpen(true)}
-          disabled={progression.length === 0}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95 disabled:opacity-40"
-          style={{
-            backgroundColor: 'var(--color-accent)',
-            color: '#fff',
-            minHeight: 40,
-          }}
-        >
-          <BookmarkPlus size={14} strokeWidth={2} />
-          Save
-        </button>
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+          <Link
+            to="/settings"
+            className="rounded-xl flex items-center justify-center transition-all active:scale-95"
+            style={{
+              backgroundColor: 'var(--color-card-raised)',
+              border: '1px solid var(--color-border)',
+              minHeight: 40, minWidth: 40,
+            }}
+            aria-label="Back to settings"
+          >
+            <ArrowLeft size={18} strokeWidth={2} style={{ color: 'var(--color-text-secondary)' }} />
+          </Link>
+
+          <div
+            className="rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-accent) 0%, rgba(191,90,242,0.7) 100%)',
+              width: 44, height: 44,
+              boxShadow: '0 4px 12px var(--color-accent-dim)',
+            }}
+          >
+            <Piano size={22} strokeWidth={1.8} style={{ color: '#fff' }} />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-extrabold tracking-tight leading-tight">Piano Trainer</h1>
+            <p className="text-xs leading-tight" style={{ color: 'var(--color-text-tertiary)' }}>
+              Build a progression · see it on a piano roll
+            </p>
+          </div>
+
+          <button
+            onClick={() => setSaveOpen(true)}
+            disabled={progression.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-accent) 0%, rgba(191,90,242,0.85) 100%)',
+              color: '#fff',
+              boxShadow: '0 2px 8px var(--color-accent-dim)',
+              minHeight: 40,
+            }}
+          >
+            <BookmarkPlus size={14} strokeWidth={2} />
+            Save
+          </button>
+        </div>
       </div>
 
-      <div className="p-4 space-y-5 pb-28 max-w-2xl mx-auto">
+      <div className="px-4 py-5 space-y-6 pb-28 max-w-2xl mx-auto">
 
         {/* KEY */}
-        <section className="space-y-2">
+        <section className="space-y-3">
           <InfoBlock title="Key">
             The home note and scale of the song. Choosing a key tells the app which 7 notes (and which 7 chords) naturally fit together.
           </InfoBlock>
-          <p style={sectionLabel}>Key</p>
           <KeyPicker value={key} onChange={(k) => { setKey(k); setManualFocus(0) }} />
         </section>
 
         {/* CHORDS IN KEY */}
-        <section className="space-y-2">
+        <section className="space-y-3">
           <InfoBlock title={`Chords in ${key.root} ${key.mode}`}>
             The seven chords built from the notes of this key. Tap any chord to add it to your progression. The small roman numeral shows its role ({key.mode === 'major' ? 'I–vii°' : 'i–VII'}).
           </InfoBlock>
-          <div className="flex items-center justify-between">
-            <p style={{ ...sectionLabel, marginBottom: 0 }}>Diatonic chords</p>
+          <div className="flex items-center justify-end">
             <button
               onClick={handleSuggest}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
               style={{
-                backgroundColor: 'var(--color-accent-dim)',
-                color: 'var(--color-accent)',
-                border: '1px solid var(--color-accent)',
+                background: 'linear-gradient(135deg, var(--color-accent) 0%, rgba(191,90,242,0.7) 100%)',
+                color: '#fff',
+                boxShadow: '0 2px 8px var(--color-accent-dim)',
+                minHeight: 36,
               }}
             >
-              <Sparkles size={12} strokeWidth={2} />
+              <Sparkles size={12} strokeWidth={2.5} />
               Suggest progression
             </button>
           </div>
@@ -159,11 +177,10 @@ export default function PianoTrainerPage() {
         </section>
 
         {/* PROGRESSION */}
-        <section className="space-y-2">
+        <section className="space-y-3">
           <InfoBlock title="Progression">
-            A sequence of chords played one after another — the backbone of almost every song. Reorder with the arrows, remove with ×.
+            A sequence of chords played one after another — the backbone of almost every song. Reorder with the arrows, remove with ×, tap a chord to highlight it on the piano roll below.
           </InfoBlock>
-          <p style={sectionLabel}>Progression</p>
           <ProgressionStrip
             chords={progression}
             focusedIndex={focusIndex}
@@ -174,50 +191,67 @@ export default function PianoTrainerPage() {
           />
 
           {/* Tempo + play */}
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-2">
             <div
-              className="flex items-center rounded-xl overflow-hidden"
-              style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+              className="flex items-center rounded-2xl overflow-hidden flex-1"
+              style={{
+                background: 'linear-gradient(135deg, var(--color-card) 0%, var(--color-card-raised) 100%)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 2px var(--color-shadow)',
+              }}
             >
               <button
                 onClick={() => setTempo(tempo - 5)}
-                className="px-3 py-2"
-                style={{ color: 'var(--color-text-secondary)', minHeight: 44 }}
+                className="px-3 py-2 transition-all active:scale-95"
+                style={{ color: 'var(--color-text-secondary)', minHeight: 48 }}
                 aria-label="Slower"
               >
-                <Minus size={14} strokeWidth={2} />
+                <Minus size={14} strokeWidth={2.5} />
               </button>
-              <div className="px-3 text-center" style={{ minWidth: 74 }}>
-                <div className="text-lg font-bold leading-tight">{tempo}</div>
-                <div className="text-[10px] leading-tight" style={{ color: 'var(--color-text-muted)' }}>BPM</div>
+              <div className="flex-1 text-center">
+                <div className="font-extrabold leading-none tabular-nums" style={{ fontSize: 22 }}>
+                  {tempo}
+                </div>
+                <div
+                  className="uppercase tracking-widest"
+                  style={{ fontSize: 9, color: 'var(--color-text-muted)', letterSpacing: '0.12em', marginTop: 2 }}
+                >
+                  BPM
+                </div>
               </div>
               <button
                 onClick={() => setTempo(tempo + 5)}
-                className="px-3 py-2"
-                style={{ color: 'var(--color-text-secondary)', minHeight: 44 }}
+                className="px-3 py-2 transition-all active:scale-95"
+                style={{ color: 'var(--color-text-secondary)', minHeight: 48 }}
                 aria-label="Faster"
               >
-                <Plus size={14} strokeWidth={2} />
+                <Plus size={14} strokeWidth={2.5} />
               </button>
             </div>
             <button
               onClick={handleTogglePlay}
               disabled={progression.length === 0}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40"
+              className="flex items-center justify-center gap-1.5 rounded-2xl text-sm font-bold transition-all active:scale-95 disabled:opacity-40"
               style={{
-                backgroundColor: playing ? 'var(--color-error)' : 'var(--color-chord)',
+                background: playing
+                  ? 'linear-gradient(135deg, var(--color-error) 0%, rgba(255,69,58,0.7) 100%)'
+                  : 'linear-gradient(135deg, var(--color-chord) 0%, rgba(50,215,75,0.75) 100%)',
                 color: playing ? '#fff' : '#000',
-                minHeight: 44,
+                boxShadow: playing
+                  ? '0 4px 12px rgba(255,69,58,0.3)'
+                  : '0 4px 12px rgba(50,215,75,0.3)',
+                minHeight: 48,
+                minWidth: 98,
               }}
             >
-              {playing ? <Pause size={14} strokeWidth={2.5} /> : <Play size={14} strokeWidth={2.5} />}
+              {playing ? <Pause size={16} strokeWidth={2.5} /> : <Play size={16} strokeWidth={2.5} />}
               {playing ? 'Stop' : 'Play'}
             </button>
           </div>
         </section>
 
         {/* LEVEL */}
-        <section className="space-y-2">
+        <section className="space-y-3">
           <InfoBlock title="Level">
             How rich the piano part gets.{' '}
             <strong>L1</strong> plays the chord in root position.{' '}
@@ -225,27 +259,24 @@ export default function PianoTrainerPage() {
             <strong>L3</strong> adds a single left-hand bass root.{' '}
             <strong>L4</strong> adds a rhythmic left-hand pattern on top.
           </InfoBlock>
-          <p style={sectionLabel}>Level</p>
           <LevelPicker value={level} onChange={setLevel} />
         </section>
 
         {/* LH PATTERN (only L4) */}
         {level === 4 && (
-          <section className="space-y-2">
+          <section className="space-y-3">
             <InfoBlock title="Left-hand pattern">
               What the left hand plays under each chord. "Root only" is easiest; Alberti and Walking sound livelier.
             </InfoBlock>
-            <p style={sectionLabel}>Left-hand pattern</p>
             <BassPatternPicker value={bassPatternId} onChange={setBassPattern} />
           </section>
         )}
 
         {/* PIANO ROLL */}
-        <section className="space-y-2">
+        <section className="space-y-3">
           <InfoBlock title="Piano roll">
             Every chord in your progression unfolded over time. Green blocks = right hand notes, blue blocks = left hand notes. The number inside each block is the finger you use (1 = thumb, 5 = pinky). Row labels on the left show which note each row is.
           </InfoBlock>
-          <p style={sectionLabel}>Piano roll</p>
           <PianoRoll
             progression={progression}
             level={level}
@@ -316,7 +347,7 @@ function SaveToLibraryModal({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="My piano progression"
-            className="w-full rounded-xl px-3 text-sm outline-none"
+            className="w-full rounded-xl text-sm outline-none"
             style={{
               backgroundColor: 'var(--color-card)',
               border: '1px solid var(--color-border)',

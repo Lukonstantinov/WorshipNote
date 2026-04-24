@@ -21,16 +21,34 @@ export function LevelPicker({ value, onChange }: Props) {
           <button
             key={lvl.value}
             onClick={() => onChange(lvl.value)}
-            className="flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all active:scale-95"
+            className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl transition-all active:scale-95"
             style={{
-              backgroundColor: active ? 'var(--color-accent)' : 'var(--color-card)',
-              color: active ? '#fff' : 'var(--color-text-tertiary)',
+              background: active
+                ? 'linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent) 70%)'
+                : 'var(--color-card)',
+              color: active ? '#fff' : 'var(--color-text-secondary)',
               border: active ? 'none' : '1px solid var(--color-border)',
-              minHeight: 56,
+              boxShadow: active ? '0 4px 12px var(--color-accent-dim)' : '0 1px 2px var(--color-shadow)',
+              minHeight: 68,
             }}
           >
-            <span className="text-sm font-bold">{lvl.label}</span>
-            <span className="text-[10px] leading-tight opacity-90">{lvl.sub}</span>
+            <span className="text-sm font-bold tracking-wide">{lvl.label}</span>
+            {/* Difficulty dots */}
+            <span className="flex gap-0.5" aria-hidden>
+              {[1, 2, 3, 4].map((n) => (
+                <span
+                  key={n}
+                  style={{
+                    display: 'inline-block',
+                    width: 4, height: 4, borderRadius: 2,
+                    backgroundColor: n <= lvl.value
+                      ? (active ? '#fff' : 'var(--color-accent)')
+                      : (active ? 'rgba(255,255,255,0.25)' : 'var(--color-border)'),
+                  }}
+                />
+              ))}
+            </span>
+            <span className="text-[10px] leading-tight opacity-85 text-center px-1">{lvl.sub}</span>
           </button>
         )
       })}

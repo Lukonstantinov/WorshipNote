@@ -6,36 +6,33 @@ interface Props {
 }
 
 export function BassPatternPicker({ value, onChange }: Props) {
-  const current = BASS_PATTERNS.find((p) => p.id === value)
   return (
-    <div>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as BassPatternId)}
-        style={{
-          backgroundColor: 'var(--color-card)',
-          border: '1px solid var(--color-border)',
-          color: 'var(--color-text-primary)',
-          borderRadius: 12,
-          padding: '8px 12px',
-          fontSize: 14,
-          minHeight: 44,
-          cursor: 'pointer',
-          outline: 'none',
-          width: '100%',
-        }}
-      >
-        {BASS_PATTERNS.map((p) => (
-          <option key={p.id} value={p.id} style={{ backgroundColor: 'var(--color-card)' }}>
-            {p.name}
-          </option>
-        ))}
-      </select>
-      {current && (
-        <p className="text-xs mt-1.5 px-1" style={{ color: 'var(--color-text-muted)' }}>
-          {current.description}
-        </p>
-      )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      {BASS_PATTERNS.map((p) => {
+        const active = p.id === value
+        return (
+          <button
+            key={p.id}
+            onClick={() => onChange(p.id as BassPatternId)}
+            className="flex flex-col items-start text-left rounded-2xl transition-all active:scale-[0.98]"
+            style={{
+              background: active
+                ? 'linear-gradient(135deg, var(--color-info) 0%, rgba(10,132,255,0.7) 100%)'
+                : 'var(--color-card)',
+              color: active ? '#fff' : 'var(--color-text-primary)',
+              border: active ? 'none' : '1px solid var(--color-border)',
+              boxShadow: active ? '0 4px 12px rgba(10,132,255,0.25)' : '0 1px 2px var(--color-shadow)',
+              padding: '10px 14px',
+              minHeight: 60,
+            }}
+          >
+            <span className="font-semibold text-sm">{p.name}</span>
+            <span className="text-[11px] mt-0.5 leading-tight" style={{ opacity: active ? 0.9 : 0.65 }}>
+              {p.description}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

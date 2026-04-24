@@ -6,23 +6,38 @@ interface Props {
 
 export function ChordChips({ chords, romanNumerals, onPick }: Props) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
       {chords.map((chord, idx) => (
         <button
           key={chord + idx}
           onClick={() => onPick(chord)}
-          className="flex flex-col items-center px-3 py-2 rounded-xl transition-all active:scale-95"
+          className="group flex flex-col items-center justify-center rounded-2xl transition-all active:scale-95"
           style={{
-            backgroundColor: 'var(--color-card-raised)',
+            background: 'linear-gradient(135deg, var(--color-card-raised) 0%, var(--color-card) 100%)',
             border: '1px solid var(--color-border)',
-            minWidth: 58,
-            minHeight: 50,
+            boxShadow: '0 1px 2px var(--color-shadow)',
+            minHeight: 64,
+            padding: '8px 4px',
           }}
         >
-          <span className="text-xs font-medium" style={{ color: 'var(--color-accent)', fontSize: 10, letterSpacing: '0.04em' }}>
+          <span
+            className="text-[10px] font-semibold tracking-wider"
+            style={{
+              color: 'var(--color-accent)',
+              opacity: 0.85,
+              letterSpacing: '0.08em',
+            }}
+          >
             {romanNumerals[idx]}
           </span>
-          <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          <span
+            className="font-bold leading-tight"
+            style={{
+              color: 'var(--color-text-primary)',
+              fontSize: 18,
+              marginTop: 2,
+            }}
+          >
             {chord}
           </span>
         </button>
