@@ -8,6 +8,7 @@ import SetlistEditPage from './pages/SetlistEditPage'
 import SettingsPage from './pages/SettingsPage'
 import ChordLibraryPage from './pages/ChordLibraryPage'
 import PitchPage from './pages/PitchPage'
+import PianoTrainerPage from './pages/PianoTrainerPage'
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/setlists/new" element={<SetlistEditPage />} />
           <Route path="/chords" element={<ChordLibraryPage />} />
           <Route path="/pitch" element={<PitchPage />} />
+          <Route path="/piano-learn" element={<PianoTrainerPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

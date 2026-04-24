@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil, Palette, Type, Users, BookOpen, HardDrive, Info } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil, Palette, Type, Users, BookOpen, HardDrive, Info, GraduationCap, ChevronRight } from 'lucide-react'
 import { useSettingsStore } from '../store/settingsStore'
 import { useSongStore } from '../store/songStore'
 import type { Language, ChordDisplayPosition, ChordDiagramMode, CustomRole, AppTheme } from '../store/settingsStore'
@@ -613,6 +614,26 @@ export default function SettingsPage() {
 
         {/* Export / Import */}
         <ExportImportPanel />
+
+        {/* ── LEARN ──────────────────────────────────────────── */}
+        <CategoryHeader icon={<GraduationCap size={15} />} label="Learn" />
+
+        <section>
+          <Link
+            to="/piano-learn"
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all active:scale-[0.99]"
+            style={{ backgroundColor: 'var(--color-card)', minHeight: 50 }}
+          >
+            <span style={{ color: 'var(--color-accent)' }}><Piano size={18} strokeWidth={1.5} /></span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium">Piano chord trainer</div>
+              <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                Build a progression · see it on a piano roll
+              </div>
+            </div>
+            <ChevronRight size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-tertiary)' }} />
+          </Link>
+        </section>
 
         {/* ── ABOUT ──────────────────────────────────────────── */}
         <CategoryHeader icon={<Info size={15} />} label="About" />

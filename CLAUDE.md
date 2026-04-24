@@ -84,6 +84,20 @@ src/
 │   │   │   └── transposer.ts            # Chord transposition logic
 │   │   └── types.ts                     # Song, ChordRow, Instrument types
 │   │
+│   ├── pianoTrainer/                    # Piano chord-learning trainer
+│   │   ├── components/
+│   │   │   ├── PianoRoll.tsx             # Horizontal piano roll: RH/LH notes over bars
+│   │   │   ├── KeyPicker.tsx             # Root + mode select
+│   │   │   ├── ChordChips.tsx            # Diatonic chord chips with roman numerals
+│   │   │   ├── ProgressionStrip.tsx      # Current progression with reorder/remove
+│   │   │   ├── LevelPicker.tsx           # L1–L4 difficulty levels
+│   │   │   ├── BassPatternPicker.tsx     # LH pattern select (L4 only)
+│   │   │   └── InfoBlock.tsx             # Reusable explainer card
+│   │   └── lib/
+│   │       ├── keyChords.ts              # Diatonic chords + preset progressions (+ tests)
+│   │       ├── voicings.ts               # Triad voicing + fingering + voice leading (+ tests)
+│   │       └── bassPatterns.ts           # LH patterns: root, oct, 5-oct-5, Alberti, walking (+ tests)
+│   │
 │   └── pitch/                           # Pitch detection module
 │       ├── components/
 │       │   ├── PitchDisplay.tsx          # Large note + octave display
@@ -108,7 +122,8 @@ src/
 │   ├── SetlistPage.tsx                  # Setlist view
 │   ├── SetlistEditPage.tsx              # Setlist editor
 │   ├── SettingsPage.tsx                 # App settings
-│   └── PitchPage.tsx                    # Pitch detection / tuner page
+│   ├── PitchPage.tsx                    # Pitch detection / tuner page
+│   └── PianoTrainerPage.tsx             # Piano chord-learning trainer (entry via Settings → Learn)
 │
 ├── store/
 │   ├── settingsStore.ts                 # User prefs (theme, role, instrument, font, custom chords)
@@ -116,7 +131,8 @@ src/
 │   ├── chordLibraryStore.ts             # Chord progressions + folders
 │   ├── folderStore.ts                   # Song folders
 │   ├── setlistStore.ts                  # Setlist collections
-│   └── pitchStore.ts                    # Pitch detection settings (mic gain, threshold, device)
+│   ├── pitchStore.ts                    # Pitch detection settings (mic gain, threshold, device)
+│   └── pianoTrainerStore.ts             # Piano trainer state (key, progression, level, tempo)
 │
 ├── shared/
 │   ├── components/
@@ -184,4 +200,5 @@ src/
 | `/setlists/new` | SetlistEditPage | Create setlist |
 | `/chords` | ChordLibraryPage | Chord library |
 | `/pitch` | PitchPage | Pitch detection / tuner |
+| `/piano-learn` | PianoTrainerPage | Piano chord-learning trainer (linked from Settings → Learn) |
 | `/settings` | SettingsPage | App settings |
