@@ -1,19 +1,47 @@
+import { useMemo } from 'react'
 import { MiniPianoDiagram } from '../../songs/components/MiniPianoDiagram'
+import { MiniBassPiano } from './MiniBassPiano'
 import { useSettingsStore } from '../../../store/settingsStore'
+import { getBassPattern } from '../lib/bassPatterns'
+import type { TrainerLevel } from '../../../store/pianoTrainerStore'
 
 interface Props {
   chords: string[]
   romanNumerals?: string[]
   focusedIndex: number
   onFocus: (idx: number) => void
+  level: TrainerLevel
+  bassPatternId: string
+}
+
+const PC_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+function bassPitchClasses(chord: string, level: TrainerLevel, bassPatternId: string): string[] {
+  if (level < 3) return []
+  const patternKey = level === 3 ? 'root' : bassPatternId
+  try {
+    const notes = getBassPattern(patternKey).notesForBar(chord)
+    const set = new Set<string>()
+    for (const n of notes) set.add(PC_NAMES[((n.midi % 12) + 12) % 12])
+    return Array.from(set)
+  } catch {
+    return []
+  }
 }
 
 /**
- * Horizontal row of piano chord icons for a progression — one MiniPianoDiagram per chord.
- * Mirrors the style used in the Chord Library progression view.
+ * Horizontal row of piano chord icons for a progression.
+ * Per chord: a right-hand MiniPianoDiagram and (for Level ≥ 3) a left-hand
+ * MiniBassPiano showing the bass pitch classes used by the current pattern.
  */
-export function PianoChordStrip({ chords, romanNumerals, focusedIndex, onFocus }: Props) {
+export function PianoChordStrip({ chords, romanNumerals, focusedIndex, onFocus, level, bassPatternId }: Props) {
   const { customPianoChords, pianoHighlightColor } = useSettingsStore()
+  const showBass = level >= 3
+
+  const bassPCsByIdx = useMemo(
+    () => chords.map((c) => bassPitchClasses(c, level, bassPatternId)),
+    [chords, level, bassPatternId]
+  )
 
   if (chords.length === 0) {
     return (
@@ -80,6 +108,15 @@ export function PianoChordStrip({ chords, romanNumerals, focusedIndex, onFocus }
                   size={80}
                   highlightColor={pianoHighlightColor}
                 />
+                {showBass && (
+                  <div className="mt-1.5">
+                    <MiniBassPiano
+                      highlightedPCs={bassPCsByIdx[idx] ?? []}
+                      size={80}
+                      label="LH"
+                    />
+                  </div>
+                )}
                 <span
                   className="font-bold mt-1"
                   style={{
