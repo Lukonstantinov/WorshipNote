@@ -6,7 +6,7 @@ export type Role = 'musician' | 'singer' | 'congregation'
 export type Language = 'ru' | 'lt' | 'en'
 export type ChordDisplayPosition = 'side' | 'top' | 'none'
 export type ChordDiagramMode = 'single' | 'all' | 'mini'
-export type AppTheme = 'dark' | 'midnight' | 'light' | 'forest'
+export type AppTheme = 'dark' | 'midnight' | 'light' | 'forest' | 'ocean' | 'lavender' | 'sunset'
 
 export interface CustomRole {
   id: string

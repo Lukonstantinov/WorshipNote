@@ -11,6 +11,7 @@ import { ProgressionStrip } from '../features/pianoTrainer/components/Progressio
 import { LevelPicker } from '../features/pianoTrainer/components/LevelPicker'
 import { BassPatternPicker } from '../features/pianoTrainer/components/BassPatternPicker'
 import { PianoChordStrip } from '../features/pianoTrainer/components/PianoChordStrip'
+import { useMetronome } from '../features/pianoTrainer/lib/useMetronome'
 
 export default function PianoTrainerPage() {
   const {
@@ -51,27 +52,40 @@ export default function PianoTrainerPage() {
     [progression, chordsInKey, romans]
   )
 
-  // Playhead animation
+  // Audio context is created on the first Play click (user gesture, required by mobile Safari).
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null)
+
+  // Audible metronome (Web Audio click on every beat, accent on beat 1).
+  useMetronome({ audioCtx, playing, bpm: tempo })
+
+  // Visual playhead — incremental so BPM changes mid-flight don't jump the head.
   const rafRef = useRef<number | null>(null)
-  const startRef = useRef<number>(0)
+  const lastTickRef = useRef<number>(0)
+  const beatsAccumRef = useRef<number>(0)
+  const tempoRef = useRef(tempo)
+  useEffect(() => { tempoRef.current = tempo }, [tempo])
+
   useEffect(() => {
     if (!playing || progression.length === 0) {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
       return
     }
-    startRef.current = performance.now()
+    lastTickRef.current = performance.now()
+    beatsAccumRef.current = 0
     const totalBeats = progression.length * 4
     const tick = (t: number) => {
-      const elapsedSec = (t - startRef.current) / 1000
-      const beats = (elapsedSec * tempo) / 60
-      setPlayheadBeat(beats % totalBeats)
+      const dt = (t - lastTickRef.current) / 1000
+      lastTickRef.current = t
+      beatsAccumRef.current += dt * (tempoRef.current / 60)
+      setPlayheadBeat(beatsAccumRef.current % totalBeats)
       rafRef.current = requestAnimationFrame(tick)
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
     }
-  }, [playing, tempo, progression.length])
+  }, [playing, progression.length])
 
   useEffect(() => {
     if (!playing) setPlayheadBeat(-1)
@@ -90,6 +104,20 @@ export default function PianoTrainerPage() {
 
   const handleTogglePlay = () => {
     if (progression.length === 0) return
+    // Create/resume AudioContext synchronously on the click — mobile Safari
+    // refuses to start audio outside a user gesture.
+    if (!audioCtxRef.current) {
+      try {
+        const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+        audioCtxRef.current = new Ctor()
+        setAudioCtx(audioCtxRef.current)
+      } catch {
+        // Audio not available — visual playback still works.
+      }
+    }
+    if (audioCtxRef.current?.state === 'suspended') {
+      audioCtxRef.current.resume()
+    }
     setPlaying((p) => !p)
   }
 
@@ -291,6 +319,8 @@ export default function PianoTrainerPage() {
             romanNumerals={progressionRomans}
             focusedIndex={focusIndex}
             onFocus={(i) => { setManualFocus(i); setPlaying(false) }}
+            level={level}
+            bassPatternId={bassPatternId}
           />
         </section>
       </div>

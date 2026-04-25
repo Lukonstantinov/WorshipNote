@@ -140,10 +140,13 @@ export default function SettingsPage() {
           <p style={sectionLabel}>Theme</p>
           <div className="grid grid-cols-2 gap-2">
             {([
-              { key: 'dark' as AppTheme, label: 'Dark', dot: 'var(--color-bg)', accent: 'var(--color-accent)' },
-              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: 'var(--color-info)' },
-              { key: 'light' as AppTheme, label: 'Light', dot: '#f2f2f7', accent: 'var(--color-accent)' },
-              { key: 'forest' as AppTheme, label: 'Forest', dot: '#0a1a0e', accent: 'var(--color-chord)' },
+              { key: 'dark' as AppTheme,     label: 'Dark',     dot: '#000000', accent: '#bf5af2' },
+              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: '#0a84ff' },
+              { key: 'light' as AppTheme,    label: 'Light',    dot: '#f5f5f7', accent: '#8e44ad' },
+              { key: 'forest' as AppTheme,   label: 'Forest',   dot: '#0a1a0e', accent: '#30d158' },
+              { key: 'ocean' as AppTheme,    label: 'Ocean',    dot: '#051724', accent: '#06b6d4' },
+              { key: 'lavender' as AppTheme, label: 'Lavender', dot: '#faf7fc', accent: '#8b5cf6' },
+              { key: 'sunset' as AppTheme,   label: 'Sunset',   dot: '#1a0f0a', accent: '#fb7185' },
             ]).map(({ key, label, dot, accent }) => (
               <button
                 key={key}
