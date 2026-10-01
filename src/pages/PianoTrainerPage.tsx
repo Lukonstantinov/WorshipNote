@@ -133,14 +133,14 @@ export default function PianoTrainerPage() {
       >
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
-            to="/settings"
+            to="/practice"
             className="rounded-xl flex items-center justify-center transition-all active:scale-95"
             style={{
               backgroundColor: 'var(--color-card-raised)',
               border: '1px solid var(--color-border)',
               minHeight: 40, minWidth: 40,
             }}
-            aria-label="Back to settings"
+            aria-label="Back"
           >
             <ArrowLeft size={18} strokeWidth={2} style={{ color: 'var(--color-text-secondary)' }} />
           </Link>

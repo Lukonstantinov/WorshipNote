@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { NoteInfo } from '../lib/pitchUtils'
 
 interface NoteEntry {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function PianoRollTimeline({ noteHistory = [], chordHistory = [], mode }: Props) {
+  const { t } = useTranslation()
   const entries = mode === 'note'
     ? noteHistory.slice(-20).map((e) => ({ label: `${e.note.name}${e.note.octave}`, timestamp: e.timestamp }))
     : chordHistory.slice(-20).map((e) => ({ label: e.chord, timestamp: e.timestamp }))
@@ -25,7 +27,7 @@ export function PianoRollTimeline({ noteHistory = [], chordHistory = [], mode }:
     return (
       <div className="px-4 py-6 text-center">
         <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-          {mode === 'note' ? 'Play a note to see history' : 'Play a chord to see history'}
+          {mode === 'note' ? t('playNoteHistory') : t('playChordHistory')}
         </p>
       </div>
     )
@@ -33,7 +35,7 @@ export function PianoRollTimeline({ noteHistory = [], chordHistory = [], mode }:
 
   return (
     <div className="px-4 py-3">
-      <p className="text-xs mb-2" style={{ color: 'var(--color-text-muted)' }}>History</p>
+      <p className="text-xs mb-2" style={{ color: 'var(--color-text-muted)' }}>{t('history')}</p>
       <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-1">
         {entries.map((entry, i) => (
           <div
