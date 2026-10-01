@@ -1,15 +1,25 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, Plus, Music2, ChevronDown, FolderOpen, Settings2, CheckSquare, Square, Trash2, FolderInput, X, Sparkles } from 'lucide-react'
+import {
+  Search, Plus, Music2, ArrowUpDown, FolderOpen, Settings2, CheckSquare, Square, Trash2,
+  FolderInput, X, Sparkles, BookOpen, SearchX, Check,
+} from 'lucide-react'
 import { useSongStore } from '../store/songStore'
 import { useFolderStore } from '../store/folderStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { FolderManager } from '../features/folders/FolderManager'
-import type { Song } from '../features/songs/types'
-import { alpha } from '../shared/lib/color'
+import { PageHeader, sectionButtonStyle } from '../shared/components/PageHeader'
+import { alpha, keyColor } from '../shared/lib/color'
+import { useClickOutside } from '../shared/lib/useClickOutside'
+import type { Song, Folder } from '../features/songs/types'
 
 type SortKey = 'az' | 'key' | 'bpm' | 'date'
+
+/** Lyrics without chords/cues, lower-cased, for searching. */
+function lyricsText(content: string): string {
+  return content.replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').toLowerCase()
+}
 
 export default function HomePage() {
   const { t } = useTranslation()
@@ -28,22 +38,40 @@ export default function HomePage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [showFolderPicker, setShowFolderPicker] = useState(false)
 
+  const sortRef = useRef<HTMLDivElement>(null)
+  const folderPickerRef = useRef<HTMLDivElement>(null)
+  const closeSort = useCallback(() => setShowSort(false), [])
+  const closeFolderPicker = useCallback(() => setShowFolderPicker(false), [])
+  useClickOutside(sortRef, showSort, closeSort)
+  useClickOutside(folderPickerRef, showFolderPicker, closeFolderPicker)
+
   const allTags = useMemo(() => {
     const s = new Set<string>()
     songs.forEach((song) => song.tags.forEach((tag) => s.add(tag)))
     return Array.from(s).sort()
   }, [songs])
 
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase()
+  const lyricsIndex = useMemo(() => new Map(songs.map((s) => [s.id, lyricsText(s.content)])), [songs])
+
+  const folderById = useMemo(() => new Map(folders.map((f) => [f.id, f])), [folders])
+
+  const { filtered, lyricHits } = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const lyricHits = new Set<string>()
     let result = songs.filter((s) => {
-      const matchesQuery =
+      if (activeTag && !s.tags.includes(activeTag)) return false
+      if (activeFolderId && s.folderId !== activeFolderId) return false
+      if (!q) return true
+      const metaMatch =
         s.title.toLowerCase().includes(q) ||
         s.tags.some((tag) => tag.toLowerCase().includes(q)) ||
-        (s.original_key?.toLowerCase().includes(q) ?? false)
-      const matchesTag = activeTag ? s.tags.includes(activeTag) : true
-      const matchesFolder = activeFolderId ? s.folderId === activeFolderId : true
-      return matchesQuery && matchesTag && matchesFolder
+        (s.original_key?.toLowerCase() === q)
+      if (metaMatch) return true
+      if (lyricsIndex.get(s.id)?.includes(q)) {
+        lyricHits.add(s.id)
+        return true
+      }
+      return false
     })
     result = [...result].sort((a, b) => {
       if (sort === 'az') return a.title.localeCompare(b.title)
@@ -51,8 +79,11 @@ export default function HomePage() {
       if (sort === 'bpm') return (a.bpm ?? 0) - (b.bpm ?? 0)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
-    return result
-  }, [songs, query, sort, activeTag, activeFolderId])
+    return { filtered: result, lyricHits }
+  }, [songs, query, sort, activeTag, activeFolderId, lyricsIndex])
+
+  const hasFilters = !!query || !!activeTag || !!activeFolderId
+  const clearFilters = () => { setQuery(''); setActiveTag(null); setActiveFolderId(null) }
 
   const SORT_OPTIONS: { key: SortKey; label: string }[] = [
     { key: 'az',   label: t('sortAZ') },
@@ -70,8 +101,8 @@ export default function HomePage() {
     })
   }
 
-  const selectAll = () => setSelected(new Set(filtered.map((s) => s.id)))
-  const deselectAll = () => setSelected(new Set())
+  const allSelected = filtered.length > 0 && filtered.every((s) => selected.has(s.id))
+  const toggleSelectAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((s) => s.id)))
 
   const exitSelectMode = () => {
     setSelectMode(false)
@@ -81,7 +112,7 @@ export default function HomePage() {
 
   const handleDeleteSelected = () => {
     if (selected.size === 0) return
-    if (confirm(`Delete ${selected.size} psalm(s)? This cannot be undone.`)) {
+    if (confirm(t('confirmDeleteSongs', { count: selected.size }))) {
       deleteSongs(Array.from(selected))
       exitSelectMode()
     }
@@ -90,82 +121,82 @@ export default function HomePage() {
   const handleMoveToFolder = (folderId: string | undefined) => {
     if (selected.size === 0) return
     moveSongsToFolder(Array.from(selected), folderId)
-    setShowFolderPicker(false)
     exitSelectMode()
   }
 
+  const chipStyle = (active: boolean, color?: string): React.CSSProperties => ({
+    backgroundColor: active ? (color ?? 'var(--sec-library)') : color ? alpha(color, 14) : 'var(--color-card)',
+    color: active ? '#fff' : (color ?? 'var(--color-text-secondary)'),
+    border: `1px solid ${active ? 'transparent' : color ? alpha(color, 30) : 'var(--color-border-subtle)'}`,
+    minHeight: 32,
+  })
+
   return (
-    <div className="p-4 pb-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold tracking-tight">{t('library')}</h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { setSelectMode((p) => !p); if (selectMode) exitSelectMode() }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95"
-            style={{
-              backgroundColor: selectMode ? 'var(--color-accent)' : 'var(--color-card)',
-              color: selectMode ? '#fff' : 'var(--color-text-tertiary)',
-              minHeight: 44,
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <CheckSquare size={15} strokeWidth={1.5} />
-            {selectMode ? 'Cancel' : 'Select'}
-          </button>
-          <Link
-            to="/songs/new"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)', minHeight: 44 }}
-          >
-            <Plus size={16} strokeWidth={2.5} />
-            {t('newSong')}
-          </Link>
-        </div>
-      </div>
+    <div className="p-4 pb-8 max-w-3xl mx-auto">
+      <PageHeader
+        title={t('library')}
+        subtitle={t('librarySubtitle', { count: songs.length })}
+        Icon={BookOpen}
+        color="library"
+        actions={
+          <>
+            <button
+              onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+              className="btn-icon"
+              style={selectMode ? { backgroundColor: 'var(--sec-library)', color: '#fff' } : undefined}
+              title={selectMode ? t('cancel') : t('select')}
+              aria-pressed={selectMode}
+            >
+              {selectMode ? <X size={18} strokeWidth={2} /> : <CheckSquare size={18} strokeWidth={1.75} />}
+            </button>
+            <Link to="/songs/new" className="btn-primary" style={sectionButtonStyle('library')} title={t('newSong')}>
+              <Plus size={18} strokeWidth={2.5} />
+              <span className="hidden sm:inline">{t('newSong')}</span>
+            </Link>
+          </>
+        }
+      />
 
       {/* Bulk action bar */}
       {selectMode && (
         <div
           className="flex items-center gap-2 mb-3 px-3 py-2 rounded-2xl flex-wrap"
-          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
+          style={{ backgroundColor: alpha('var(--sec-library)', 10), border: `1px solid ${alpha('var(--sec-library)', 30)}` }}
         >
           <button
-            onClick={selected.size === filtered.length ? deselectAll : selectAll}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
-            style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)' }}
+            onClick={toggleSelectAll}
+            disabled={filtered.length === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
+            style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-secondary)', minHeight: 36 }}
           >
-            {selected.size === filtered.length
-              ? <Square size={12} strokeWidth={2} />
-              : <CheckSquare size={12} strokeWidth={2} />
-            }
-            {selected.size === filtered.length ? 'Deselect all' : 'Select all'}
+            {allSelected ? <Square size={13} strokeWidth={2} /> : <CheckSquare size={13} strokeWidth={2} />}
+            {allSelected ? t('deselectAll') : t('selectAll')}
           </button>
-          <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-            {selected.size} selected
+          <span className="text-xs font-semibold" style={{ color: 'var(--sec-library)' }}>
+            {t('selectedCount', { count: selected.size })}
           </span>
           <div className="flex items-center gap-2 ml-auto">
-            <div className="relative">
+            <div className="relative" ref={folderPickerRef}>
               <button
                 onClick={() => setShowFolderPicker((p) => !p)}
                 disabled={selected.size === 0}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
-                style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)' }}
+                style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)', minHeight: 36 }}
               >
-                <FolderInput size={13} strokeWidth={1.5} />
-                Move to folder
+                <FolderInput size={14} strokeWidth={1.75} />
+                {t('moveToFolder')}
               </button>
               {showFolderPicker && (
                 <div
-                  className="absolute right-0 top-10 rounded-xl shadow-xl z-30 overflow-hidden"
-                  style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 180 }}
+                  className="absolute right-0 top-11 rounded-xl shadow-xl z-30 overflow-hidden py-1"
+                  style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 190, border: '1px solid var(--color-border)' }}
                 >
                   <button
                     onClick={() => handleMoveToFolder(undefined)}
                     className="w-full text-left px-4 py-2.5 text-sm transition-all hover-bg"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
-                    — No folder —
+                    — {t('noFolder')} —
                   </button>
                   {folders.map((f) => (
                     <button
@@ -174,7 +205,7 @@ export default function HomePage() {
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-all hover-bg"
                       style={{ color: 'var(--color-text-secondary)' }}
                     >
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: f.color }} />
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: f.color }} />
                       {f.name}
                     </button>
                   ))}
@@ -185,13 +216,10 @@ export default function HomePage() {
               onClick={handleDeleteSelected}
               disabled={selected.size === 0}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
-              style={{ backgroundColor: 'var(--color-error-dim)', color: 'var(--color-error)' }}
+              style={{ backgroundColor: 'var(--color-error-dim)', color: 'var(--color-error)', minHeight: 36 }}
             >
-              <Trash2 size={13} strokeWidth={1.5} />
-              Delete
-            </button>
-            <button onClick={exitSelectMode} className="p-1.5 rounded-xl" style={{ backgroundColor: 'var(--color-card-raised)' }}>
-              <X size={13} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
+              <Trash2 size={14} strokeWidth={1.75} />
+              {t('delete')}
             </button>
           </div>
         </div>
@@ -199,46 +227,56 @@ export default function HomePage() {
 
       {/* Search + Sort row */}
       <div className="flex gap-2 mb-3">
-        <div
-          className="flex-1 flex items-center gap-2 px-3 rounded-xl"
-          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 44 }}
+        <label
+          className="flex-1 flex items-center gap-2 px-3 rounded-2xl transition-all focus-within:shadow-lg"
+          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minHeight: 46 }}
         >
-          <Search size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+          <Search size={17} strokeWidth={2} style={{ color: 'var(--sec-library)', flexShrink: 0 }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-sm"
-            placeholder={t('search') + '…'}
+            className="flex-1 min-w-0 bg-transparent outline-none text-sm"
+            placeholder={t('searchSongsPlaceholder')}
+            type="search"
+            enterKeyHint="search"
           />
-        </div>
-        <div className="relative">
+          {query && (
+            <button onClick={() => setQuery('')} className="p-1 rounded-full" style={{ color: 'var(--color-text-tertiary)' }} aria-label={t('clearFilters')}>
+              <X size={16} strokeWidth={2} />
+            </button>
+          )}
+        </label>
+        <div className="relative" ref={sortRef}>
           <button
             onClick={() => setShowSort((p) => !p)}
-            className="flex items-center gap-1.5 px-3 rounded-xl text-sm font-medium transition-all"
+            className="flex items-center gap-1.5 px-3 rounded-2xl text-sm font-medium transition-all"
             style={{
               backgroundColor: 'var(--color-card)',
               border: '1px solid var(--color-border)',
               color: 'var(--color-text-secondary)',
-              minHeight: 44,
-              minWidth: 44,
+              minHeight: 46,
+              minWidth: 46,
             }}
+            title={t('sortBy')}
+            aria-expanded={showSort}
           >
+            <ArrowUpDown size={16} strokeWidth={2} />
             <span className="hidden sm:inline">{SORT_OPTIONS.find((o) => o.key === sort)?.label}</span>
-            <ChevronDown size={14} strokeWidth={2} />
           </button>
           {showSort && (
             <div
-              className="absolute right-0 top-12 rounded-xl shadow-xl z-20 overflow-hidden"
-              style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 140 }}
+              className="absolute right-0 top-12 rounded-xl shadow-xl z-20 overflow-hidden py-1"
+              style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 150, border: '1px solid var(--color-border)' }}
             >
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.key}
                   onClick={() => { setSort(opt.key); setShowSort(false) }}
-                  className="w-full text-left px-4 py-2.5 text-sm transition-all hover-bg"
-                  style={{ color: sort === opt.key ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+                  className="w-full flex items-center gap-2 text-left px-4 py-2.5 text-sm transition-all hover-bg"
+                  style={{ color: sort === opt.key ? 'var(--sec-library)' : 'var(--color-text-secondary)', fontWeight: sort === opt.key ? 600 : 400 }}
                 >
-                  {opt.label}
+                  <span className="flex-1">{opt.label}</span>
+                  {sort === opt.key && <Check size={14} strokeWidth={2.5} />}
                 </button>
               ))}
             </div>
@@ -247,96 +285,54 @@ export default function HomePage() {
       </div>
 
       {/* Folder chips */}
-      {folders.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-2 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-2 scrollbar-none">
+        {folders.length > 0 && (
           <button
             onClick={() => setActiveFolderId(null)}
-            className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all"
-            style={{
-              backgroundColor: activeFolderId === null ? 'var(--color-accent)' : 'var(--color-card)',
-              color: activeFolderId === null ? '#fff' : 'var(--color-text-tertiary)',
-              border: '1px solid var(--color-border)',
-            }}
+            className="flex-shrink-0 flex items-center gap-1 px-3 rounded-full text-xs font-medium transition-all"
+            style={chipStyle(activeFolderId === null)}
           >
+            <FolderOpen size={13} strokeWidth={2} />
             {t('allFolders')}
           </button>
-          {folders.map((folder) => {
-            const isActive = activeFolderId === folder.id
-            return (
-              <button
-                key={folder.id}
-                onClick={() => setActiveFolderId(isActive ? null : folder.id)}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: isActive ? `${alpha(folder.color, 20)}` : 'var(--color-card)',
-                  color: isActive ? folder.color : 'var(--color-text-tertiary)',
-                  border: `1px solid ${isActive ? alpha(folder.color, 40) : 'var(--color-card-raised)'}`,
-                }}
-              >
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: folder.color }}
-                />
-                {folder.name}
-              </button>
-            )
-          })}
-          <button
-            onClick={() => setShowFolderManager(true)}
-            className="flex-shrink-0 flex items-center justify-center rounded-full"
-            style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', minWidth: 28, minHeight: 28 }}
-            title={t('folders')}
-          >
-            <Settings2 size={12} strokeWidth={2} style={{ color: 'var(--color-text-tertiary)' }} />
-          </button>
-        </div>
-      )}
-
-      {/* Folder manager button when no folders yet */}
-      {folders.length === 0 && (
+        )}
+        {folders.map((folder) => {
+          const isActive = activeFolderId === folder.id
+          return (
+            <button
+              key={folder.id}
+              onClick={() => setActiveFolderId(isActive ? null : folder.id)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 rounded-full text-xs font-medium transition-all"
+              style={chipStyle(isActive, folder.color)}
+            >
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: isActive ? '#fff' : folder.color }} />
+              {folder.name}
+            </button>
+          )
+        })}
         <button
           onClick={() => setShowFolderManager(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs mb-2 transition-all"
-          style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-muted)', border: '1px dashed var(--color-border)' }}
+          className="flex-shrink-0 flex items-center gap-1.5 px-3 rounded-full text-xs font-medium"
+          style={{ border: '1px dashed var(--color-border)', color: 'var(--color-text-tertiary)', minHeight: 32 }}
+          title={t('manageFolders')}
         >
-          <FolderOpen size={12} strokeWidth={1.5} />
-          {t('addFolder')}
+          {folders.length === 0 ? <><FolderOpen size={13} strokeWidth={1.75} />{t('addFolder')}</> : <Settings2 size={13} strokeWidth={2} />}
         </button>
-      )}
+      </div>
 
       {/* Tag filter chips */}
       {allTags.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 mb-3 scrollbar-none">
-          <button
-            onClick={() => setActiveTag(null)}
-            className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
-            style={{
-              backgroundColor: activeTag === null ? 'var(--color-accent)' : 'var(--color-card-raised)',
-              color: activeTag === null ? '#fff' : 'var(--color-text-tertiary)',
-            }}
-          >
-            {t('allFolders').split(' ')[0]}
-          </button>
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-none">
           {allTags.map((tag) => {
-            const customColor = tagColors[tag]
             const isActive = activeTag === tag
             return (
               <button
                 key={tag}
                 onClick={() => setActiveTag(isActive ? null : tag)}
-                className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: isActive
-                    ? (customColor ?? 'var(--color-accent)')
-                    : customColor
-                      ? `${alpha(customColor, 13)}`
-                      : 'var(--color-card-raised)',
-                  color: isActive
-                    ? '#fff'
-                    : customColor ?? 'var(--color-text-tertiary)',
-                }}
+                className="flex-shrink-0 px-3 rounded-full text-xs font-medium transition-all"
+                style={chipStyle(isActive, tagColors[tag])}
               >
-                {tag}
+                #{tag}
               </button>
             )
           })}
@@ -345,9 +341,22 @@ export default function HomePage() {
 
       {/* Song list */}
       {filtered.length === 0 ? (
-        <div className="text-center mt-20">
-          <Music2 size={40} strokeWidth={1} style={{ color: 'var(--color-text-muted)', margin: '0 auto 12px' }} />
-          <p style={{ color: 'var(--color-text-tertiary)', fontSize: 15 }}>{t('noSongs')}</p>
+        <div className="text-center mt-16 flex flex-col items-center gap-3">
+          <span
+            className="flex items-center justify-center rounded-3xl"
+            style={{ width: 72, height: 72, background: alpha('var(--sec-library)', 14), color: 'var(--sec-library)' }}
+          >
+            {hasFilters ? <SearchX size={34} strokeWidth={1.5} /> : <Music2 size={34} strokeWidth={1.5} />}
+          </span>
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: 15 }}>{hasFilters ? t('noMatches') : t('noSongs')}</p>
+          {hasFilters ? (
+            <button onClick={clearFilters} className="btn-icon px-4 text-sm font-medium">{t('clearFilters')}</button>
+          ) : (
+            <Link to="/songs/new" className="btn-primary" style={sectionButtonStyle('library')}>
+              <Plus size={18} strokeWidth={2.5} />
+              {t('newSong')}
+            </Link>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
@@ -355,9 +364,11 @@ export default function HomePage() {
             <SongCard
               key={song.id}
               song={song}
+              folder={song.folderId ? folderById.get(song.folderId) : undefined}
               tagColors={tagColors}
               selectMode={selectMode}
               selected={selected.has(song.id)}
+              lyricHit={lyricHits.has(song.id)}
               onToggleSelect={() => toggleSelect(song.id)}
             />
           ))}
@@ -372,88 +383,91 @@ export default function HomePage() {
 
 function SongCard({
   song,
+  folder,
   tagColors,
   selectMode,
   selected,
+  lyricHit,
   onToggleSelect,
 }: {
   song: Song
+  folder?: Folder
   tagColors: Record<string, string>
   selectMode: boolean
   selected: boolean
+  lyricHit: boolean
   onToggleSelect: () => void
 }) {
   const { t } = useTranslation()
-  const { folders } = useFolderStore()
-  const folder = song.folderId ? folders.find((f) => f.id === song.folderId) : undefined
+  const kc = keyColor(song.original_key)
 
   const content = (
     <div
-      className="block p-4 rounded-2xl transition-all"
+      className="card-lift flex items-center gap-3 p-3 pr-4 rounded-2xl relative overflow-hidden"
       style={{
-        backgroundColor: selected ? 'var(--color-accent-dim)' : 'var(--color-card)',
-        borderLeft: folder ? `3px solid ${folder.color}` : selected ? '3px solid var(--color-accent)' : undefined,
-        border: selected ? '1px solid var(--color-accent)' : undefined,
+        backgroundColor: selected ? alpha('var(--sec-library)', 12) : 'var(--color-card)',
+        border: `1px solid ${selected ? 'var(--sec-library)' : 'var(--color-border-subtle)'}`,
       }}
     >
-      <div className="flex items-center justify-between gap-2">
-        {selectMode && (
-          <div className="flex-shrink-0 mr-1">
-            {selected
-              ? <CheckSquare size={18} strokeWidth={1.5} style={{ color: 'var(--color-accent)' }} />
-              : <Square size={18} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />
-            }
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <h3 className="font-semibold text-base leading-snug truncate">{song.title}</h3>
-            {song.isPreset && (
-              <span
-                className="flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
-                style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
-              >
-                <Sparkles size={9} strokeWidth={2} />
-                preset
-              </span>
-            )}
-          </div>
+      {folder && <span className="absolute left-0 top-0 bottom-0" style={{ width: 4, backgroundColor: folder.color }} />}
+
+      {selectMode ? (
+        <span className="flex items-center justify-center flex-shrink-0" style={{ width: 46, height: 46 }}>
+          {selected
+            ? <CheckSquare size={22} strokeWidth={2} style={{ color: 'var(--sec-library)' }} />
+            : <Square size={22} strokeWidth={1.5} style={{ color: 'var(--color-text-muted)' }} />}
+        </span>
+      ) : (
+        /* Key badge — colour follows the circle of fifths */
+        <span
+          className="flex flex-col items-center justify-center flex-shrink-0 rounded-2xl font-bold"
+          style={{
+            width: 46,
+            height: 46,
+            background: song.original_key ? `linear-gradient(135deg, ${kc}, ${alpha(kc, 70)})` : 'var(--color-card-raised)',
+            color: song.original_key ? '#fff' : 'var(--color-text-muted)',
+            fontSize: (song.original_key?.length ?? 0) > 2 ? 13 : 16,
+            boxShadow: song.original_key ? `0 3px 10px ${alpha(kc, 30)}` : undefined,
+          }}
+        >
+          {song.original_key || <Music2 size={18} strokeWidth={1.75} />}
+        </span>
+      )}
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <h3 className="font-semibold text-[15px] leading-snug truncate">{song.title}</h3>
+          {song.isPreset && (
+            <span
+              className="flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
+              style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+            >
+              <Sparkles size={9} strokeWidth={2} />
+              {t('preset')}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+          {song.bpm ? <span>♩ {song.bpm}</span> : null}
           {folder && (
-            <div className="flex items-center gap-1 mt-0.5">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: folder.color }} />
-              <span className="text-xs" style={{ color: alpha(folder.color, 80) }}>{folder.name}</span>
-            </div>
-          )}
-        </div>
-        <div className="flex gap-1.5 text-xs flex-shrink-0">
-          {song.original_key && (
-            <span
-              className="px-2 py-0.5 rounded-full font-semibold"
-              style={{ backgroundColor: 'var(--color-chord-dim)', color: 'var(--color-chord)' }}
-            >
-              {song.original_key}
+            <span className="flex items-center gap-1" style={{ color: folder.color }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: folder.color }} />
+              {folder.name}
             </span>
           )}
-          {song.bpm && (
-            <span
-              className="px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)' }}
-            >
-              {song.bpm} {t('bpm')}
+          {lyricHit && (
+            <span className="px-1.5 rounded-full" style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)' }}>
+              {t('lyricsMatch')}
             </span>
           )}
-        </div>
-      </div>
-      {song.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
           {song.tags.map((tag) => {
             const color = tagColors[tag]
             return (
               <span
                 key={tag}
-                className="text-xs px-2 py-0.5 rounded-full"
+                className="px-2 py-0.5 rounded-full"
                 style={{
-                  backgroundColor: color ? `${alpha(color, 13)}` : 'var(--color-card-raised)',
+                  backgroundColor: color ? alpha(color, 14) : 'var(--color-card-raised)',
                   color: color ?? 'var(--color-text-tertiary)',
                 }}
               >
@@ -462,20 +476,20 @@ function SongCard({
             )
           })}
         </div>
-      )}
+      </div>
     </div>
   )
 
   if (selectMode) {
     return (
-      <button className="w-full text-left active:scale-[0.99]" onClick={onToggleSelect}>
+      <button className="w-full text-left active:scale-[0.99] transition-transform" onClick={onToggleSelect} aria-pressed={selected}>
         {content}
       </button>
     )
   }
 
   return (
-    <Link to={`/songs/${song.id}`} className="block active:scale-[0.99] hover:opacity-90">
+    <Link to={`/songs/${song.id}`} className="block active:scale-[0.99] transition-transform">
       {content}
     </Link>
   )

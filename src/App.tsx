@@ -9,6 +9,7 @@ import SettingsPage from './pages/SettingsPage'
 import ChordLibraryPage from './pages/ChordLibraryPage'
 import PitchPage from './pages/PitchPage'
 import PianoTrainerPage from './pages/PianoTrainerPage'
+import PracticePage from './pages/PracticePage'
 
 export default function App() {
   return (
@@ -25,9 +26,11 @@ export default function App() {
           <Route path="/setlists/:id/edit" element={<SetlistEditPage />} />
           <Route path="/setlists/new" element={<SetlistEditPage />} />
           <Route path="/chords" element={<ChordLibraryPage />} />
+          <Route path="/practice" element={<PracticePage />} />
           <Route path="/pitch" element={<PitchPage />} />
           <Route path="/piano-learn" element={<PianoTrainerPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="*" element={<Navigate to="/library" replace />} />
         </Route>
       </Routes>
     </HashRouter>
