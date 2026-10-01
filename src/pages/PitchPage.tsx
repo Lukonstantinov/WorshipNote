@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Mic, MicOff, Settings2, Music2, Guitar, ShieldAlert } from 'lucide-react'
+import { ChevronLeft, Mic, MicOff, Settings2, Music2, Guitar, ShieldAlert } from 'lucide-react'
 import { usePitchStore } from '../store/pitchStore'
 import { usePitchDetection } from '../features/pitch/hooks/usePitchDetection'
 import { useChordDetection } from '../features/pitch/hooks/useChordDetection'
@@ -9,6 +9,7 @@ import { CentIndicator } from '../features/pitch/components/CentIndicator'
 import { ChordDisplay } from '../features/pitch/components/ChordDisplay'
 import { MicControls } from '../features/pitch/components/MicControls'
 import { PianoRollTimeline } from '../features/pitch/components/PianoRollTimeline'
+import { Link } from 'react-router-dom'
 
 type MicPermission = 'unknown' | 'granted' | 'denied' | 'prompt'
 
@@ -94,7 +95,10 @@ export default function PitchPage() {
         className="flex items-center gap-2 px-4 py-3 border-b flex-shrink-0"
         style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}
       >
-        <h1 className="flex-1 font-semibold text-lg" style={{ color: 'var(--color-text-primary)' }}>
+        <Link to="/practice" className="flex items-center justify-center rounded-xl -ml-2" style={{ color: 'var(--sec-practice)', minWidth: 40, minHeight: 40 }} aria-label={t('back')}>
+          <ChevronLeft size={24} strokeWidth={2.5} />
+        </Link>
+        <h1 className="flex-1 font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>
           {t('pitchDetection')}
         </h1>
         <button

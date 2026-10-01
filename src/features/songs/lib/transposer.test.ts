@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { transposeChord, transposeSong, getCapoDisplay } from './transposer'
+import { transposeChord, transposeSong, getCapoDisplay, transposeKey, keyUsesSharps } from './transposer'
 
 describe('transposeChord', () => {
   it('transposes C up by 2 semitones → D', () => {
@@ -59,6 +59,36 @@ describe('transposeSong', () => {
   it('returns unchanged if steps = 0', () => {
     const input = '[G] text [Am] more'
     expect(transposeSong(input, 0)).toBe(input)
+  })
+})
+
+describe('key-aware transposition', () => {
+  it('spells transposed keys conventionally', () => {
+    expect(transposeKey('C', 1)).toBe('Db')
+    expect(transposeKey('G', -1)).toBe('F#')
+    expect(transposeKey('Am', 1)).toBe('Bbm')
+    expect(transposeKey('Em', -1)).toBe('Ebm')
+    expect(transposeKey('Am', 3)).toBe('Cm')
+    expect(transposeKey('Am7', 0)).toBe('Am7')
+  })
+
+  it('detects sharp and flat keys', () => {
+    expect(keyUsesSharps('G')).toBe(true)
+    expect(keyUsesSharps('F')).toBe(false)
+    expect(keyUsesSharps('Dm')).toBe(false)
+    expect(keyUsesSharps('Em')).toBe(true)
+    expect(keyUsesSharps('Bb')).toBe(false)
+  })
+
+  it('spells all chords for the target key', () => {
+    // C → Db: every chord should use flats
+    expect(transposeSong('[C] a [G] b [Am] c [F] d', 1, 'C')).toBe('[Db] a [Ab] b [Bbm] c [Gb] d')
+    // F → E: sharps
+    expect(transposeSong('[F] a [Bb] b [Dm] c', -1, 'F')).toBe('[E] a [A] b [C#m] c')
+  })
+
+  it('keeps slash chords consistent', () => {
+    expect(transposeSong('[G/B]', 1, 'G')).toBe('[Ab/C]')
   })
 })
 

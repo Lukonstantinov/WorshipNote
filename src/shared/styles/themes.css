@@ -252,3 +252,79 @@
   --color-piano-stroke: #1a3322;
   --color-selected-text: #ffffff;
 }
+
+/* ── Derived tokens (resolve against whichever theme class is on <html>) ── */
+:root {
+  --color-on-accent: #ffffff;
+  --color-chord-dim: color-mix(in srgb, var(--color-chord) 15%, transparent);
+  --color-chord-border: color-mix(in srgb, var(--color-chord) 30%, transparent);
+  --color-info-dim: color-mix(in srgb, var(--color-info) 14%, transparent);
+  --color-error-dim: color-mix(in srgb, var(--color-error) 14%, transparent);
+  --color-success-dim: color-mix(in srgb, var(--color-success) 14%, transparent);
+  --color-warning-dim: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  --color-warning-border: color-mix(in srgb, var(--color-warning) 25%, transparent);
+
+  /* Section colours — every area of the app has its own vibrant identity */
+  --sec-library: #a855f7;
+  --sec-library-2: #ec4899;
+  --sec-setlists: #3b82f6;
+  --sec-setlists-2: #06b6d4;
+  --sec-chords: #10b981;
+  --sec-chords-2: #84cc16;
+  --sec-practice: #f97316;
+  --sec-practice-2: #facc15;
+  --sec-settings: #64748b;
+  --sec-settings-2: #a855f7;
+
+  --grad-accent: linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 55%, #ec4899) 100%);
+}
+
+/* Light themes need deeper section colours for contrast on white */
+.theme-light,
+.theme-lavender {
+  --sec-library: #7c3aed;
+  --sec-library-2: #db2777;
+  --sec-setlists: #2563eb;
+  --sec-setlists-2: #0891b2;
+  --sec-chords: #059669;
+  --sec-chords-2: #65a30d;
+  --sec-practice: #ea580c;
+  --sec-practice-2: #ca8a04;
+  --sec-settings: #475569;
+  --sec-settings-2: #7c3aed;
+}
+
+/* Native controls (date pickers, selects, scrollbars) follow the theme */
+:root,
+.theme-dark,
+.theme-midnight,
+.theme-forest,
+.theme-ocean,
+.theme-sunset {
+  color-scheme: dark;
+}
+.theme-light,
+.theme-lavender {
+  color-scheme: light;
+}
+
+/* Older iPhones (iOS < 16.2) have no color-mix(): use fixed, theme-neutral fallbacks */
+@supports not (color: color-mix(in srgb, red 50%, transparent)) {
+  :root,
+  .theme-dark,
+  .theme-midnight,
+  .theme-light,
+  .theme-forest,
+  .theme-ocean,
+  .theme-lavender,
+  .theme-sunset {
+    --color-chord-dim: rgba(50, 215, 75, 0.15);
+    --color-chord-border: rgba(50, 215, 75, 0.3);
+    --color-info-dim: rgba(10, 132, 255, 0.14);
+    --color-error-dim: rgba(255, 69, 58, 0.14);
+    --color-success-dim: rgba(52, 199, 89, 0.14);
+    --color-warning-dim: rgba(255, 159, 10, 0.12);
+    --color-warning-border: rgba(255, 159, 10, 0.25);
+    --grad-accent: linear-gradient(135deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 100%), var(--color-accent);
+  }
+}

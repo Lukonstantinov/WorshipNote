@@ -81,3 +81,7 @@ export function suggestProgression(key: PianoKey, seed: number): string[] {
   const preset = presets[((seed % presets.length) + presets.length) % presets.length]
   return progressionForKey(preset, key)
 }
+
+/** Roman numerals for the 7 diatonic triads. */
+export const MAJOR_ROMANS = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']
+export const MINOR_ROMANS = ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII']

@@ -1,30 +1,19 @@
-import { useMemo } from 'react'
 import { useSettingsStore } from '../../../store/settingsStore'
 import type { ParsedSong } from '../types'
+import { useRoleCapabilities } from '../lib/useRoleCapabilities'
+import { sectionColor } from '../lib/sectionColors'
+import { alpha } from '../../../shared/lib/color'
 
 interface Props {
   parsed: ParsedSong
 }
 
-const BUILT_IN_DEFAULTS: Record<string, { showChords: boolean; showCues: boolean }> = {
-  musician: { showChords: true, showCues: true },
-  singer: { showChords: true, showCues: false },
-  congregation: { showChords: false, showCues: false },
-}
-
 export function SongViewer({ parsed }: Props) {
-  const { role, fontSize, customRoles } = useSettingsStore()
-
-  const capabilities = useMemo(() => {
-    const customRole = customRoles.find((cr) => cr.id === role)
-    if (customRole) {
-      return { showChords: customRole.showChords, showCues: customRole.showCues }
-    }
-    return BUILT_IN_DEFAULTS[role as string] ?? BUILT_IN_DEFAULTS.musician
-  }, [role, customRoles])
+  const fontSize = useSettingsStore((s) => s.fontSize)
+  const capabilities = useRoleCapabilities()
 
   return (
-    <div className="space-y-1 pb-24" style={{ fontSize: `${fontSize}px` }}>
+    <div className="space-y-1 pb-10" style={{ fontSize: `${fontSize}px` }}>
       {parsed.lines.map((line, i) => {
         if (line.type === 'empty') {
           return <div key={i} className="h-4" />
@@ -32,19 +21,20 @@ export function SongViewer({ parsed }: Props) {
 
         if (line.type === 'cue') {
           if (!capabilities.showCues) return null
+          const color = sectionColor(line.cue ?? '', 'var(--color-info)')
           return (
             <div
               key={i}
-              className="flex items-center gap-2 text-xs italic py-1 px-2 rounded-lg w-fit"
+              className="flex items-center gap-2 font-bold uppercase py-1 pl-2 pr-3 rounded-lg w-fit"
               style={{
-                color: 'var(--color-info)',
-                backgroundColor: 'rgba(10,132,255,0.1)',
+                color,
+                backgroundColor: alpha(color, 14),
+                borderLeft: `3px solid ${color}`,
                 fontSize: Math.max(11, fontSize * 0.6),
+                letterSpacing: '0.06em',
+                marginTop: i > 0 ? '0.6em' : 0,
               }}
             >
-              <span style={{ opacity: 0.7, fontSize: 8, letterSpacing: 1, fontStyle: 'normal', fontWeight: 600 }}>
-                CUE
-              </span>
               {line.cue}
             </div>
           )

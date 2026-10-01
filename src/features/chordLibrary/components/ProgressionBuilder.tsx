@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, Plus, GripVertical, Guitar, Piano, Music } from 'lucide-react'
 import { useChordLibraryStore } from '../../../store/chordLibraryStore'
 import type { ChordProgression } from '../../../store/chordLibraryStore'
+import { alpha } from '../../../shared/lib/color'
 
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const MINOR_NOTES = NOTES.map((n) => n + 'm')
@@ -228,8 +229,8 @@ export function ProgressionBuilder({ progression, initialChords, onClose }: Prop
             </div>
             {color && (
               <div className="mt-2 p-3 rounded-xl text-xs font-medium" style={{
-                background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-                border: `1px solid ${color}44`,
+                background: `linear-gradient(135deg, ${alpha(color, 20)}, ${alpha(color, 7)})`,
+                border: `1px solid ${alpha(color, 27)}`,
                 color: 'var(--color-text-secondary)',
               }}>
                 Preview gradient

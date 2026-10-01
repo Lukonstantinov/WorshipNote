@@ -109,7 +109,7 @@ function FormatGuide() {
               {CHORD_JSON_EXAMPLE}
             </pre>
           </div>
-          <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: '#ff9f0a18', border: '1px solid #ff9f0a33' }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: 'var(--color-warning-dim)', border: '1px solid var(--color-warning-border)' }}>
             <p className="text-xs" style={{ color: 'var(--color-warning)' }}>
               <strong>Note:</strong> The app only imports .json files exported by WorshipNote. TXT exports are for sharing/printing only and cannot be re-imported.
             </p>
@@ -363,15 +363,15 @@ export function ExportImportPanel() {
       <FormatGuide />
 
       {/* Hidden file inputs */}
-      <input ref={songFileRef} type="file" accept=".json" onChange={handleImportSongs} className="hidden" />
-      <input ref={chordFileRef} type="file" accept=".json" onChange={handleImportChords} className="hidden" />
+      <input ref={songFileRef} type="file" accept="application/json,.json" onChange={handleImportSongs} className="hidden" />
+      <input ref={chordFileRef} type="file" accept="application/json,.json" onChange={handleImportChords} className="hidden" />
 
       {/* Import result toast */}
       {importResult && (
         <div
           className="flex items-start gap-2 mt-3 px-4 py-3 rounded-2xl text-sm"
           style={{
-            backgroundColor: importResult.type === 'success' ? '#32d74b22' : '#ff453a22',
+            backgroundColor: importResult.type === 'success' ? 'var(--color-chord-dim)' : 'var(--color-error-dim)',
             color: importResult.type === 'success' ? 'var(--color-chord)' : 'var(--color-error)',
           }}
         >

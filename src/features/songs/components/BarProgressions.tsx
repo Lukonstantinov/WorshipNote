@@ -171,7 +171,7 @@ export function BarProgressions({ progressions, onChange }: Props) {
                               key={beatIdx}
                               className="rounded-lg flex items-center justify-center transition-all cursor-pointer"
                               style={{
-                                backgroundColor: cell.chord ? '#32d74b15' : 'var(--color-card-raised)',
+                                backgroundColor: cell.chord ? 'var(--color-chord-dim)' : 'var(--color-card-raised)',
                                 border: isEditing ? '1px solid #32d74b' : '1px solid transparent',
                                 minHeight: 40,
                               }}

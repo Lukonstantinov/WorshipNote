@@ -1,5 +1,6 @@
 import type { Song, Folder } from '../types'
 import type { CustomChordDiagram, CustomPianoChordDiagram } from '../types'
+import { shareFileOnMobile } from '../../../shared/lib/shareFile'
 
 // ── Export format types ──
 
@@ -143,7 +144,10 @@ export async function downloadFile(content: string, filename: string, mimeType: 
     }
   }
 
-  // 2. Desktop: blob download
+  // 2. Phones: native share sheet (Save to Files, AirDrop…)
+  if (await shareFileOnMobile(content, filename, mimeType)) return
+
+  // 3. Desktop: blob download
   try {
     const blob = new Blob([content], { type: mimeType })
     const url = URL.createObjectURL(blob)
@@ -153,7 +157,7 @@ export async function downloadFile(content: string, filename: string, mimeType: 
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 10_000) // Safari cancels the download if revoked immediately
   } catch {
     // Last resort
     const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')

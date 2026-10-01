@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
-import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil, Palette, Type, Users, BookOpen, HardDrive, Info, GraduationCap, ChevronRight } from 'lucide-react'
+import { Check, Plus, Trash2, Guitar, Piano, Music2, Drum, Pencil, Palette, Type, Users, BookOpen, HardDrive, Info, Settings as SettingsIcon } from 'lucide-react'
 import { useSettingsStore } from '../store/settingsStore'
 import { useSongStore } from '../store/songStore'
 import type { Language, ChordDisplayPosition, ChordDiagramMode, CustomRole, AppTheme } from '../store/settingsStore'
@@ -10,6 +9,8 @@ import { FONT_SIZE_MIN, FONT_SIZE_MAX } from '../shared/lib/constants'
 import { generateId } from '../shared/lib/storage'
 import { ExportImportPanel } from '../features/songs/components/ExportImportPanel'
 import { APP_VERSION } from '../shared/lib/version'
+import { PageHeader } from '../shared/components/PageHeader'
+import { alpha } from '../shared/lib/color'
 
 const LANGUAGES: { code: Language; label: string; sub: string }[] = [
   { code: 'ru', label: 'Русский',  sub: 'Russian' },
@@ -18,8 +19,7 @@ const LANGUAGES: { code: Language; label: string; sub: string }[] = [
 ]
 
 const TAG_COLORS = [
-  'var(--color-error)', 'var(--color-warning)', '#ffd60a', 'var(--color-chord)',
-  'var(--color-info)', 'var(--color-accent)', 'var(--color-info)', '#ebebf5',
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7', '#ec4899',
 ]
 
 const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
@@ -34,11 +34,29 @@ const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
 
 const BUILT_IN_ROLES = ['musician', 'singer', 'congregation'] as const
 
-function CategoryHeader({ icon, label }: { icon: React.ReactNode; label: string }) {
+const THEMES: { key: AppTheme; label: string; bg: string; card: string; accent: string; chord: string }[] = [
+  { key: 'dark',     label: 'themeDark',     bg: '#000000', card: '#2c2c2e', accent: '#bf5af2', chord: '#32d74b' },
+  { key: 'midnight', label: 'themeMidnight', bg: '#080c14', card: '#1c2540', accent: '#0a84ff', chord: '#64d2ff' },
+  { key: 'light',    label: 'themeLight',    bg: '#f5f5f7', card: '#ffffff', accent: '#8e44ad', chord: '#248f3f' },
+  { key: 'forest',   label: 'themeForest',   bg: '#0a1a0e', card: '#1a3322', accent: '#30d158', chord: '#30d158' },
+  { key: 'ocean',    label: 'themeOcean',    bg: '#051724', card: '#173a55', accent: '#06b6d4', chord: '#34d399' },
+  { key: 'lavender', label: 'themeLavender', bg: '#faf7fc', card: '#f0e7f7', accent: '#8b5cf6', chord: '#6d28d9' },
+  { key: 'sunset',   label: 'themeSunset',   bg: '#1a0f0a', card: '#3d261c', accent: '#fb7185', chord: '#fbbf24' },
+]
+
+function CategoryHeader({ icon, label, color }: { icon: React.ReactNode; label: string; color: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 16 }}>
-      <span style={{ color: 'var(--color-accent)' }}>{icon}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, marginTop: 20 }}>
+      <span
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 9,
+          background: `linear-gradient(135deg, ${color}, ${alpha(color, 70)})`, color: '#fff',
+          boxShadow: `0 3px 10px ${alpha(color, 35)}`,
+        }}
+      >
+        {icon}
+      </span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</span>
       <div style={{ flex: 1, height: 1, backgroundColor: 'var(--color-border-subtle)', marginLeft: 4 }} />
     </div>
   )
@@ -126,47 +144,50 @@ export default function SettingsPage() {
 
   return (
     <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100%' }}>
-      <div className="px-4 py-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-        <h1 className="text-2xl font-bold tracking-tight">{t('settings')}</h1>
-      </div>
-
-      <div className="p-4 space-y-6 pb-28 max-w-md mx-auto">
+      <div className="p-4 space-y-6 pb-10 max-w-xl mx-auto">
+        <PageHeader title={t('settings')} subtitle={t('settingsSubtitle')} Icon={SettingsIcon} color="settings" />
 
         {/* ── APPEARANCE ─────────────────────────────────────── */}
-        <CategoryHeader icon={<Palette size={15} />} label="Appearance" />
+        <CategoryHeader icon={<Palette size={15} />} label={t('catAppearance')} color="#ec4899" />
 
         {/* Theme */}
         <section>
-          <p style={sectionLabel}>Theme</p>
-          <div className="grid grid-cols-2 gap-2">
-            {([
-              { key: 'dark' as AppTheme,     label: 'Dark',     dot: '#000000', accent: '#bf5af2' },
-              { key: 'midnight' as AppTheme, label: 'Midnight', dot: '#080c14', accent: '#0a84ff' },
-              { key: 'light' as AppTheme,    label: 'Light',    dot: '#f5f5f7', accent: '#8e44ad' },
-              { key: 'forest' as AppTheme,   label: 'Forest',   dot: '#0a1a0e', accent: '#30d158' },
-              { key: 'ocean' as AppTheme,    label: 'Ocean',    dot: '#051724', accent: '#06b6d4' },
-              { key: 'lavender' as AppTheme, label: 'Lavender', dot: '#faf7fc', accent: '#8b5cf6' },
-              { key: 'sunset' as AppTheme,   label: 'Sunset',   dot: '#1a0f0a', accent: '#fb7185' },
-            ]).map(({ key, label, dot, accent }) => (
-              <button
-                key={key}
-                onClick={() => setTheme(key)}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
-                style={{
-                  backgroundColor: theme === key ? `${accent}22` : 'var(--color-card)',
-                  color: theme === key ? accent : 'var(--color-text-tertiary)',
-                  border: `1px solid ${theme === key ? accent + '66' : 'var(--color-card-raised)'}`,
-                  minHeight: 50,
-                }}
-              >
-                <div
-                  className="w-6 h-6 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: dot, border: `2px solid ${accent}` }}
-                />
-                {label}
-                {theme === key && <Check size={14} strokeWidth={2.5} className="ml-auto" style={{ color: accent }} />}
-              </button>
-            ))}
+          <p style={sectionLabel}>{t('theme')}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {THEMES.map(({ key, label, bg, card, accent, chord }) => {
+              const active = theme === key
+              return (
+                <button
+                  key={key}
+                  onClick={() => setTheme(key)}
+                  aria-pressed={active}
+                  className="rounded-2xl p-2 text-left transition-all active:scale-95"
+                  style={{
+                    backgroundColor: 'var(--color-card)',
+                    border: `2px solid ${active ? accent : 'var(--color-border-subtle)'}`,
+                    boxShadow: active ? `0 4px 14px ${alpha(accent, 30)}` : undefined,
+                  }}
+                >
+                  {/* mini preview of the theme */}
+                  <div className="rounded-xl p-2 flex flex-col gap-1.5" style={{ backgroundColor: bg, height: 64 }}>
+                    <div className="flex gap-1 items-center">
+                      <span className="rounded-full" style={{ width: 10, height: 10, backgroundColor: accent }} />
+                      <span className="rounded-full flex-1" style={{ height: 6, backgroundColor: card }} />
+                    </div>
+                    <div className="rounded-md flex items-center gap-1 px-1.5" style={{ backgroundColor: card, height: 18 }}>
+                      <span className="text-[9px] font-bold" style={{ color: chord }}>Am</span>
+                      <span className="text-[9px] font-bold" style={{ color: chord }}>F</span>
+                      <span className="text-[9px] font-bold" style={{ color: chord }}>C</span>
+                    </div>
+                    <span className="rounded-md" style={{ height: 8, width: '55%', background: `linear-gradient(90deg, ${accent}, ${alpha(accent, 50)})` }} />
+                  </div>
+                  <div className="flex items-center gap-1 px-1 pt-1.5">
+                    <span className="text-xs font-semibold flex-1" style={{ color: active ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>{t(label)}</span>
+                    {active && <Check size={14} strokeWidth={3} style={{ color: accent }} />}
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </section>
 
@@ -192,7 +213,7 @@ export default function SettingsPage() {
         </section>
 
         {/* ── DISPLAY ────────────────────────────────────────── */}
-        <CategoryHeader icon={<Type size={15} />} label="Display" />
+        <CategoryHeader icon={<Type size={15} />} label={t('catDisplay')} color="#3b82f6" />
 
         {/* Font size */}
         <section>
@@ -237,7 +258,7 @@ export default function SettingsPage() {
         </section>
 
         {/* ── INSTRUMENTS ────────────────────────────────────── */}
-        <CategoryHeader icon={<Music2 size={15} />} label="Instruments" />
+        <CategoryHeader icon={<Music2 size={15} />} label={t('catInstruments')} color="#f97316" />
 
         {/* Instruments */}
         <section>
@@ -301,7 +322,7 @@ export default function SettingsPage() {
         </section>
 
         {/* ── CHORD DIAGRAMS ─────────────────────────────────── */}
-        <CategoryHeader icon={<Guitar size={15} />} label="Chord Diagrams" />
+        <CategoryHeader icon={<Guitar size={15} />} label={t('catChordDiagrams')} color="#10b981" />
 
         {/* Chord diagram position */}
         <section>
@@ -347,7 +368,7 @@ export default function SettingsPage() {
           {chordDisplayPosition !== 'none' && (
             <div className="rounded-2xl mt-3 overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
               <div className="flex items-center justify-between gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <span className="text-sm flex-1 min-w-0">Guitar dot colour</span>
+                <span className="text-sm flex-1 min-w-0">{t('guitarDotColour')}</span>
                 <input
                   type="color"
                   value={guitarDotColor}
@@ -357,7 +378,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="flex items-center justify-between gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <span className="text-sm flex-1 min-w-0">Piano key colour</span>
+                <span className="text-sm flex-1 min-w-0">{t('pianoKeyColour')}</span>
                 <input
                   type="color"
                   value={pianoHighlightColor}
@@ -372,7 +393,7 @@ export default function SettingsPage() {
                 className="w-full flex items-center justify-between px-4 py-3 transition-all"
                 style={{ borderBottom: '1px solid var(--color-border)' }}
               >
-                <span className="text-sm">Flip guitar frets (mirror)</span>
+                <span className="text-sm">{t('flipGuitar')}</span>
                 <div
                   className="rounded-full transition-all"
                   style={{
@@ -389,7 +410,7 @@ export default function SettingsPage() {
               {/* Diagram size */}
               <div className="px-4 py-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm">Diagram size</span>
+                  <span className="text-sm">{t('diagramSize')}</span>
                   <span className="text-sm font-semibold" style={{ color: 'var(--color-chord)' }}>
                     {diagramScale === 0.75 ? 'S' : diagramScale === 1 ? 'M' : diagramScale === 1.5 ? 'L' : 'XL'}
                   </span>
@@ -415,7 +436,7 @@ export default function SettingsPage() {
         </section>
 
         {/* ── ROLES ──────────────────────────────────────────── */}
-        <CategoryHeader icon={<Users size={15} />} label="Roles" />
+        <CategoryHeader icon={<Users size={15} />} label={t('catRoles')} color="#a855f7" />
 
         {/* Roles */}
         <section>
@@ -494,9 +515,9 @@ export default function SettingsPage() {
                         onClick={() => updateCustomRole(cr.id, { [key]: !cr[key] })}
                         className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
                         style={{
-                          backgroundColor: cr[key] ? '#32d74b22' : 'var(--color-card-raised)',
+                          backgroundColor: cr[key] ? 'var(--color-chord-dim)' : 'var(--color-card-raised)',
                           color: cr[key] ? 'var(--color-chord)' : 'var(--color-text-muted)',
-                          border: cr[key] ? '1px solid #32d74b44' : '1px solid transparent',
+                          border: cr[key] ? '1px solid var(--color-chord-border)' : '1px solid transparent',
                         }}
                       >
                         {label}
@@ -534,7 +555,7 @@ export default function SettingsPage() {
         </section>
 
         {/* ── SONGS ──────────────────────────────────────────── */}
-        <CategoryHeader icon={<BookOpen size={15} />} label="Songs" />
+        <CategoryHeader icon={<BookOpen size={15} />} label={t('catSongs')} color="#eab308" />
 
         {/* Tag colors */}
         {allTags.length > 0 && (
@@ -590,7 +611,7 @@ export default function SettingsPage() {
 
         {/* Default Song Template */}
         <section>
-          <p style={sectionLabel}>Default Psalm Template</p>
+          <p style={sectionLabel}>{t('defaultTemplate')}</p>
           <p className="text-xs mb-2 px-1" style={{ color: 'var(--color-text-tertiary)' }}>
             New psalms start from this template (ChordPro format). Leave blank for an empty psalm.
           </p>
@@ -613,33 +634,13 @@ export default function SettingsPage() {
         <SongPresetsSection />
 
         {/* ── DATA ───────────────────────────────────────────── */}
-        <CategoryHeader icon={<HardDrive size={15} />} label="Data" />
+        <CategoryHeader icon={<HardDrive size={15} />} label={t('catData')} color="#06b6d4" />
 
         {/* Export / Import */}
         <ExportImportPanel />
 
-        {/* ── LEARN ──────────────────────────────────────────── */}
-        <CategoryHeader icon={<GraduationCap size={15} />} label="Learn" />
-
-        <section>
-          <Link
-            to="/piano-learn"
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all active:scale-[0.99]"
-            style={{ backgroundColor: 'var(--color-card)', minHeight: 50 }}
-          >
-            <span style={{ color: 'var(--color-accent)' }}><Piano size={18} strokeWidth={1.5} /></span>
-            <div className="flex-1 text-left">
-              <div className="text-sm font-medium">Piano chord trainer</div>
-              <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                Build a progression · see it on a piano roll
-              </div>
-            </div>
-            <ChevronRight size={16} strokeWidth={1.5} style={{ color: 'var(--color-text-tertiary)' }} />
-          </Link>
-        </section>
-
         {/* ── ABOUT ──────────────────────────────────────────── */}
-        <CategoryHeader icon={<Info size={15} />} label="About" />
+        <CategoryHeader icon={<Info size={15} />} label={t('catAbout')} color="#64748b" />
 
         {/* App info */}
         <section>
@@ -651,9 +652,9 @@ export default function SettingsPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block mt-2 text-xs px-3 py-1.5 rounded-lg transition-all"
-              style={{ backgroundColor: '#0a84ff22', color: 'var(--color-info)' }}
+              style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)' }}
             >
-              Check for updates
+              {t('checkUpdates')}
             </a>
           </div>
         </section>
@@ -773,14 +774,14 @@ function SongPresetsSection() {
       {songPresets.length > 0 && (
         <div className="space-y-2 mb-3">
           {songPresets.map((preset) => {
-            const gradient = PRESET_GRADIENT[preset.color] ?? `linear-gradient(135deg, ${preset.color} 0%, ${preset.color}88 100%)`
+            const gradient = PRESET_GRADIENT[preset.color] ?? `linear-gradient(135deg, ${preset.color} 0%, ${alpha(preset.color, 53)} 100%)`
             return (
             <div
               key={preset.id}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl"
               style={{
                 background: `linear-gradient(135deg, ${preset.color}28 0%, ${preset.color}10 100%)`,
-                border: `1px solid ${preset.color}55`,
+                border: `1px solid ${alpha(preset.color, 33)}`,
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
               }}
@@ -789,14 +790,14 @@ function SongPresetsSection() {
                 className="w-5 h-5 rounded-lg flex-shrink-0"
                 style={{
                   background: gradient,
-                  boxShadow: `0 2px 6px ${preset.color}55`,
+                  boxShadow: `0 2px 6px ${alpha(preset.color, 33)}`,
                 }}
               />
               <span className="flex-1 text-sm font-semibold" style={{ color: preset.color }}>
                 {preset.name}
               </span>
               {preset.isDefault && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${preset.color}22`, color: preset.color }}>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${alpha(preset.color, 13)}`, color: preset.color }}>
                   {t('defaultPreset')}
                 </span>
               )}
@@ -864,7 +865,7 @@ function SongPresetsSection() {
             <input
               value={presetKey}
               onChange={(e) => setPresetKey(e.target.value)}
-              placeholder="Key (G, Am…)"
+              placeholder={t('presetKeyPlaceholder')}
               className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
               style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}
             />
@@ -880,14 +881,14 @@ function SongPresetsSection() {
           <input
             value={presetTags}
             onChange={(e) => setPresetTags(e.target.value)}
-            placeholder="Tags (comma-separated)"
+            placeholder={t('tagsPlaceholder')}
             className="w-full rounded-xl px-3 py-2 text-sm outline-none"
             style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}
           />
           <textarea
             value={presetContent}
             onChange={(e) => setPresetContent(e.target.value)}
-            placeholder="Template content (ChordPro format)"
+            placeholder={t('templatePlaceholder')}
             rows={4}
             className="w-full rounded-xl px-3 py-2 text-sm font-mono resize-none outline-none"
             style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', lineHeight: 1.5 }}

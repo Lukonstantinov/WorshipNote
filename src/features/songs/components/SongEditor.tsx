@@ -10,6 +10,7 @@ import { generateId } from '../../../shared/lib/storage'
 import { parseSong } from '../lib/parser'
 import { SongViewer } from './SongViewer'
 import { SimpleEditor } from './SimpleEditor'
+import { alpha } from '../../../shared/lib/color'
 
 interface Props {
   song?: Song
@@ -70,7 +71,7 @@ export function SongEditor({ song }: Props) {
   const handleSaveSnapshot = () => {
     if (!song) return
     updateSong(song.id, { snapshotContent: content, snapshotSavedAt: new Date().toISOString() })
-    setSnapshotMsg('Saved as original')
+    setSnapshotMsg(t('savedAsOriginal'))
     setTimeout(() => setSnapshotMsg(null), 2000)
   }
 
@@ -124,7 +125,7 @@ export function SongEditor({ song }: Props) {
     <div className="flex h-full" style={{ minHeight: 0 }}>
       {/* Left: form */}
       <div
-        className="flex flex-col p-4 space-y-4 overflow-auto pb-24 md:pb-6"
+        className="flex flex-col p-4 space-y-4 overflow-auto pb-8"
         style={{ flex: 1, minWidth: 0 }}
       >
         {/* Preset picker — only for new songs */}
@@ -146,9 +147,9 @@ export function SongEditor({ song }: Props) {
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
                   style={{
-                    backgroundColor: `${preset.color}22`,
+                    backgroundColor: `${alpha(preset.color, 13)}`,
                     color: preset.color,
-                    border: `1px solid ${preset.color}44`,
+                    border: `1px solid ${alpha(preset.color, 27)}`,
                   }}
                 >
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: preset.color }} />
@@ -169,7 +170,7 @@ export function SongEditor({ song }: Props) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             style={inputStyle}
-            placeholder="Song title"
+            placeholder={t('songTitlePlaceholder')}
           />
         </div>
 
@@ -203,7 +204,7 @@ export function SongEditor({ song }: Props) {
             value={vocalist}
             onChange={(e) => setVocalist(e.target.value)}
             style={inputStyle}
-            placeholder="Main vocalist name"
+            placeholder={t('vocalistPlaceholder')}
           />
         </div>
 
@@ -247,7 +248,7 @@ export function SongEditor({ song }: Props) {
             value={structure}
             onChange={(e) => setStructure(e.target.value)}
             style={inputStyle}
-            placeholder="A B A B C B  (leave blank to auto-detect)"
+            placeholder={t('structurePlaceholder')}
           />
         </div>
 
@@ -321,10 +322,10 @@ export function SongEditor({ song }: Props) {
               onClick={handleSaveSnapshot}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
               style={{ backgroundColor: 'var(--color-card)', color: snapshotMsg ? 'var(--color-chord)' : 'var(--color-text-tertiary)', border: '1px solid var(--color-border)' }}
-              title="Save current content as the 'original' you can restore to"
+              title={t('saveAsOriginalHint')}
             >
               <Camera size={13} strokeWidth={1.5} />
-              {snapshotMsg ?? 'Save as original'}
+              {snapshotMsg ?? t('saveAsOriginal')}
             </button>
             {song.snapshotContent && (
               <button
@@ -341,7 +342,7 @@ export function SongEditor({ song }: Props) {
               onClick={() => { setShowPresetDialog((p) => !p); setPresetName('') }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
               style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-accent)', border: '1px solid var(--color-border)' }}
-              title="Create a preset copy of this psalm"
+              title={t('createPresetHint')}
             >
               <Copy size={13} strokeWidth={1.5} />
               Create new preset

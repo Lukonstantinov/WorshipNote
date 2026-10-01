@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Play, Square } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { createPlaybackAudioContext } from '../../../shared/lib/audio'
 
 interface Props {
   bpm: number
 }
 
 export function Metronome({ bpm }: Props) {
+  const { t } = useTranslation()
   const [isPlaying, setIsPlaying] = useState(false)
   const [activeBeat, setActiveBeat] = useState(-1)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const nextNoteTimeRef = useRef(0)
   const beatCountRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const beatTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
   const bpmRef = useRef(bpm)
 
   useEffect(() => {
@@ -45,7 +49,11 @@ export function Metronome({ bpm }: Props) {
       const noteTime = nextNoteTimeRef.current
       const now = ctx.currentTime
       const delay = Math.max(0, (noteTime - now) * 1000)
-      setTimeout(() => setActiveBeat(beat), delay)
+      const beatTimer = setTimeout(() => {
+        beatTimersRef.current.delete(beatTimer)
+        setActiveBeat(beat)
+      }, delay)
+      beatTimersRef.current.add(beatTimer)
 
       nextNoteTimeRef.current += 60.0 / bpmRef.current
       beatCountRef.current++
@@ -56,10 +64,11 @@ export function Metronome({ bpm }: Props) {
 
   const start = useCallback(() => {
     if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext()
+      audioCtxRef.current = createPlaybackAudioContext()
     }
     const ctx = audioCtxRef.current
     if (ctx.state === 'suspended') ctx.resume()
+    if (timerRef.current) clearTimeout(timerRef.current)
     beatCountRef.current = 0
     nextNoteTimeRef.current = ctx.currentTime + 0.05
     scheduler()
@@ -70,32 +79,39 @@ export function Metronome({ bpm }: Props) {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
+    beatTimersRef.current.forEach(clearTimeout)
+    beatTimersRef.current.clear()
     setActiveBeat(-1)
   }, [])
 
-  const toggle = useCallback(() => {
-    setIsPlaying((prev) => {
-      if (prev) { stop(); return false }
-      start(); return true
-    })
-  }, [start, stop])
+  // Side effects must not live inside a state updater (StrictMode runs updaters twice)
+  const toggle = () => {
+    if (isPlaying) stop()
+    else start()
+    setIsPlaying(!isPlaying)
+  }
 
   // Cleanup on unmount
-  useEffect(() => () => stop(), [stop])
+  useEffect(() => () => {
+    stop()
+    audioCtxRef.current?.close()
+    audioCtxRef.current = null
+  }, [stop])
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-shrink-0">
       <button
         onClick={toggle}
         className="flex items-center justify-center rounded-xl transition-all active:scale-95"
         style={{
           backgroundColor: isPlaying ? 'var(--color-warning)' : 'var(--color-card-raised)',
           color: isPlaying ? '#000' : 'var(--color-text-secondary)',
-          minHeight: 44,
-          minWidth: 44,
-          width: 44,
+          minHeight: 40,
+          minWidth: 40,
         }}
-        title={isPlaying ? `Stop metronome` : `Metronome (${bpm} BPM)`}
+        title={`${t('metronome')} (${bpm} BPM)`}
+        aria-label={`${t('metronome')} (${bpm} BPM)`}
+        aria-pressed={isPlaying}
       >
         {isPlaying
           ? <Square size={16} strokeWidth={2.5} fill="currentColor" />

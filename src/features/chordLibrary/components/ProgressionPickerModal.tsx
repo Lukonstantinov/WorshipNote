@@ -3,6 +3,7 @@ import { X, Search, Music2, TableProperties } from 'lucide-react'
 import { useChordLibraryStore } from '../../../store/chordLibraryStore'
 import type { ChordRow } from '../../songs/types'
 import { generateId } from '../../../shared/lib/storage'
+import { alpha } from '../../../shared/lib/color'
 
 const CHORD_COLORS = ['var(--color-accent)', 'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-info)']
 
@@ -164,7 +165,7 @@ export function ProgressionPickerModal({ onSelect, onClose }: Props) {
                         <span key={i} className="flex items-center gap-0.5">
                           <span
                             className="text-xs font-bold px-2 py-0.5 rounded"
-                            style={{ backgroundColor: CHORD_COLORS[i % CHORD_COLORS.length] + '22', color: CHORD_COLORS[i % CHORD_COLORS.length] }}
+                            style={{ backgroundColor: alpha(CHORD_COLORS[i % CHORD_COLORS.length], 13), color: CHORD_COLORS[i % CHORD_COLORS.length] }}
                           >
                             {chord}
                           </span>

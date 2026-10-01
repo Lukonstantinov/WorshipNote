@@ -2,6 +2,8 @@
  * Web Audio API microphone capture module
  */
 
+import { setAudioSessionType } from '../../../shared/lib/audio'
+
 export interface AudioCaptureOptions {
   /** FFT/buffer size for analysis (power of 2) */
   bufferSize?: number
@@ -45,8 +47,11 @@ export async function startAudioCapture(options: AudioCaptureOptions = {}): Prom
     },
   }
 
+  // A metronome may have switched iOS to 'playback'; let the system pick a recording-capable session
+  setAudioSessionType('auto')
   const stream = await navigator.mediaDevices.getUserMedia(constraints)
-  const context = new AudioContext()
+  const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+  const context = new Ctor()
   const source = context.createMediaStreamSource(stream)
 
   const gainNode = context.createGain()
