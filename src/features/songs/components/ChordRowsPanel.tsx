@@ -9,6 +9,7 @@ import { TabViewer } from './TabViewer'
 import { ProgressionPickerModal } from '../../chordLibrary/components/ProgressionPickerModal'
 import type { ChordRow } from '../types'
 import { generateId } from '../../../shared/lib/storage'
+import { alpha } from '../../../shared/lib/color'
 
 interface Props {
   songId: string
@@ -144,7 +145,7 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                 className="rounded-xl overflow-hidden"
                 style={{
                   backgroundColor: 'var(--color-bg)',
-                  border: row.color && row.color !== 'transparent' ? `1px solid ${row.color}33` : '1px solid var(--color-border-subtle)',
+                  border: row.color && row.color !== 'transparent' ? `1px solid ${alpha(row.color, 20)}` : '1px solid var(--color-border-subtle)',
                   opacity: isHidden ? 0.4 : 1,
                 }}
               >
@@ -175,7 +176,7 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
                   <button
                     onClick={() => setEditingRowId(isEditing ? null : row.id)}
                     className="text-xs px-2 py-0.5 rounded transition-all"
-                    style={{ backgroundColor: isEditing ? '#32d74b22' : 'transparent', color: isEditing ? 'var(--color-chord)' : 'var(--color-text-muted)' }}
+                    style={{ backgroundColor: isEditing ? 'var(--color-chord-dim)' : 'transparent', color: isEditing ? 'var(--color-chord)' : 'var(--color-text-muted)' }}
                   >
                     {isEditing ? 'done' : 'edit'}
                   </button>

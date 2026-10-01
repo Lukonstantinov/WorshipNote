@@ -10,6 +10,7 @@ import { generateId } from '../../../shared/lib/storage'
 import { parseSong } from '../lib/parser'
 import { SongViewer } from './SongViewer'
 import { SimpleEditor } from './SimpleEditor'
+import { alpha } from '../../../shared/lib/color'
 
 interface Props {
   song?: Song
@@ -124,7 +125,7 @@ export function SongEditor({ song }: Props) {
     <div className="flex h-full" style={{ minHeight: 0 }}>
       {/* Left: form */}
       <div
-        className="flex flex-col p-4 space-y-4 overflow-auto pb-24 md:pb-6"
+        className="flex flex-col p-4 space-y-4 overflow-auto pb-8"
         style={{ flex: 1, minWidth: 0 }}
       >
         {/* Preset picker — only for new songs */}
@@ -146,9 +147,9 @@ export function SongEditor({ song }: Props) {
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
                   style={{
-                    backgroundColor: `${preset.color}22`,
+                    backgroundColor: `${alpha(preset.color, 13)}`,
                     color: preset.color,
-                    border: `1px solid ${preset.color}44`,
+                    border: `1px solid ${alpha(preset.color, 27)}`,
                   }}
                 >
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: preset.color }} />

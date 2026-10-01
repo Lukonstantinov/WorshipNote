@@ -15,6 +15,7 @@ import { SongExportModal } from '../features/songs/components/SongExportModal'
 import { TabViewer } from '../features/songs/components/TabViewer'
 import type { Setlist } from '../store/setlistStore'
 import type { Song } from '../features/songs/types'
+import { alpha } from '../shared/lib/color'
 
 // Colour by section position index (A, B, C, D, E, F…)
 const POSITION_COLORS = [
@@ -100,7 +101,7 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'var(--color-overlay)' }}>
       <div
         className="rounded-2xl w-full max-w-sm mx-4 overflow-hidden"
         style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
@@ -230,13 +231,13 @@ export default function SetlistPage() {
   const [exportSong, setExportSong] = useState<Song | null>(null)
 
   return (
-    <div className="p-4 pb-28 md:pb-4">
+    <div className="p-4 pb-8">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-bold tracking-tight">{t('setlists')}</h2>
         <Link
           to="/setlists/new"
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)', minHeight: 44 }}
+          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)', minHeight: 44 }}
         >
           <Plus size={16} strokeWidth={2.5} />
           {t('newSetlist')}
@@ -332,7 +333,7 @@ export default function SetlistPage() {
                       return (
                         <div
                           key={ss.id}
-                          style={{ borderTop: idx > 0 ? '1px solid rgba(44,44,46,0.5)' : undefined }}
+                          style={{ borderTop: idx > 0 ? '1px solid var(--color-border-subtle)' : undefined }}
                         >
                         <div
                           className="flex items-start gap-3 px-4 py-2.5 transition-all hover-bg"
@@ -343,7 +344,7 @@ export default function SetlistPage() {
                           >
                             <span
                               className="text-xs font-semibold w-5 text-right flex-shrink-0 mt-1"
-                              style={{ color: 'rgba(235,235,245,0.25)' }}
+                              style={{ color: 'var(--color-text-muted)' }}
                             >
                               {idx + 1}
                             </span>
@@ -361,7 +362,7 @@ export default function SetlistPage() {
                                 {song.original_key && (
                                   <span
                                     className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                                    style={{ backgroundColor: 'rgba(50,215,75,0.1)', color: 'var(--color-chord)' }}
+                                    style={{ backgroundColor: 'var(--color-chord-dim)', color: 'var(--color-chord)' }}
                                   >
                                     {song.original_key}
                                   </span>
@@ -377,7 +378,7 @@ export default function SetlistPage() {
                                         key={i}
                                         className="text-xs px-1.5 py-0.5 rounded font-bold"
                                         style={{
-                                          backgroundColor: color + '22',
+                                          backgroundColor: alpha(color, 13),
                                           color,
                                           fontSize: 10,
                                         }}

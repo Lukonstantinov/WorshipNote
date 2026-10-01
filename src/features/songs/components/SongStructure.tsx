@@ -41,7 +41,7 @@ function sectionColor(label: string): string {
   for (const [key, color] of TYPE_COLORS) {
     if (up.includes(key)) return color
   }
-  return 'rgba(235,235,245,0.45)'
+  return 'var(--color-text-tertiary)'
 }
 
 function collapseRepeats(parts: string[]): { label: string; count: number }[] {
@@ -72,7 +72,7 @@ export function SongStructure({ labels, pattern, manualStructure }: Props) {
   return (
     <div
       className="px-3 py-2 border-b flex-shrink-0 overflow-x-auto scrollbar-none"
-      style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'rgba(0,0,0,0.3)' }}
+      style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-secondary)' }}
     >
       <div className="flex items-center gap-1.5 min-w-max">
         <span className="text-xs mr-1 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>

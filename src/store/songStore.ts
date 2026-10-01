@@ -1,5 +1,14 @@
 import { create } from 'zustand'
 import type { Song } from '../features/songs/types'
+import { loadSongs, saveSongs } from '../shared/lib/storage'
+import { SEED_SONGS } from '../shared/lib/seedData'
+
+function initialSongs(): Song[] {
+  const stored = loadSongs()
+  if (stored) return stored
+  saveSongs(SEED_SONGS)
+  return SEED_SONGS
+}
 
 interface SongStore {
   songs: Song[]
@@ -13,7 +22,9 @@ interface SongStore {
 }
 
 export const useSongStore = create<SongStore>((set, get) => ({
-  songs: [],
+  // Load synchronously so the first render already has the library.
+  // Seed only on the very first launch — not when the user deleted every song.
+  songs: initialSongs(),
   setSongs: (songs) => set({ songs }),
   addSong: (song) => set((state) => ({ songs: [...state.songs, song] })),
   updateSong: (id, updates) =>
@@ -34,3 +45,8 @@ export const useSongStore = create<SongStore>((set, get) => ({
       ),
     })),
 }))
+
+// Persist every change
+useSongStore.subscribe((state, prev) => {
+  if (state.songs !== prev.songs) saveSongs(state.songs)
+})

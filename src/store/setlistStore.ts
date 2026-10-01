@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { loadSetlists, saveSetlists } from '../shared/lib/storage'
 
 export interface SetlistSong {
   id: string
@@ -32,7 +33,7 @@ interface SetlistStore {
 }
 
 export const useSetlistStore = create<SetlistStore>((set, get) => ({
-  setlists: [],
+  setlists: loadSetlists() ?? [],
   setSetlists: (setlists) => set({ setlists }),
   addSetlist: (setlist) => set((state) => ({ setlists: [...state.setlists, setlist] })),
   updateSetlist: (id, updates) =>
@@ -45,3 +46,8 @@ export const useSetlistStore = create<SetlistStore>((set, get) => ({
     set((state) => ({ setlists: state.setlists.filter((sl) => sl.id !== id) })),
   getSetlistById: (id) => get().setlists.find((sl) => sl.id === id),
 }))
+
+// Persist every change
+useSetlistStore.subscribe((state, prev) => {
+  if (state.setlists !== prev.setlists) saveSetlists(state.setlists)
+})

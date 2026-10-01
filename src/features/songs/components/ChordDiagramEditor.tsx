@@ -104,7 +104,7 @@ function FretEditor({ chordName, stringCount, onClose }: { chordName: string; st
         style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', border: 'none', outline: 'none' }}
       />
       <div className="flex gap-2 mt-3">
-        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)' }}>
+        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)' }}>
           <Save size={14} strokeWidth={2} />{t('save')}
         </button>
         {existing && (
@@ -177,7 +177,7 @@ function PianoEditor({ chordName, onClose }: { chordName: string; onClose: () =>
         style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', border: 'none', outline: 'none' }}
       />
       <div className="flex gap-2 mt-3">
-        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)' }}>
+        <button onClick={save} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)' }}>
           <Save size={14} strokeWidth={2} />{t('save')}
         </button>
         {existing && (

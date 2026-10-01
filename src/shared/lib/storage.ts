@@ -4,30 +4,41 @@ import type { Setlist } from '../../store/setlistStore'
 const SONGS_KEY = 'worshiphub:songs'
 const SETLISTS_KEY = 'worshiphub:setlists'
 
-export function loadSongs(): Song[] {
+/** Returns `null` when nothing has ever been stored (first launch). */
+function loadArray<T>(key: string): T[] | null {
   try {
-    const raw = localStorage.getItem(SONGS_KEY)
-    return raw ? JSON.parse(raw) : []
+    const raw = localStorage.getItem(key)
+    if (raw === null) return null
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
   } catch {
     return []
   }
+}
+
+function saveArray<T>(key: string, value: T[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (err) {
+    // Quota exceeded or storage unavailable — keep the app running.
+    console.error(`Failed to save ${key}`, err)
+  }
+}
+
+export function loadSongs(): Song[] | null {
+  return loadArray<Song>(SONGS_KEY)
 }
 
 export function saveSongs(songs: Song[]): void {
-  localStorage.setItem(SONGS_KEY, JSON.stringify(songs))
+  saveArray(SONGS_KEY, songs)
 }
 
-export function loadSetlists(): Setlist[] {
-  try {
-    const raw = localStorage.getItem(SETLISTS_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
+export function loadSetlists(): Setlist[] | null {
+  return loadArray<Setlist>(SETLISTS_KEY)
 }
 
 export function saveSetlists(setlists: Setlist[]): void {
-  localStorage.setItem(SETLISTS_KEY, JSON.stringify(setlists))
+  saveArray(SETLISTS_KEY, setlists)
 }
 
 export function generateId(): string {

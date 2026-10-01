@@ -17,11 +17,11 @@ export function BassPatternPicker({ value, onChange }: Props) {
             className="flex flex-col items-start text-left rounded-2xl transition-all active:scale-[0.98]"
             style={{
               background: active
-                ? 'linear-gradient(135deg, var(--color-info) 0%, rgba(10,132,255,0.7) 100%)'
+                ? 'linear-gradient(135deg, var(--color-info) 0%, color-mix(in srgb, var(--color-info) 70%, transparent) 100%)'
                 : 'var(--color-card)',
               color: active ? '#fff' : 'var(--color-text-primary)',
               border: active ? 'none' : '1px solid var(--color-border)',
-              boxShadow: active ? '0 4px 12px rgba(10,132,255,0.25)' : '0 1px 2px var(--color-shadow)',
+              boxShadow: active ? '0 4px 12px color-mix(in srgb, var(--color-info) 25%, transparent)' : '0 1px 2px var(--color-shadow)',
               padding: '10px 14px',
               minHeight: 60,
             }}

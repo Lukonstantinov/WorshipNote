@@ -12,6 +12,7 @@ export function Metronome({ bpm }: Props) {
   const nextNoteTimeRef = useRef(0)
   const beatCountRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const beatTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
   const bpmRef = useRef(bpm)
 
   useEffect(() => {
@@ -45,7 +46,11 @@ export function Metronome({ bpm }: Props) {
       const noteTime = nextNoteTimeRef.current
       const now = ctx.currentTime
       const delay = Math.max(0, (noteTime - now) * 1000)
-      setTimeout(() => setActiveBeat(beat), delay)
+      const beatTimer = setTimeout(() => {
+        beatTimersRef.current.delete(beatTimer)
+        setActiveBeat(beat)
+      }, delay)
+      beatTimersRef.current.add(beatTimer)
 
       nextNoteTimeRef.current += 60.0 / bpmRef.current
       beatCountRef.current++
@@ -60,6 +65,7 @@ export function Metronome({ bpm }: Props) {
     }
     const ctx = audioCtxRef.current
     if (ctx.state === 'suspended') ctx.resume()
+    if (timerRef.current) clearTimeout(timerRef.current)
     beatCountRef.current = 0
     nextNoteTimeRef.current = ctx.currentTime + 0.05
     scheduler()
@@ -70,18 +76,24 @@ export function Metronome({ bpm }: Props) {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
+    beatTimersRef.current.forEach(clearTimeout)
+    beatTimersRef.current.clear()
     setActiveBeat(-1)
   }, [])
 
-  const toggle = useCallback(() => {
-    setIsPlaying((prev) => {
-      if (prev) { stop(); return false }
-      start(); return true
-    })
-  }, [start, stop])
+  // Side effects must not live inside a state updater (StrictMode runs updaters twice)
+  const toggle = () => {
+    if (isPlaying) stop()
+    else start()
+    setIsPlaying(!isPlaying)
+  }
 
   // Cleanup on unmount
-  useEffect(() => () => stop(), [stop])
+  useEffect(() => () => {
+    stop()
+    audioCtxRef.current?.close()
+    audioCtxRef.current = null
+  }, [stop])
 
   return (
     <div className="flex items-center gap-2">

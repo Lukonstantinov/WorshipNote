@@ -220,9 +220,9 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
                   onClick={() => setActiveIdx(i)}
                   className="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all"
                   style={{
-                    backgroundColor: i === safeIdx ? '#32d74b22' : 'var(--color-card)',
+                    backgroundColor: i === safeIdx ? 'var(--color-chord-dim)' : 'var(--color-card)',
                     color: i === safeIdx ? 'var(--color-chord)' : 'var(--color-text-tertiary)',
-                    border: i === safeIdx ? '1px solid #32d74b44' : '1px solid transparent',
+                    border: i === safeIdx ? '1px solid var(--color-chord-border)' : '1px solid transparent',
                   }}
                 >
                   {ch}
@@ -277,7 +277,7 @@ export function ChordDiagramPanel({ parsed, position }: Props) {
               onClick={() => useSettingsStore.getState().setGuitarFlipped(!guitarFlipped)}
               className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all"
               style={{
-                backgroundColor: guitarFlipped ? '#32d74b22' : 'transparent',
+                backgroundColor: guitarFlipped ? 'var(--color-chord-dim)' : 'transparent',
                 color: guitarFlipped ? 'var(--color-chord)' : 'var(--color-text-muted)',
               }}
               title="Flip fret diagram"

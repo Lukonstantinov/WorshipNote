@@ -10,6 +10,7 @@ import { FONT_SIZE_MIN, FONT_SIZE_MAX } from '../shared/lib/constants'
 import { generateId } from '../shared/lib/storage'
 import { ExportImportPanel } from '../features/songs/components/ExportImportPanel'
 import { APP_VERSION } from '../shared/lib/version'
+import { alpha } from '../shared/lib/color'
 
 const LANGUAGES: { code: Language; label: string; sub: string }[] = [
   { code: 'ru', label: 'Русский',  sub: 'Russian' },
@@ -18,8 +19,7 @@ const LANGUAGES: { code: Language; label: string; sub: string }[] = [
 ]
 
 const TAG_COLORS = [
-  'var(--color-error)', 'var(--color-warning)', '#ffd60a', 'var(--color-chord)',
-  'var(--color-info)', 'var(--color-accent)', 'var(--color-info)', '#ebebf5',
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7', '#ec4899',
 ]
 
 const INSTRUMENT_ICONS: Record<Instrument['type'], React.ReactNode> = {
@@ -130,7 +130,7 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold tracking-tight">{t('settings')}</h1>
       </div>
 
-      <div className="p-4 space-y-6 pb-28 max-w-md mx-auto">
+      <div className="p-4 space-y-6 pb-10 max-w-md mx-auto">
 
         {/* ── APPEARANCE ─────────────────────────────────────── */}
         <CategoryHeader icon={<Palette size={15} />} label="Appearance" />
@@ -153,9 +153,9 @@ export default function SettingsPage() {
                 onClick={() => setTheme(key)}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
                 style={{
-                  backgroundColor: theme === key ? `${accent}22` : 'var(--color-card)',
+                  backgroundColor: theme === key ? `${alpha(accent, 13)}` : 'var(--color-card)',
                   color: theme === key ? accent : 'var(--color-text-tertiary)',
-                  border: `1px solid ${theme === key ? accent + '66' : 'var(--color-card-raised)'}`,
+                  border: `1px solid ${theme === key ? alpha(accent, 40) : 'var(--color-card-raised)'}`,
                   minHeight: 50,
                 }}
               >
@@ -494,9 +494,9 @@ export default function SettingsPage() {
                         onClick={() => updateCustomRole(cr.id, { [key]: !cr[key] })}
                         className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
                         style={{
-                          backgroundColor: cr[key] ? '#32d74b22' : 'var(--color-card-raised)',
+                          backgroundColor: cr[key] ? 'var(--color-chord-dim)' : 'var(--color-card-raised)',
                           color: cr[key] ? 'var(--color-chord)' : 'var(--color-text-muted)',
-                          border: cr[key] ? '1px solid #32d74b44' : '1px solid transparent',
+                          border: cr[key] ? '1px solid var(--color-chord-border)' : '1px solid transparent',
                         }}
                       >
                         {label}
@@ -651,7 +651,7 @@ export default function SettingsPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block mt-2 text-xs px-3 py-1.5 rounded-lg transition-all"
-              style={{ backgroundColor: '#0a84ff22', color: 'var(--color-info)' }}
+              style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)' }}
             >
               Check for updates
             </a>
@@ -773,14 +773,14 @@ function SongPresetsSection() {
       {songPresets.length > 0 && (
         <div className="space-y-2 mb-3">
           {songPresets.map((preset) => {
-            const gradient = PRESET_GRADIENT[preset.color] ?? `linear-gradient(135deg, ${preset.color} 0%, ${preset.color}88 100%)`
+            const gradient = PRESET_GRADIENT[preset.color] ?? `linear-gradient(135deg, ${preset.color} 0%, ${alpha(preset.color, 53)} 100%)`
             return (
             <div
               key={preset.id}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl"
               style={{
                 background: `linear-gradient(135deg, ${preset.color}28 0%, ${preset.color}10 100%)`,
-                border: `1px solid ${preset.color}55`,
+                border: `1px solid ${alpha(preset.color, 33)}`,
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
               }}
@@ -789,14 +789,14 @@ function SongPresetsSection() {
                 className="w-5 h-5 rounded-lg flex-shrink-0"
                 style={{
                   background: gradient,
-                  boxShadow: `0 2px 6px ${preset.color}55`,
+                  boxShadow: `0 2px 6px ${alpha(preset.color, 33)}`,
                 }}
               />
               <span className="flex-1 text-sm font-semibold" style={{ color: preset.color }}>
                 {preset.name}
               </span>
               {preset.isDefault && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${preset.color}22`, color: preset.color }}>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${alpha(preset.color, 13)}`, color: preset.color }}>
                   {t('defaultPreset')}
                 </span>
               )}

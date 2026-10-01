@@ -148,7 +148,7 @@ export default function PianoTrainerPage() {
           <div
             className="rounded-2xl flex items-center justify-center flex-shrink-0"
             style={{
-              background: 'linear-gradient(135deg, var(--color-accent) 0%, rgba(191,90,242,0.7) 100%)',
+              background: 'linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 70%, transparent) 100%)',
               width: 44, height: 44,
               boxShadow: '0 4px 12px var(--color-accent-dim)',
             }}
@@ -168,7 +168,7 @@ export default function PianoTrainerPage() {
             disabled={progression.length === 0}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40"
             style={{
-              background: 'linear-gradient(135deg, var(--color-accent) 0%, rgba(191,90,242,0.85) 100%)',
+              background: 'linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 85%, transparent) 100%)',
               color: '#fff',
               boxShadow: '0 2px 8px var(--color-accent-dim)',
               minHeight: 40,
@@ -180,7 +180,7 @@ export default function PianoTrainerPage() {
         </div>
       </div>
 
-      <div className="px-4 py-5 space-y-6 pb-28 max-w-2xl mx-auto">
+      <div className="px-4 py-5 space-y-6 pb-10 max-w-2xl mx-auto">
 
         {/* KEY */}
         <section className="space-y-3">
@@ -200,7 +200,7 @@ export default function PianoTrainerPage() {
               onClick={handleSuggest}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
               style={{
-                background: 'linear-gradient(135deg, var(--color-accent) 0%, rgba(191,90,242,0.7) 100%)',
+                background: 'linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 70%, transparent) 100%)',
                 color: '#fff',
                 boxShadow: '0 2px 8px var(--color-accent-dim)',
                 minHeight: 36,
@@ -271,12 +271,12 @@ export default function PianoTrainerPage() {
               className="flex items-center justify-center gap-1.5 rounded-2xl text-sm font-bold transition-all active:scale-95 disabled:opacity-40"
               style={{
                 background: playing
-                  ? 'linear-gradient(135deg, var(--color-error) 0%, rgba(255,69,58,0.7) 100%)'
-                  : 'linear-gradient(135deg, var(--color-chord) 0%, rgba(50,215,75,0.75) 100%)',
+                  ? 'linear-gradient(135deg, var(--color-error) 0%, color-mix(in srgb, var(--color-error) 70%, transparent) 100%)'
+                  : 'linear-gradient(135deg, var(--color-chord) 0%, color-mix(in srgb, var(--color-chord) 75%, transparent) 100%)',
                 color: playing ? '#fff' : '#000',
                 boxShadow: playing
-                  ? '0 4px 12px rgba(255,69,58,0.3)'
-                  : '0 4px 12px rgba(50,215,75,0.3)',
+                  ? '0 4px 12px color-mix(in srgb, var(--color-error) 30%, transparent)'
+                  : '0 4px 12px color-mix(in srgb, var(--color-chord) 30%, transparent)',
                 minHeight: 48,
                 minWidth: 98,
               }}

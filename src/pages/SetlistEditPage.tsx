@@ -15,7 +15,7 @@ import { generateId } from '../shared/lib/storage'
 import type { SetlistSong } from '../store/setlistStore'
 
 const VOCAL_COLORS = [
-  'var(--color-info)', 'var(--color-chord)', 'var(--color-warning)', 'var(--color-error)', 'var(--color-accent)', 'var(--color-info)', '#ffd60a', '#ebebf5',
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7', '#ec4899',
 ]
 
 interface SortableItemProps {
@@ -31,7 +31,7 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ss.id })
   const [showVocalist, setShowVocalist] = useState(!!(ss.vocalist))
   const [vocalistName, setVocalistName] = useState(ss.vocalist ?? '')
-  const [vocalistColor, setVocalistColor] = useState(ss.vocalColor ?? 'var(--color-info)')
+  const [vocalistColor, setVocalistColor] = useState(ss.vocalColor ?? '#3b82f6')
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -51,7 +51,7 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
         <button {...attributes} {...listeners} className="flex items-center justify-center cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--color-text-muted)', minWidth: 32, minHeight: 44 }}>
           <GripVertical size={18} strokeWidth={1.5} />
         </button>
-        <span className="text-xs font-semibold" style={{ color: 'rgba(235,235,245,0.25)', minWidth: 20 }}>{idx + 1}</span>
+        <span className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)', minWidth: 20 }}>{idx + 1}</span>
         <div className="flex-1 min-w-0">
           {ss.vocalist && (
             <span className="text-xs font-semibold mr-1" style={{ color: ss.vocalColor ?? 'var(--color-info)' }}>({ss.vocalist})</span>
@@ -59,14 +59,14 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
           <span className="text-sm">{songTitle}</span>
         </div>
         {songKey && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ backgroundColor: 'rgba(50,215,75,0.12)', color: 'var(--color-chord)' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ backgroundColor: 'var(--color-chord-dim)', color: 'var(--color-chord)' }}>
             {songKey}
           </span>
         )}
         <button
           onClick={() => setShowVocalist((v) => !v)}
           className="flex items-center justify-center rounded-xl transition-all"
-          style={{ minWidth: 34, minHeight: 34, backgroundColor: showVocalist ? '#0a84ff22' : 'transparent', color: showVocalist ? 'var(--color-info)' : 'var(--color-text-muted)' }}
+          style={{ minWidth: 34, minHeight: 34, backgroundColor: showVocalist ? 'var(--color-info-dim)' : 'transparent', color: showVocalist ? 'var(--color-info)' : 'var(--color-text-muted)' }}
           title="Set vocalist"
         >
           <User size={14} strokeWidth={2} />
@@ -177,7 +177,7 @@ export default function SetlistEditPage() {
         <h1 className="text-base font-semibold">{existing ? t('edit') : t('newSetlist')}</h1>
       </div>
 
-      <div className="p-4 space-y-4 pb-24 max-w-2xl mx-auto">
+      <div className="p-4 space-y-4 pb-10 max-w-2xl mx-auto">
         <div>
           <label className="block text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{t('title')}</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 rounded-xl outline-none" style={inputStyle} placeholder="Воскресное богослужение" />
@@ -248,7 +248,7 @@ export default function SetlistEditPage() {
                     <Plus size={16} strokeWidth={2} style={{ color: 'var(--color-chord)', flexShrink: 0 }} />
                     <span className="text-sm flex-1" style={{ color: 'var(--color-text-primary)' }}>{song.title}</span>
                     {song.original_key && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'rgba(50,215,75,0.12)', color: 'var(--color-chord)' }}>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-chord-dim)', color: 'var(--color-chord)' }}>
                         {song.original_key}
                       </span>
                     )}

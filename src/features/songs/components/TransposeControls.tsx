@@ -89,7 +89,7 @@ export function TransposeControls({ steps, originalKey, capoFret, onStepsChange,
 
       {/* Capo hint */}
       {capoPlayKey && (
-        <div className="text-xs w-full" style={{ color: 'rgba(10,132,255,0.8)' }}>
+        <div className="text-xs w-full" style={{ color: 'var(--color-info)' }}>
           {t('capo')} {capoFret} · {t('playAs')} <span className="font-semibold">{capoPlayKey}</span>
         </div>
       )}

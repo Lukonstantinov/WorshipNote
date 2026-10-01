@@ -24,7 +24,7 @@ export function SongViewer({ parsed }: Props) {
   }, [role, customRoles])
 
   return (
-    <div className="space-y-1 pb-24" style={{ fontSize: `${fontSize}px` }}>
+    <div className="space-y-1 pb-10" style={{ fontSize: `${fontSize}px` }}>
       {parsed.lines.map((line, i) => {
         if (line.type === 'empty') {
           return <div key={i} className="h-4" />
@@ -38,7 +38,7 @@ export function SongViewer({ parsed }: Props) {
               className="flex items-center gap-2 text-xs italic py-1 px-2 rounded-lg w-fit"
               style={{
                 color: 'var(--color-info)',
-                backgroundColor: 'rgba(10,132,255,0.1)',
+                backgroundColor: 'var(--color-info-dim)',
                 fontSize: Math.max(11, fontSize * 0.6),
               }}
             >

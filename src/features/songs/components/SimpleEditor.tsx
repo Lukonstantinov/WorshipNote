@@ -69,9 +69,9 @@ function ChordPicker({ onPick, onClear, onClose, current }: ChordPickerProps) {
             onClick={() => { onPick(ch); onClose() }}
             className="py-1 rounded-lg text-xs font-semibold transition-all active:scale-95"
             style={{
-              backgroundColor: current === ch ? '#32d74b22' : 'var(--color-card)',
+              backgroundColor: current === ch ? 'var(--color-chord-dim)' : 'var(--color-card)',
               color: current === ch ? 'var(--color-chord)' : 'var(--color-text-secondary)',
-              border: current === ch ? '1px solid #32d74b44' : '1px solid transparent',
+              border: current === ch ? '1px solid var(--color-chord-border)' : '1px solid transparent',
             }}
           >
             {ch}
@@ -110,7 +110,7 @@ function Word({ word, onChange }: WordProps) {
           color: word.chord ? 'var(--color-chord)' : 'var(--color-text-muted)',
           fontFamily: 'monospace',
           minHeight: 16,
-          backgroundColor: word.chord ? 'rgba(50,215,75,0.1)' : 'transparent',
+          backgroundColor: word.chord ? 'var(--color-chord-dim)' : 'transparent',
         }}
       >
         {word.chord ?? '+'}
@@ -238,7 +238,7 @@ function SectionBlock({ section, index: _index, onChange, onDelete, onMove, isFi
             <button
               onClick={commitText}
               className="flex-1 py-2 rounded-xl text-xs font-semibold"
-              style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)' }}
+              style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)' }}
             >
               {t('save')}
             </button>

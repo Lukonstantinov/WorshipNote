@@ -19,6 +19,7 @@ import { getAllChordNames, getGuitarChord, getChordCategory, CHORD_CATEGORIES } 
 import type { ChordCategory } from '../features/songs/lib/chordData'
 import { getAllUkuleleChordNames } from '../features/songs/lib/ukuleleChordData'
 import { getAllBassChordNames } from '../features/songs/lib/bassChordData'
+import { alpha } from '../shared/lib/color'
 
 type Tab = 'progressions' | 'reference' | 'tabs'
 
@@ -193,7 +194,7 @@ export default function ChordLibraryPage() {
   }
 
   return (
-    <div className="p-4 pb-28 md:pb-4">
+    <div className="p-4 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-bold tracking-tight">Chord Library</h2>
@@ -215,7 +216,7 @@ export default function ChordLibraryPage() {
               <button
                 onClick={handleAdd}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)', minHeight: 44 }}
+                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)', minHeight: 44 }}
               >
                 <Plus size={16} strokeWidth={2.5} />
                 New
@@ -282,7 +283,7 @@ export default function ChordLibraryPage() {
                     onClick={() => setShowFolderPicker((p) => !p)}
                     disabled={selected.size === 0}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40"
-                    style={{ backgroundColor: '#0a84ff22', color: 'var(--color-info)' }}
+                    style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)' }}
                   >
                     <FolderInput size={13} /> Move
                   </button>
@@ -297,7 +298,7 @@ export default function ChordLibraryPage() {
                     </div>
                   )}
                 </div>
-                <button onClick={handleDeleteSelected} disabled={selected.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40" style={{ backgroundColor: '#ff453a22', color: 'var(--color-error)' }}>
+                <button onClick={handleDeleteSelected} disabled={selected.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40" style={{ backgroundColor: 'var(--color-error-dim)', color: 'var(--color-error)' }}>
                   <Trash2 size={13} /> Delete
                 </button>
                 <button onClick={exitSelectMode} className="p-1.5 rounded-xl" style={{ backgroundColor: 'var(--color-card-raised)' }}>
@@ -324,7 +325,7 @@ export default function ChordLibraryPage() {
               {folders.map((folder: ChordLibraryFolder) => {
                 const isActive = activeFolderId === folder.id
                 return (
-                  <button key={folder.id} onClick={() => setActiveFolderId(isActive ? null : folder.id)} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: isActive ? `${folder.color}33` : 'var(--color-card)', color: isActive ? folder.color : 'var(--color-text-tertiary)', border: `1px solid ${isActive ? folder.color + '66' : 'var(--color-card-raised)'}` }}>
+                  <button key={folder.id} onClick={() => setActiveFolderId(isActive ? null : folder.id)} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: isActive ? `${alpha(folder.color, 20)}` : 'var(--color-card)', color: isActive ? folder.color : 'var(--color-text-tertiary)', border: `1px solid ${isActive ? alpha(folder.color, 40) : 'var(--color-card-raised)'}` }}>
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: folder.color }} />
                     {folder.name}
                   </button>
@@ -364,7 +365,7 @@ export default function ChordLibraryPage() {
                       background: p.color && !isSelected
                         ? `linear-gradient(135deg, ${p.color}28, ${p.color}0a), var(--color-card)`
                         : isSelected ? 'var(--color-accent-dim)' : 'var(--color-card)',
-                      border: isSelected ? `1px solid var(--color-accent)` : p.color ? `1px solid ${p.color}44` : '1px solid transparent',
+                      border: isSelected ? `1px solid var(--color-accent)` : p.color ? `1px solid ${alpha(p.color, 27)}` : '1px solid transparent',
                       borderLeft: folder ? `3px solid ${folder.color}` : p.color ? `3px solid ${p.color}` : isSelected ? '3px solid var(--color-accent)' : undefined,
                     }}
                     onClick={selectMode ? () => toggleSelect(p.id) : undefined}
@@ -389,7 +390,7 @@ export default function ChordLibraryPage() {
                           {folder && (
                             <div className="flex items-center gap-1">
                               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: folder.color }} />
-                              <span className="text-xs" style={{ color: folder.color + 'cc' }}>{folder.name}</span>
+                              <span className="text-xs" style={{ color: alpha(folder.color, 80) }}>{folder.name}</span>
                             </div>
                           )}
                         </div>
@@ -399,7 +400,7 @@ export default function ChordLibraryPage() {
                             <span key={i} className="flex items-center gap-1">
                               <span
                                 className="text-sm font-bold px-2.5 py-1 rounded-lg"
-                                style={{ backgroundColor: CHORD_COLORS[i % CHORD_COLORS.length] + '22', color: CHORD_COLORS[i % CHORD_COLORS.length] }}
+                                style={{ backgroundColor: alpha(CHORD_COLORS[i % CHORD_COLORS.length], 13), color: CHORD_COLORS[i % CHORD_COLORS.length] }}
                               >
                                 {chord}
                               </span>
@@ -623,7 +624,7 @@ export default function ChordLibraryPage() {
                   key={chordName}
                   className="relative flex flex-col items-center rounded-2xl p-3 cursor-pointer transition-all active:scale-95"
                   style={{
-                    backgroundColor: isInSelection ? 'var(--color-info)' + '22' : 'var(--color-card)',
+                    backgroundColor: isInSelection ? alpha('var(--color-info)', 13) : 'var(--color-card)',
                     border: isInSelection ? '2px solid var(--color-info)' : isCustom ? '1px solid var(--color-accent)' : '1px solid transparent',
                   }}
                   onClick={() => {
@@ -803,7 +804,7 @@ export default function ChordLibraryPage() {
                       <span
                         className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
                         style={{
-                          backgroundColor: `${folders.find((f) => f.id === t.folderId)?.color}22`,
+                          backgroundColor: `${alpha(folders.find((f) => f.id === t.folderId)?.color ?? 'transparent', 13)}`,
                           color: folders.find((f) => f.id === t.folderId)?.color,
                         }}
                       >

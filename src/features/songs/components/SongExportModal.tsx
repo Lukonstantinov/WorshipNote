@@ -469,7 +469,7 @@ export function SongExportModal({ song, onClose }: Props) {
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'var(--color-overlay)' }}>
       <div
         className="rounded-2xl w-full max-w-sm mx-4 overflow-hidden"
         style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}

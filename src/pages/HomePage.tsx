@@ -7,6 +7,7 @@ import { useFolderStore } from '../store/folderStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { FolderManager } from '../features/folders/FolderManager'
 import type { Song } from '../features/songs/types'
+import { alpha } from '../shared/lib/color'
 
 type SortKey = 'az' | 'key' | 'bpm' | 'date'
 
@@ -94,7 +95,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="p-4 pb-28 md:pb-4">
+    <div className="p-4 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-bold tracking-tight">{t('library')}</h2>
@@ -115,7 +116,7 @@ export default function HomePage() {
           <Link
             to="/songs/new"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-text-primary)', minHeight: 44 }}
+            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)', minHeight: 44 }}
           >
             <Plus size={16} strokeWidth={2.5} />
             {t('newSong')}
@@ -149,7 +150,7 @@ export default function HomePage() {
                 onClick={() => setShowFolderPicker((p) => !p)}
                 disabled={selected.size === 0}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
-                style={{ backgroundColor: '#0a84ff22', color: 'var(--color-info)' }}
+                style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)' }}
               >
                 <FolderInput size={13} strokeWidth={1.5} />
                 Move to folder
@@ -184,7 +185,7 @@ export default function HomePage() {
               onClick={handleDeleteSelected}
               disabled={selected.size === 0}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all disabled:opacity-40"
-              style={{ backgroundColor: '#ff453a22', color: 'var(--color-error)' }}
+              style={{ backgroundColor: 'var(--color-error-dim)', color: 'var(--color-error)' }}
             >
               <Trash2 size={13} strokeWidth={1.5} />
               Delete
@@ -267,9 +268,9 @@ export default function HomePage() {
                 onClick={() => setActiveFolderId(isActive ? null : folder.id)}
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all"
                 style={{
-                  backgroundColor: isActive ? `${folder.color}33` : 'var(--color-card)',
+                  backgroundColor: isActive ? `${alpha(folder.color, 20)}` : 'var(--color-card)',
                   color: isActive ? folder.color : 'var(--color-text-tertiary)',
-                  border: `1px solid ${isActive ? folder.color + '66' : 'var(--color-card-raised)'}`,
+                  border: `1px solid ${isActive ? alpha(folder.color, 40) : 'var(--color-card-raised)'}`,
                 }}
               >
                 <div
@@ -328,7 +329,7 @@ export default function HomePage() {
                   backgroundColor: isActive
                     ? (customColor ?? 'var(--color-accent)')
                     : customColor
-                      ? `${customColor}22`
+                      ? `${alpha(customColor, 13)}`
                       : 'var(--color-card-raised)',
                   color: isActive
                     ? '#fff'
@@ -420,7 +421,7 @@ function SongCard({
           {folder && (
             <div className="flex items-center gap-1 mt-0.5">
               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: folder.color }} />
-              <span className="text-xs" style={{ color: folder.color + 'cc' }}>{folder.name}</span>
+              <span className="text-xs" style={{ color: alpha(folder.color, 80) }}>{folder.name}</span>
             </div>
           )}
         </div>
@@ -428,7 +429,7 @@ function SongCard({
           {song.original_key && (
             <span
               className="px-2 py-0.5 rounded-full font-semibold"
-              style={{ backgroundColor: 'rgba(50,215,75,0.15)', color: 'var(--color-chord)' }}
+              style={{ backgroundColor: 'var(--color-chord-dim)', color: 'var(--color-chord)' }}
             >
               {song.original_key}
             </span>
@@ -452,7 +453,7 @@ function SongCard({
                 key={tag}
                 className="text-xs px-2 py-0.5 rounded-full"
                 style={{
-                  backgroundColor: color ? `${color}22` : 'var(--color-card-raised)',
+                  backgroundColor: color ? `${alpha(color, 13)}` : 'var(--color-card-raised)',
                   color: color ?? 'var(--color-text-tertiary)',
                 }}
               >
