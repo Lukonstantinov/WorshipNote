@@ -83,9 +83,9 @@ export function GuitarDiagram({ chord, customDiagram, size = 120, dotColor = 'va
       {/* Barre bar */}
       {hasBarre && (
         <rect
-          x={pad + fret1Strings[fret1Strings.length - 1].i * stringGap}
+          x={pad + fret1Strings[0].i * stringGap - dotR}
           y={topPad + fretGap * 0 + fretGap / 2 - dotR}
-          width={(fret1Strings[0].i - fret1Strings[fret1Strings.length - 1].i) * stringGap}
+          width={(fret1Strings[fret1Strings.length - 1].i - fret1Strings[0].i) * stringGap + dotR * 2}
           height={dotR * 2}
           rx={dotR}
           fill={dotColor}

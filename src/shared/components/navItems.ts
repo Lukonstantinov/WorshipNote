@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { BookOpen, ListMusic, Guitar, Settings, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -31,4 +32,10 @@ export function isNavActive(item: NavItem, pathname: string, search = '') {
   // A song opened from a setlist belongs to the Services tab
   if (pathname.startsWith('/songs/') && search.includes('setlist=')) return item.to === '/setlists'
   return item.match.some((m) => pathname === m || pathname.startsWith(m + '/'))
+}
+
+/** Primary call-to-action button styled with a section gradient. */
+export function sectionButtonStyle(color: string): CSSProperties {
+  const { c1, grad } = sectionVars(color)
+  return { '--btn-grad': grad, '--btn-color': c1 } as CSSProperties
 }

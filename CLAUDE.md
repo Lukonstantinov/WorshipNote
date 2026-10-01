@@ -42,14 +42,14 @@ cd android && ./gradlew assembleRelease
 - **iOS install:** Open the URL in Safari → Share → "Add to Home Screen" → acts like a native app
 - **Data:** Each user's data is stored **locally in their own browser** (localStorage). Completely separate per device — no shared server, no accounts needed.
 - **Vite base:** `base: '/WorshipNote/'` in `vite.config.ts` — required for GitHub Pages subdirectory
-- **Router:** Uses `BrowserRouter` — GitHub Pages needs the 404.html redirect trick if users deep-link directly (currently not needed since users navigate from home screen)
+- **Router:** Uses `HashRouter` (works on GitHub Pages and in Capacitor without server rewrites). Unknown routes redirect to `/library`.
 - **Chord diagrams on mobile:** When `chordDisplayPosition` is `'side'`, the side panel is desktop-only (`md:flex`). On mobile, diagrams automatically fall back to the top position.
 
 ## Project Structure
 
 ```
 src/
-├── App.tsx                              # Router (BrowserRouter, all routes)
+├── App.tsx                              # Router (HashRouter, all routes)
 ├── main.tsx                             # Entry point
 ├── index.css                            # Global styles, scrollbar
 │
@@ -81,7 +81,9 @@ src/
 │   │   ├── lib/
 │   │   │   ├── chordData.ts             # Guitar chord voicing database (146+ chords)
 │   │   │   ├── parser.ts                # ChordPro format parser
-│   │   │   └── transposer.ts            # Chord transposition logic
+│   │   │   ├── transposer.ts            # Key-aware chord transposition (transposeKey, keyUsesSharps)
+│   │   │   ├── sectionColors.ts         # Colour per section type (verse/chorus/bridge…)
+│   │   │   └── useRoleCapabilities.ts   # What the active role may see (chords/cues/diagrams)
 │   │   └── types.ts                     # Song, ChordRow, Instrument types
 │   │
 │   ├── pianoTrainer/                    # Piano chord-learning trainer
@@ -115,33 +117,39 @@ src/
 │           └── chordDetector.ts         # Polyphonic chord detection (chromagram)
 │
 ├── pages/
-│   ├── HomePage.tsx                     # Song library main page
-│   ├── SongPage.tsx                     # Song view (lyrics, chords, diagrams, controls)
+│   ├── HomePage.tsx                     # Song library (key badges, lyrics search, bulk select)
+│   ├── SongPage.tsx                     # Song view: toolbar (transpose/capo/metronome/font/scroll), role chip, setlist prev/next
 │   ├── SongEditPage.tsx                 # Song edit page wrapper
 │   ├── ChordLibraryPage.tsx             # Chord library (progressions + reference)
 │   ├── SetlistPage.tsx                  # Setlist view
 │   ├── SetlistEditPage.tsx              # Setlist editor
 │   ├── SettingsPage.tsx                 # App settings
+│   ├── PracticePage.tsx                 # Practice hub: links to Tuner + Piano Trainer
 │   ├── PitchPage.tsx                    # Pitch detection / tuner page
-│   └── PianoTrainerPage.tsx             # Piano chord-learning trainer (entry via Settings → Learn)
+│   └── PianoTrainerPage.tsx             # Piano chord-learning trainer (entry via Practice tab)
 │
 ├── store/
 │   ├── settingsStore.ts                 # User prefs (theme, role, instrument, font, custom chords)
-│   ├── songStore.ts                     # All songs CRUD
+│   ├── songStore.ts                     # All songs CRUD (loads synchronously; seeds only on first launch; auto-saves)
 │   ├── chordLibraryStore.ts             # Chord progressions + folders
 │   ├── folderStore.ts                   # Song folders
-│   ├── setlistStore.ts                  # Setlist collections
+│   ├── setlistStore.ts                  # Setlist collections (loads synchronously; auto-saves)
 │   ├── pitchStore.ts                    # Pitch detection settings (mic gain, threshold, device)
 │   └── pianoTrainerStore.ts             # Piano trainer state (key, progression, level, tempo)
 │
 ├── shared/
 │   ├── components/
-│   │   ├── Layout.tsx                   # Main layout (sidebar + outlet), theme application
-│   │   ├── Sidebar.tsx                  # Desktop sidebar + mobile bottom tabs
+│   │   ├── Layout.tsx                   # Main layout (sidebar + outlet), theme + language application
+│   │   ├── Sidebar.tsx                  # Desktop sidebar + mobile bottom tabs (section colours)
+│   │   ├── navItems.ts                  # NAV config, section colour helpers, sectionButtonStyle
+│   │   ├── PageHeader.tsx               # Colourful page title with section-gradient icon badge
 │   │   ├── AutoScroller.tsx             # Auto-scroll for song reading
 │   │   └── FontSizeSlider.tsx           # Font size control
 │   ├── lib/
-│   │   ├── storage.ts                   # localStorage helpers, ID generation
+│   │   ├── storage.ts                   # localStorage helpers (null = never stored), ID generation
+│   │   ├── color.ts                     # alpha() via color-mix, keyColor() (circle-of-fifths hues)
+│   │   ├── setlistNav.ts                # Sorted setlist songs + song links carrying setlist position
+│   │   ├── useClickOutside.ts           # Close popovers on outside tap / Esc
 │   │   ├── constants.ts                 # App constants
 │   │   └── seedData.ts                  # Sample songs for first launch
 │   └── styles/
@@ -155,12 +163,17 @@ src/
 
 ## Design Patterns
 
-- **Theming:** CSS custom properties in `themes.css`. Components use `var(--color-*)` in inline styles. Themes: `dark`, `midnight`, `light`, `forest`.
+- **Theming:** CSS custom properties in `themes.css`. Components use `var(--color-*)` in inline styles. Themes: `dark`, `midnight`, `light`, `forest`, `ocean`, `lavender`, `sunset`.
+- **Colour transparency:** never append hex alpha to a colour (`color + '22'`) — it breaks for `var(--…)` colours. Use `alpha(color, percent)` from `shared/lib/color.ts`, or the `--color-*-dim` tokens.
+- **Section colours:** each nav section has `--sec-<name>` / `--sec-<name>-2` (library, setlists, chords, practice, settings). Use `PageHeader` for page titles and `className="btn-primary" style={sectionButtonStyle('<name>')}` for the main action. White text on accent backgrounds: `var(--color-on-accent)`.
+- **Popovers:** use `useClickOutside(ref, open, close)` so menus close on outside tap and Esc.
+- **Setlist mode:** songs opened from a setlist use `/songs/:id?setlist=<id>&i=<index>` (build with `setlistSongPath`). SongPage then applies the setlist's `transpose_steps`/`capo_fret` and shows prev/next.
+- **Capo:** with capo > 0 the song view shows chord *shapes* (sounding key transposed down by the capo).
 - **State:** Zustand stores with `persist` middleware (localStorage). Settings, songs, chord library, folders, setlists.
 - **Song Format:** ChordPro — `[C]word` for inline chords, `[! SECTION]` for cues. Parsed by `parser.ts`.
 - **Chord Diagrams:** SVG-based (guitar fretboard, piano keyboard, bass). Custom diagrams override defaults via settings store.
-- **Roles:** musician (all visible), singer (chords only), congregation (lyrics only), custom roles.
-- **i18n:** `useTranslation()` hook, keys in `t('keyName')`.
+- **Roles:** musician (all visible), singer (chords only), congregation (lyrics only), custom roles. Switched from the role chip in the song header (no popup).
+- **i18n:** every user-visible string goes through `t()` with keys in all three of `ru.json`, `lt.json`, `en.json`. The saved language is applied at boot (`i18n/index.ts` reads the persisted settings).
 
 ## Key CSS Variables
 
@@ -184,6 +197,9 @@ src/
 --color-shadow          Box shadow color
 --color-input-bg        Input field background
 --color-nav-blur-bg     Nav bar blur background
+--color-on-accent       Text on accent/gradient backgrounds (white)
+--color-chord-dim / --color-info-dim / --color-error-dim / --color-warning-dim / --color-success-dim
+--sec-library|setlists|chords|practice|settings (+ -2)   Section colours
 ```
 
 ## Routes
@@ -191,7 +207,7 @@ src/
 | Path | Page | Description |
 |------|------|-------------|
 | `/library` | HomePage | Song library (default) |
-| `/songs/:id` | SongPage | View song |
+| `/songs/:id` | SongPage | View song (`?setlist=<id>&i=<n>` = setlist mode) |
 | `/songs/:id/edit` | SongEditPage | Edit song |
 | `/songs/new` | SongEditPage | Create song |
 | `/setlists` | SetlistPage | Setlist list |
@@ -199,6 +215,7 @@ src/
 | `/setlists/:id/edit` | SetlistEditPage | Edit setlist |
 | `/setlists/new` | SetlistEditPage | Create setlist |
 | `/chords` | ChordLibraryPage | Chord library |
+| `/practice` | PracticePage | Practice hub (Tuner + Piano Trainer) |
 | `/pitch` | PitchPage | Pitch detection / tuner |
-| `/piano-learn` | PianoTrainerPage | Piano chord-learning trainer (linked from Settings → Learn) |
+| `/piano-learn` | PianoTrainerPage | Piano chord-learning trainer (linked from Practice) |
 | `/settings` | SettingsPage | App settings |

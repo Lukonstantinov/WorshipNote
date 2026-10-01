@@ -33,9 +33,3 @@ export function PageHeader({ title, subtitle, Icon, color, actions }: Props) {
     </div>
   )
 }
-
-/** Primary call-to-action button styled with a section gradient. */
-export function sectionButtonStyle(color: string): React.CSSProperties {
-  const { c1, grad } = sectionVars(color)
-  return { '--btn-grad': grad, '--btn-color': c1 } as React.CSSProperties
-}

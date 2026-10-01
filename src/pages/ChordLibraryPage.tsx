@@ -21,7 +21,8 @@ import type { ChordCategory } from '../features/songs/lib/chordData'
 import { getAllUkuleleChordNames } from '../features/songs/lib/ukuleleChordData'
 import { getAllBassChordNames } from '../features/songs/lib/bassChordData'
 import { alpha } from '../shared/lib/color'
-import { PageHeader, sectionButtonStyle } from '../shared/components/PageHeader'
+import { PageHeader } from '../shared/components/PageHeader'
+import { sectionButtonStyle } from '../shared/components/navItems'
 
 type Tab = 'progressions' | 'reference' | 'tabs'
 
@@ -157,7 +158,7 @@ export default function ChordLibraryPage() {
     if (q) names = names.filter((n) => n.toLowerCase().includes(q))
 
     return names
-  }, [allChordNames, allUkuleleNames, refQuery, refInstrument, refCategory, customChords])
+  }, [allChordNames, allUkuleleNames, allBassNames, refQuery, refInstrument, refCategory, customChords])
 
   const filteredTabs = useMemo(() => {
     const q = tabQuery.toLowerCase()

@@ -62,7 +62,7 @@ export function parseSong(content: string): ParsedSong {
 
     // Parse tokens left to right
     const segments: SongSegment[] = []
-    let remaining = trimmed
+    const remaining = trimmed
     let pos = 0
     let pendingText = ''
     let currentChord: string | undefined = undefined

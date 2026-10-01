@@ -46,6 +46,3 @@ export function ChordChips({ chords, romanNumerals, onPick }: Props) {
   )
 }
 
-/** Roman numerals for the 7 diatonic triads. */
-export const MAJOR_ROMANS = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']
-export const MINOR_ROMANS = ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII']
