@@ -27,6 +27,8 @@ export function sectionVars(color: string) {
   }
 }
 
-export function isNavActive(item: NavItem, pathname: string) {
+export function isNavActive(item: NavItem, pathname: string, search = '') {
+  // A song opened from a setlist belongs to the Services tab
+  if (pathname.startsWith('/songs/') && search.includes('setlist=')) return item.to === '/setlists'
   return item.match.some((m) => pathname === m || pathname.startsWith(m + '/'))
 }

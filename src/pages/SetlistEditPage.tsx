@@ -8,7 +8,10 @@ import {
   SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, X, Plus, ChevronLeft, User, Search } from 'lucide-react'
+import { GripVertical, X, Plus, ChevronLeft, User, Search, Minus } from 'lucide-react'
+import { transposeKey } from '../features/songs/lib/transposer'
+import { alpha, keyColor } from '../shared/lib/color'
+import { sectionButtonStyle } from '../shared/components/PageHeader'
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { generateId } from '../shared/lib/storage'
@@ -25,9 +28,11 @@ interface SortableItemProps {
   songKey?: string
   onRemove: (id: string) => void
   onUpdateVocalist: (id: string, vocalist: string, vocalColor: string) => void
+  onUpdateTranspose: (id: string, steps: number) => void
 }
 
-function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist }: SortableItemProps) {
+function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist, onUpdateTranspose }: SortableItemProps) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ss.id })
   const [showVocalist, setShowVocalist] = useState(!!(ss.vocalist))
   const [vocalistName, setVocalistName] = useState(ss.vocalist ?? '')
@@ -51,23 +56,38 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
         <button {...attributes} {...listeners} className="flex items-center justify-center cursor-grab active:cursor-grabbing touch-none" style={{ color: 'var(--color-text-muted)', minWidth: 32, minHeight: 44 }}>
           <GripVertical size={18} strokeWidth={1.5} />
         </button>
-        <span className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)', minWidth: 20 }}>{idx + 1}</span>
+        <span className="text-xs font-bold" style={{ color: 'var(--sec-setlists)', minWidth: 16 }}>{idx + 1}</span>
         <div className="flex-1 min-w-0">
           {ss.vocalist && (
             <span className="text-xs font-semibold mr-1" style={{ color: ss.vocalColor ?? 'var(--color-info)' }}>({ss.vocalist})</span>
           )}
           <span className="text-sm">{songTitle}</span>
         </div>
-        {songKey && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ backgroundColor: 'var(--color-chord-dim)', color: 'var(--color-chord)' }}>
-            {songKey}
-          </span>
-        )}
+        {songKey && (() => {
+          const k = transposeKey(songKey, ss.transpose_steps)
+          const kc = keyColor(k)
+          return (
+            <div
+              className="flex items-center rounded-xl flex-shrink-0"
+              style={{ backgroundColor: alpha(kc, 14), border: `1px solid ${alpha(kc, 35)}` }}
+              title={t('serviceKey')}
+            >
+              <button onClick={() => onUpdateTranspose(ss.id, ss.transpose_steps - 1)} className="flex items-center justify-center" style={{ minWidth: 30, minHeight: 34, color: kc }} aria-label={t('lower')}>
+                <Minus size={13} strokeWidth={2.5} />
+              </button>
+              <span className="text-xs font-bold text-center" style={{ color: kc, minWidth: 26 }}>{k}</span>
+              <button onClick={() => onUpdateTranspose(ss.id, ss.transpose_steps + 1)} className="flex items-center justify-center" style={{ minWidth: 30, minHeight: 34, color: kc }} aria-label={t('higher')}>
+                <Plus size={13} strokeWidth={2.5} />
+              </button>
+            </div>
+          )
+        })()}
         <button
           onClick={() => setShowVocalist((v) => !v)}
           className="flex items-center justify-center rounded-xl transition-all"
           style={{ minWidth: 34, minHeight: 34, backgroundColor: showVocalist ? 'var(--color-info-dim)' : 'transparent', color: showVocalist ? 'var(--color-info)' : 'var(--color-text-muted)' }}
-          title="Set vocalist"
+          title={t('setVocalist')}
+          aria-label={t('setVocalist')}
         >
           <User size={14} strokeWidth={2} />
         </button>
@@ -79,7 +99,7 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
         <div className="px-3 pb-3 pt-1 space-y-2" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
           <input
             type="text"
-            placeholder="Vocalist name..."
+            placeholder={t('vocalistName')}
             value={vocalistName}
             onChange={(e) => handleVocalistChange(e.target.value, vocalistColor)}
             className="w-full rounded-xl px-3 py-2 text-sm outline-none"
@@ -91,7 +111,9 @@ function SortableItem({ ss, idx, songTitle, songKey, onRemove, onUpdateVocalist 
                 key={c}
                 onClick={() => handleVocalistChange(vocalistName, c)}
                 className="rounded-full transition-all"
-                style={{ width: 22, height: 22, backgroundColor: c, border: vocalistColor === c ? '2px solid #fff' : '2px solid transparent' }}
+                style={{ width: 22, height: 22, backgroundColor: c, border: '2px solid var(--color-card)', boxShadow: vocalistColor === c ? `0 0 0 2px ${c}` : undefined }}
+                aria-label={c}
+                aria-pressed={vocalistColor === c}
               />
             ))}
           </div>
@@ -131,6 +153,9 @@ export default function SetlistEditPage() {
   const removeSong = (ssId: string) =>
     setSelectedSongs((prev) => prev.filter((s) => s.id !== ssId).map((s, i) => ({ ...s, sort_order: i })))
 
+  const updateTranspose = (ssId: string, steps: number) =>
+    setSelectedSongs((prev) => prev.map((s) => s.id === ssId ? { ...s, transpose_steps: ((steps % 12) + 12 + 6) % 12 - 6 } : s))
+
   const updateVocalist = (ssId: string, vocalist: string, vocalColor: string) =>
     setSelectedSongs((prev) => prev.map((s) => s.id === ssId ? { ...s, vocalist: vocalist || undefined, vocalColor: vocalist ? vocalColor : undefined } : s))
 
@@ -145,13 +170,14 @@ export default function SetlistEditPage() {
   }
 
   const handleSave = () => {
+    if (!title.trim()) return
     const now = new Date().toISOString()
     const songsWithOrder = selectedSongs.map((s, i) => ({ ...s, sort_order: i }))
     if (existing) {
-      updateSetlist(existing.id, { title, service_date: date, notes, songs: songsWithOrder })
+      updateSetlist(existing.id, { title: title.trim(), service_date: date, notes, songs: songsWithOrder })
     } else {
       addSetlist({
-        id: generateId(), title, service_date: date || undefined, notes: notes || undefined,
+        id: generateId(), title: title.trim(), service_date: date || undefined, notes: notes || undefined,
         songs: songsWithOrder, created_at: now, updated_at: now,
       })
     }
@@ -171,7 +197,7 @@ export default function SetlistEditPage() {
   return (
     <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100%' }}>
       <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ backgroundColor: 'var(--color-bg-secondary)', borderColor: 'var(--color-border)' }}>
-        <button onClick={() => navigate(-1)} className="flex items-center justify-center rounded-xl transition-all" style={{ color: 'var(--color-accent)', minWidth: 44, minHeight: 44 }}>
+        <button onClick={() => navigate(-1)} className="flex items-center justify-center rounded-xl transition-all" style={{ color: 'var(--sec-setlists)', minWidth: 44, minHeight: 44 }} aria-label={t('back')}>
           <ChevronLeft size={22} strokeWidth={2} />
         </button>
         <h1 className="text-base font-semibold">{existing ? t('edit') : t('newSetlist')}</h1>
@@ -180,12 +206,12 @@ export default function SetlistEditPage() {
       <div className="p-4 space-y-4 pb-10 max-w-2xl mx-auto">
         <div>
           <label className="block text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{t('title')}</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 rounded-xl outline-none" style={inputStyle} placeholder="Воскресное богослужение" />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 rounded-xl outline-none" style={inputStyle} placeholder={t('setlistTitlePlaceholder')} />
         </div>
 
         <div>
           <label className="block text-xs mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>{t('date')}</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 rounded-xl outline-none" style={{ ...inputStyle, colorScheme: 'dark' }} />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 rounded-xl outline-none" style={inputStyle} />
         </div>
 
         <div>
@@ -196,10 +222,10 @@ export default function SetlistEditPage() {
         {/* Selected songs */}
         <div>
           <h3 className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
-            ПЕСНИ В СЛУЖЕНИИ ({selectedSongs.length})
+            {t('songsInService').toUpperCase()} ({selectedSongs.length})
           </h3>
           {selectedSongs.length === 0 ? (
-            <p className="text-sm py-4 text-center rounded-xl" style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-card)' }}>Добавьте песни из списка ниже</p>
+            <p className="text-sm py-4 text-center rounded-xl" style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-card)' }}>{t('addSongsBelow')}</p>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={selectedSongs.map((s) => s.id)} strategy={verticalListSortingStrategy}>
@@ -211,7 +237,7 @@ export default function SetlistEditPage() {
                       <SortableItem
                         key={ss.id} ss={ss} idx={i}
                         songTitle={song.title} songKey={song.original_key}
-                        onRemove={removeSong} onUpdateVocalist={updateVocalist}
+                        onRemove={removeSong} onUpdateVocalist={updateVocalist} onUpdateTranspose={updateTranspose}
                       />
                     )
                   })}
@@ -237,7 +263,7 @@ export default function SetlistEditPage() {
             </div>
             <div className="space-y-1 max-h-72 overflow-y-auto">
               {filteredSongs.length === 0 ? (
-                <p className="text-sm py-3 text-center" style={{ color: 'var(--color-text-muted)' }}>No matching songs</p>
+                <p className="text-sm py-3 text-center" style={{ color: 'var(--color-text-muted)' }}>{t('noMatchingSongs')}</p>
               ) : (
                 filteredSongs.map((song) => (
                   <button
@@ -260,7 +286,7 @@ export default function SetlistEditPage() {
         )}
 
         <div className="flex gap-3 pt-2">
-          <button onClick={handleSave} className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]" style={{ backgroundColor: 'var(--color-accent)', minHeight: 44 }}>
+          <button onClick={handleSave} disabled={!title.trim()} title={title.trim() ? undefined : t('titleRequired')} className="btn-primary flex-1 disabled:opacity-40" style={sectionButtonStyle('setlists')}>
             {t('save')}
           </button>
           <button onClick={() => navigate(-1)} className="flex-1 py-3 rounded-xl font-semibold transition-all active:scale-[0.98]" style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-tertiary)', minHeight: 44 }}>

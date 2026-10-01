@@ -7,7 +7,7 @@ import { APP_VERSION } from '../lib/version'
 
 export function Sidebar() {
   const { t } = useTranslation()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
 
   return (
     <>
@@ -29,7 +29,7 @@ export function Sidebar() {
         </div>
         <div className="flex-1 py-2 space-y-1">
           {NAV.map((item) => {
-            const active = isNavActive(item, pathname)
+            const active = isNavActive(item, pathname, search)
             const { c1, grad } = sectionVars(item.color)
             return (
               <Link
@@ -75,7 +75,7 @@ export function Sidebar() {
         }}
       >
         {NAV.map((item) => {
-          const active = isNavActive(item, pathname)
+          const active = isNavActive(item, pathname, search)
           const { c1, grad } = sectionVars(item.color)
           return (
             <Link

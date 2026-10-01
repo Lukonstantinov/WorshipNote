@@ -188,15 +188,14 @@ function SongPage({ id, params }: { id: string; params: URLSearchParams }) {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="font-bold text-base truncate leading-tight">{song.title}</h1>
-          <div className="flex items-center gap-1.5 mt-0.5 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs whitespace-nowrap overflow-hidden" style={{ color: 'var(--color-text-tertiary)' }}>
             {soundingKey && (
-              <span className="px-1.5 rounded-md font-bold" style={{ backgroundColor: kc, color: '#fff' }}>{soundingKey}</span>
+              <span className="px-1.5 rounded-md font-bold flex-shrink-0" style={{ backgroundColor: kc, color: '#fff' }}>{soundingKey}</span>
             )}
-            {shapeKey && <span style={{ color: 'var(--color-info)' }}>{t('playAs')} {shapeKey}</span>}
-            {song.bpm ? <span>♩ {song.bpm}</span> : null}
+            {song.bpm ? <span className="flex-shrink-0">♩ {song.bpm}</span> : null}
             {setlist && (
-              <span className="flex items-center gap-1 truncate" style={{ color: 'var(--sec-setlists)' }}>
-                <ListMusic size={11} strokeWidth={2} />
+              <span className="hidden sm:flex items-center gap-1 min-w-0" style={{ color: 'var(--sec-setlists)' }}>
+                <ListMusic size={11} strokeWidth={2} className="flex-shrink-0" />
                 <span className="truncate">{setlist.title}</span>
               </span>
             )}
@@ -309,6 +308,7 @@ function SongPage({ id, params }: { id: string; params: URLSearchParams }) {
       {capo > 0 && capabilities.showChords && (
         <div className="px-4 py-1.5 text-xs font-medium flex-shrink-0" style={{ backgroundColor: 'var(--color-info-dim)', color: 'var(--color-info)' }}>
           {t('capoShapesHint', { fret: capo })}
+          {shapeKey && <> · {t('playAs')} <b>{shapeKey}</b></>}
         </div>
       )}
 

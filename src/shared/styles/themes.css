@@ -293,3 +293,17 @@
   --sec-settings: #475569;
   --sec-settings-2: #7c3aed;
 }
+
+/* Native controls (date pickers, selects, scrollbars) follow the theme */
+:root,
+.theme-dark,
+.theme-midnight,
+.theme-forest,
+.theme-ocean,
+.theme-sunset {
+  color-scheme: dark;
+}
+.theme-light,
+.theme-lavender {
+  color-scheme: light;
+}

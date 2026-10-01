@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, ListMusic, Pencil, Trash2, ChevronRight, Download, X, ChevronDown, ChevronUp, Play, CalendarDays } from 'lucide-react'
+import { PageHeader, sectionButtonStyle } from '../shared/components/PageHeader'
+import { keyColor } from '../shared/lib/color'
+import { transposeKey } from '../features/songs/lib/transposer'
+import { sortedSetlistSongs, setlistSongPath } from '../shared/lib/setlistNav'
 import { useSetlistStore } from '../store/setlistStore'
 import { useSongStore } from '../store/songStore'
 import { useFolderStore } from '../store/folderStore'
@@ -51,9 +55,9 @@ function collapseRepeats(chips: string[]): { label: string; count: number }[] {
 type ExportLevel = 'structure' | 'chords' | 'full'
 
 const EXPORT_LEVEL_OPTIONS: { value: ExportLevel; label: string; desc: string }[] = [
-  { value: 'structure', label: 'Psalms', desc: 'Structure only' },
-  { value: 'chords', label: '+ Chords', desc: 'Structure + chords' },
-  { value: 'full', label: '+ Tabs', desc: 'Chords + progressions & tabs' },
+  { value: 'structure', label: 'levelStructure', desc: 'levelStructureDesc' },
+  { value: 'chords', label: 'levelChords', desc: 'levelChordsDesc' },
+  { value: 'full', label: 'levelFull', desc: 'levelFullDesc' },
 ]
 
 function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: () => void }) {
@@ -117,7 +121,7 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
         {/* Export level selector */}
         <div className="px-4 pt-3 pb-1">
           <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
-            Content level
+            {t('contentLevel')}
           </p>
           <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--color-border)' }}>
             {EXPORT_LEVEL_OPTIONS.map((opt) => (
@@ -131,8 +135,8 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
                   borderRight: opt.value !== 'full' ? '1px solid var(--color-border)' : undefined,
                 }}
               >
-                <span className="font-semibold">{opt.label}</span>
-                <span className="text-[10px] opacity-70">{opt.desc}</span>
+                <span className="font-semibold">{t(opt.label)}</span>
+                <span className="text-[10px] opacity-70">{t(opt.desc)}</span>
               </button>
             ))}
           </div>
@@ -158,7 +162,7 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
             className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
             style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}
           >
-            View HTML
+            {t('viewHtml')}
           </button>
           <div className="flex gap-2">
             <button
@@ -182,10 +186,10 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
             onClick={handleDownloadJSON}
             className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
             style={{ backgroundColor: 'var(--color-card-raised)', color: 'var(--color-text-secondary)', borderTop: '1px solid var(--color-border-subtle)', marginTop: 2 }}
-            title="Export songs as JSON — import on another device"
+            title={t('exportJsonHint')}
           >
             <Download size={14} strokeWidth={2} />
-            JSON ({setlist.songs.length} {setlist.songs.length === 1 ? 'song' : 'songs'})
+            JSON ({t('songsCount', { count: setlist.songs.length })})
           </button>
         </div>
       </div>
@@ -194,6 +198,7 @@ function SetlistExportModal({ setlist, onClose }: { setlist: Setlist; onClose: (
 }
 
 function SongTabRows({ song }: { song: Song }) {
+  const { t } = useTranslation()
   const { tabs } = useChordLibraryStore()
   const [expanded, setExpanded] = useState(false)
 
@@ -208,12 +213,12 @@ function SongTabRows({ song }: { song: Song }) {
         style={{ color: 'var(--color-text-muted)' }}
       >
         {expanded ? <ChevronUp size={11} strokeWidth={2} /> : <ChevronDown size={11} strokeWidth={2} />}
-        <span className="text-xs">{tabRows.length === 1 ? '1 tab' : `${tabRows.length} tabs`}</span>
+        <span className="text-xs">{t('tabsCount', { count: tabRows.length })}</span>
       </button>
       {expanded && (
         <div className="px-4 pb-3 space-y-2">
           {tabRows.map((row) => {
-            const tab = tabs.find((t) => t.id === row.tabId)
+            const tab = tabs.find((tb) => tb.id === row.tabId)
             if (!tab) return null
             return <TabViewer key={row.id} tab={tab} />
           })}
@@ -232,87 +237,91 @@ export default function SetlistPage() {
 
   return (
     <div className="p-4 pb-8">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold tracking-tight">{t('setlists')}</h2>
-        <Link
-          to="/setlists/new"
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-on-accent)', minHeight: 44 }}
-        >
-          <Plus size={16} strokeWidth={2.5} />
-          {t('newSetlist')}
-        </Link>
-      </div>
+      <PageHeader
+        title={t('setlists')}
+        subtitle={t('setlistsSubtitle')}
+        Icon={ListMusic}
+        color="setlists"
+        actions={
+          <Link to="/setlists/new" className="btn-primary" style={sectionButtonStyle('setlists')} title={t('newSetlist')}>
+            <Plus size={18} strokeWidth={2.5} />
+            <span className="hidden sm:inline">{t('newSetlist')}</span>
+          </Link>
+        }
+      />
 
       {setlists.length === 0 ? (
-        <div className="text-center mt-20">
-          <ListMusic size={40} strokeWidth={1} style={{ color: 'var(--color-text-muted)', margin: '0 auto 12px' }} />
-          <p style={{ color: 'var(--color-text-tertiary)', fontSize: 15 }}>{t('noSetlists')}</p>
+        <div className="text-center mt-16 flex flex-col items-center gap-3">
+          <span className="flex items-center justify-center rounded-3xl" style={{ width: 72, height: 72, background: 'var(--color-info-dim)', color: 'var(--sec-setlists)' }}>
+            <ListMusic size={34} strokeWidth={1.5} />
+          </span>
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: 15 }}>{t('noSetlists')}</p>
+          <Link to="/setlists/new" className="btn-primary" style={sectionButtonStyle('setlists')}>
+            <Plus size={18} strokeWidth={2.5} />
+            {t('newSetlist')}
+          </Link>
         </div>
       ) : (
         <div className="space-y-3">
           {setlists.map((sl) => (
-            <div key={sl.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)' }}>
+            <div key={sl.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border-subtle)' }}>
               {/* Setlist header */}
-              <div className="flex items-center gap-3 px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold">{sl.title}</h3>
-                  {sl.service_date && (
+              <div className="px-3 pt-3 pb-2" style={{ background: 'linear-gradient(90deg, var(--color-info-dim), transparent 70%)' }}>
+                <div className="flex items-center gap-3">
+                  <DateBadge date={sl.service_date} />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold leading-snug">{sl.title}</h3>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
-                      {sl.service_date}
+                      {t('songsCount', { count: sl.songs.length })}
                     </p>
-                  )}
-                  {sl.notes && (
-                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-text-tertiary)', whiteSpace: 'pre-wrap' }}>
-                      {sl.notes}
-                    </p>
+                  </div>
+                  {sl.songs.length > 0 && (
+                    <Link
+                      to={setlistSongPath(sl.id, 0, sortedSetlistSongs(sl)[0])}
+                      className="btn-primary px-4"
+                      style={sectionButtonStyle('setlists')}
+                      title={t('startSetlist')}
+                    >
+                      <Play size={15} strokeWidth={2.5} fill="currentColor" />
+                      {t('startSetlist')}
+                    </Link>
                   )}
                 </div>
-
-                {/* Download button */}
-                <div className="relative">
+                <div className="flex items-center gap-1.5 mt-2">
+                  <p className="flex-1 min-w-0 text-xs leading-relaxed" style={{ color: 'var(--color-text-tertiary)', whiteSpace: 'pre-wrap' }}>
+                    {sl.notes}
+                  </p>
                   <button
                     onClick={() => setOpenMenuId(openMenuId === sl.id ? null : sl.id)}
-                    className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-                    style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 40, minHeight: 40 }}
-                    title="Download"
+                    className="btn-icon"
+                    style={{ minWidth: 36, minHeight: 36 }}
+                    title={t('export')}
+                    aria-label={t('export')}
                   >
-                    {openMenuId === sl.id
-                      ? <X size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
-                      : <Download size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
-                    }
+                    <Download size={15} strokeWidth={1.75} />
                   </button>
                   {openMenuId === sl.id && (
                     <SetlistExportModal setlist={sl} onClose={() => setOpenMenuId(null)} />
                   )}
+                  <Link to={`/setlists/${sl.id}/edit`} className="btn-icon" style={{ minWidth: 36, minHeight: 36 }} title={t('edit')} aria-label={t('edit')}>
+                    <Pencil size={15} strokeWidth={1.75} />
+                  </Link>
+                  <button
+                    onClick={() => { if (confirm(t('confirmDelete'))) deleteSetlist(sl.id) }}
+                    className="btn-icon"
+                    style={{ minWidth: 36, minHeight: 36, color: 'var(--color-error)' }}
+                    title={t('delete')}
+                    aria-label={t('delete')}
+                  >
+                    <Trash2 size={15} strokeWidth={1.75} />
+                  </button>
                 </div>
-
-                <Link
-                  to={`/setlists/${sl.id}/edit`}
-                  className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-                  style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 40, minHeight: 40 }}
-                  title={t('edit')}
-                >
-                  <Pencil size={15} strokeWidth={1.5} style={{ color: 'var(--color-text-secondary)' }} />
-                </Link>
-                <button
-                  onClick={() => {
-                    if (confirm(t('confirmDelete'))) deleteSetlist(sl.id)
-                  }}
-                  className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-                  style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 40, minHeight: 40 }}
-                  title={t('delete')}
-                >
-                  <Trash2 size={15} strokeWidth={1.5} style={{ color: 'var(--color-error)' }} />
-                </button>
               </div>
 
               {/* Song list */}
               {sl.songs.length > 0 && (
                 <div style={{ borderTop: '1px solid var(--color-border)' }}>
-                  {sl.songs
-                    .slice()
-                    .sort((a, b) => a.sort_order - b.sort_order)
+                  {sortedSetlistSongs(sl)
                     .map((ss, idx) => {
                       const song = getSongById(ss.song_id)
                       if (!song) return null
@@ -339,12 +348,12 @@ export default function SetlistPage() {
                           className="flex items-start gap-3 px-4 py-2.5 transition-all hover-bg"
                         >
                           <Link
-                            to={`/songs/${song.id}`}
+                            to={setlistSongPath(sl.id, idx, ss)}
                             className="flex items-start gap-3 flex-1 min-w-0"
                           >
                             <span
-                              className="text-xs font-semibold w-5 text-right flex-shrink-0 mt-1"
-                              style={{ color: 'var(--color-text-muted)' }}
+                              className="text-xs font-bold w-5 text-right flex-shrink-0 mt-1"
+                              style={{ color: 'var(--sec-setlists)' }}
                             >
                               {idx + 1}
                             </span>
@@ -359,14 +368,17 @@ export default function SetlistPage() {
                                   </span>
                                 )}
                                 <span className="text-sm">{song.title}</span>
-                                {song.original_key && (
-                                  <span
-                                    className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                                    style={{ backgroundColor: 'var(--color-chord-dim)', color: 'var(--color-chord)' }}
-                                  >
-                                    {song.original_key}
-                                  </span>
-                                )}
+                                {song.original_key && (() => {
+                                  const k = transposeKey(song.original_key, ss.transpose_steps)
+                                  return (
+                                    <span
+                                      className="text-xs px-1.5 py-0.5 rounded-md font-bold"
+                                      style={{ backgroundColor: keyColor(k), color: '#fff' }}
+                                    >
+                                      {k}
+                                    </span>
+                                  )
+                                })()}
                               </div>
                               {/* Song structure chips */}
                               {structureChips.length > 0 && (
@@ -397,7 +409,7 @@ export default function SetlistPage() {
                             onClick={() => setExportSong(song)}
                             className="flex-shrink-0 p-1.5 rounded-lg transition-all hover-bg"
                             style={{ color: 'var(--color-text-muted)' }}
-                            title="Download song"
+                            title={t('downloadSong')}
                           >
                             <Download size={13} strokeWidth={1.5} />
                           </button>
@@ -424,5 +436,26 @@ export default function SetlistPage() {
       {/* Song export modal */}
       {exportSong && <SongExportModal song={exportSong} onClose={() => setExportSong(null)} />}
     </div>
+  )
+}
+
+function DateBadge({ date }: { date?: string }) {
+  const { i18n } = useTranslation()
+  const d = date ? new Date(date + 'T00:00:00') : null
+  const valid = d && !isNaN(d.getTime())
+  return (
+    <span
+      className="flex flex-col items-center justify-center rounded-2xl flex-shrink-0 leading-none"
+      style={{ width: 46, height: 46, background: 'linear-gradient(135deg, var(--sec-setlists), var(--sec-setlists-2))', color: '#fff' }}
+    >
+      {valid ? (
+        <>
+          <span className="text-[10px] font-semibold uppercase opacity-90">{d!.toLocaleDateString(i18n.language, { month: 'short' }).replace('.', '')}</span>
+          <span className="text-lg font-bold">{d!.getDate()}</span>
+        </>
+      ) : (
+        <CalendarDays size={20} strokeWidth={2} />
+      )}
+    </span>
   )
 }
