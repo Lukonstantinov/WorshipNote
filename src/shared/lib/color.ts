@@ -1,9 +1,22 @@
 /**
  * Mix a colour with transparency. Works for hex colours AND CSS variables
  * (`var(--color-info)`), unlike appending a hex alpha suffix such as `+ '22'`.
+ *
+ * Hex and hsl() colours become plain rgba()/hsl(… / a) so they also work on
+ * older iPhones (color-mix needs iOS 16.2+); only CSS variables use color-mix.
  */
 export function alpha(color: string, percent: number): string {
-  return `color-mix(in srgb, ${color} ${percent}%, transparent)`
+  const a = Math.round(percent) / 100
+  const c = color.trim()
+  const hex = c.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)
+  if (hex) {
+    const h = hex[1].length === 3 ? hex[1].split('').map((x) => x + x).join('') : hex[1]
+    const n = parseInt(h, 16)
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
+  }
+  const hsl = c.match(/^hsl\(([^/)]+)\)$/i)
+  if (hsl) return `hsl(${hsl[1].trim()} / ${a})`
+  return `color-mix(in srgb, ${c} ${percent}%, transparent)`
 }
 
 const PITCH: Record<string, number> = {
@@ -16,7 +29,7 @@ const PITCH: Record<string, number> = {
  */
 export function keyColor(key: string | undefined): string {
   const m = key?.trim().match(/^([A-G][#b]?)/)
-  if (!m || PITCH[m[1]] === undefined) return 'var(--color-accent)'
+  if (!m || PITCH[m[1]] === undefined) return '#a855f7'
   const fifthsPos = (PITCH[m[1]] * 7) % 12
   const minor = /^[A-G][#b]?m(?!aj)/.test(key!.trim())
   const hue = fifthsPos * 30

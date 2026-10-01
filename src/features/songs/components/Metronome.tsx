@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Play, Square } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { createPlaybackAudioContext } from '../../../shared/lib/audio'
 
 interface Props {
   bpm: number
@@ -63,7 +64,7 @@ export function Metronome({ bpm }: Props) {
 
   const start = useCallback(() => {
     if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext()
+      audioCtxRef.current = createPlaybackAudioContext()
     }
     const ctx = audioCtxRef.current
     if (ctx.state === 'suspended') ctx.resume()

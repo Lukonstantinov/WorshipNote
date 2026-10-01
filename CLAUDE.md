@@ -43,6 +43,8 @@ cd android && ./gradlew assembleRelease
 - **Data:** Each user's data is stored **locally in their own browser** (localStorage). Completely separate per device — no shared server, no accounts needed.
 - **Vite base:** `base: '/WorshipNote/'` in `vite.config.ts` — required for GitHub Pages subdirectory
 - **Router:** Uses `HashRouter` (works on GitHub Pages and in Capacitor without server rewrites). Unknown routes redirect to `/library`.
+- **Home-screen icons:** `public/icon.svg` (source), `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` (180×180, full-bleed — iOS rounds the corners). Regenerate the PNGs from the SVG if the icon changes.
+- **iPhone specifics:** inputs are forced to 16px on phones (iOS zooms on smaller fields); safe-area insets (notch, home indicator, landscape) are padded in `index.css`; `alpha()` emits rgba/hsl for hex/hsl colours and `themes.css` has an `@supports not (color-mix)` fallback so iOS < 16.2 keeps its colours; exports use the share sheet on touch devices (`shareFileOnMobile`); the song page keeps the screen awake (`useWakeLock`); audio uses `createPlaybackAudioContext()` so the metronome plays with the silent switch on (iOS 16.4+). A native App Store build would need macOS + Xcode + an Apple developer account (no `ios/` project yet).
 - **Chord diagrams on mobile:** When `chordDisplayPosition` is `'side'`, the side panel is desktop-only (`md:flex`). On mobile, diagrams automatically fall back to the top position.
 
 ## Project Structure
@@ -150,10 +152,13 @@ src/
 │   │   ├── color.ts                     # alpha() via color-mix, keyColor() (circle-of-fifths hues)
 │   │   ├── setlistNav.ts                # Sorted setlist songs + song links carrying setlist position
 │   │   ├── useClickOutside.ts           # Close popovers on outside tap / Esc
+│   │   ├── useWakeLock.ts               # Keep screen awake (song page)
+│   │   ├── shareFile.ts                 # Share-sheet export on phones (Web Share API with files)
+│   │   ├── audio.ts                     # Playback AudioContext + iOS audio session (silent switch)
 │   │   ├── constants.ts                 # App constants
 │   │   └── seedData.ts                  # Sample songs for first launch
 │   └── styles/
-│       └── themes.css                   # CSS custom properties for 4 themes
+│       └── themes.css                   # CSS custom properties for 7 themes + derived tokens + iOS<16.2 fallback
 │
 └── i18n/
     ├── ru.json                          # Russian translations

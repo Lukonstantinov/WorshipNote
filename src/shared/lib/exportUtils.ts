@@ -2,6 +2,7 @@ import type { Song, GuitarTab } from '../../features/songs/types'
 import type { Setlist } from '../../store/setlistStore'
 import { extractStructure } from '../../features/songs/lib/parser'
 import { generateAsciiTab } from '../../features/songs/lib/tabUtils'
+import { shareFileOnMobile } from './shareFile'
 
 function collapseRepeats(parts: string[]): string {
   const result: { label: string; count: number }[] = []
@@ -253,7 +254,10 @@ export async function downloadTextFile(content: string, filename: string): Promi
     }
   }
 
-  // 2. Desktop: blob download
+  // 2. Phones: native share sheet (Save to Files, AirDrop…)
+  if (await shareFileOnMobile(content, filename, 'text/plain')) return
+
+  // 3. Desktop: blob download
   try {
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
@@ -263,7 +267,7 @@ export async function downloadTextFile(content: string, filename: string): Promi
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 10_000) // Safari cancels the download if revoked immediately
   } catch {
     // Last resort: open in new window
     const win = window.open('', '_blank')
@@ -303,6 +307,9 @@ export async function downloadHTMLFile(htmlContent: string, filename: string): P
     }
   }
 
+  // Phones: native share sheet (Save to Files, AirDrop…)
+  if (await shareFileOnMobile(htmlContent, filename, 'text/html')) return
+
   // Desktop fallback
   try {
     const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
@@ -313,7 +320,7 @@ export async function downloadHTMLFile(htmlContent: string, filename: string): P
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 10_000) // Safari cancels the download if revoked immediately
   } catch {
     const win = window.open('', '_blank')
     if (win) {

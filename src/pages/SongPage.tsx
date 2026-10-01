@@ -25,6 +25,7 @@ import { useRoleCapabilities } from '../features/songs/lib/useRoleCapabilities'
 import { generateId } from '../shared/lib/storage'
 import { alpha, keyColor } from '../shared/lib/color'
 import { useClickOutside } from '../shared/lib/useClickOutside'
+import { useWakeLock } from '../shared/lib/useWakeLock'
 import { sortedSetlistSongs, setlistSongPath } from '../shared/lib/setlistNav'
 import type { Role } from '../store/settingsStore'
 import type { ChordRow, Instrument } from '../features/songs/types'
@@ -63,6 +64,8 @@ function SongPage({ id, params }: { id: string; params: URLSearchParams }) {
     roleLabels, customRoles,
   } = useSettingsStore()
   const capabilities = useRoleCapabilities()
+  // Don't let the screen dim while reading a song
+  useWakeLock(true)
 
   // Opened from a setlist? → use its transposition and offer prev / next
   const setlistId = params.get('setlist')

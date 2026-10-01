@@ -363,8 +363,8 @@ export function ExportImportPanel() {
       <FormatGuide />
 
       {/* Hidden file inputs */}
-      <input ref={songFileRef} type="file" accept=".json" onChange={handleImportSongs} className="hidden" />
-      <input ref={chordFileRef} type="file" accept=".json" onChange={handleImportChords} className="hidden" />
+      <input ref={songFileRef} type="file" accept="application/json,.json" onChange={handleImportSongs} className="hidden" />
+      <input ref={chordFileRef} type="file" accept="application/json,.json" onChange={handleImportChords} className="hidden" />
 
       {/* Import result toast */}
       {importResult && (

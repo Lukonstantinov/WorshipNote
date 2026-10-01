@@ -13,6 +13,7 @@ import { LevelPicker } from '../features/pianoTrainer/components/LevelPicker'
 import { BassPatternPicker } from '../features/pianoTrainer/components/BassPatternPicker'
 import { PianoChordStrip } from '../features/pianoTrainer/components/PianoChordStrip'
 import { useMetronome } from '../features/pianoTrainer/lib/useMetronome'
+import { createPlaybackAudioContext } from '../shared/lib/audio'
 
 export default function PianoTrainerPage() {
   const {
@@ -109,8 +110,7 @@ export default function PianoTrainerPage() {
     // refuses to start audio outside a user gesture.
     if (!audioCtxRef.current) {
       try {
-        const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-        audioCtxRef.current = new Ctor()
+        audioCtxRef.current = createPlaybackAudioContext()
         setAudioCtx(audioCtxRef.current)
       } catch {
         // Audio not available — visual playback still works.
@@ -149,7 +149,7 @@ export default function PianoTrainerPage() {
           <div
             className="rounded-2xl flex items-center justify-center flex-shrink-0"
             style={{
-              background: 'linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 70%, transparent) 100%)',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%), var(--color-accent)',
               width: 44, height: 44,
               boxShadow: '0 4px 12px var(--color-accent-dim)',
             }}
@@ -169,7 +169,7 @@ export default function PianoTrainerPage() {
             disabled={progression.length === 0}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40"
             style={{
-              background: 'linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 85%, transparent) 100%)',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%), var(--color-accent)',
               color: '#fff',
               boxShadow: '0 2px 8px var(--color-accent-dim)',
               minHeight: 40,
@@ -201,7 +201,7 @@ export default function PianoTrainerPage() {
               onClick={handleSuggest}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
               style={{
-                background: 'linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 70%, transparent) 100%)',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%), var(--color-accent)',
                 color: '#fff',
                 boxShadow: '0 2px 8px var(--color-accent-dim)',
                 minHeight: 36,
@@ -272,8 +272,8 @@ export default function PianoTrainerPage() {
               className="flex items-center justify-center gap-1.5 rounded-2xl text-sm font-bold transition-all active:scale-95 disabled:opacity-40"
               style={{
                 background: playing
-                  ? 'linear-gradient(135deg, var(--color-error) 0%, color-mix(in srgb, var(--color-error) 70%, transparent) 100%)'
-                  : 'linear-gradient(135deg, var(--color-chord) 0%, color-mix(in srgb, var(--color-chord) 75%, transparent) 100%)',
+                  ? 'linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%), var(--color-error)'
+                  : 'linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%), var(--color-chord)',
                 color: playing ? '#fff' : '#000',
                 boxShadow: playing
                   ? '0 4px 12px color-mix(in srgb, var(--color-error) 30%, transparent)'

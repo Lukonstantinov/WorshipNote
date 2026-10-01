@@ -17,7 +17,7 @@ export function BassPatternPicker({ value, onChange }: Props) {
             className="flex flex-col items-start text-left rounded-2xl transition-all active:scale-[0.98]"
             style={{
               background: active
-                ? 'linear-gradient(135deg, var(--color-info) 0%, color-mix(in srgb, var(--color-info) 70%, transparent) 100%)'
+                ? 'linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%), var(--color-info)'
                 : 'var(--color-card)',
               color: active ? '#fff' : 'var(--color-text-primary)',
               border: active ? 'none' : '1px solid var(--color-border)',
