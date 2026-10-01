@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Play, Square } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   bpm: number
 }
 
 export function Metronome({ bpm }: Props) {
+  const { t } = useTranslation()
   const [isPlaying, setIsPlaying] = useState(false)
   const [activeBeat, setActiveBeat] = useState(-1)
   const audioCtxRef = useRef<AudioContext | null>(null)
@@ -96,18 +98,19 @@ export function Metronome({ bpm }: Props) {
   }, [stop])
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-shrink-0">
       <button
         onClick={toggle}
         className="flex items-center justify-center rounded-xl transition-all active:scale-95"
         style={{
           backgroundColor: isPlaying ? 'var(--color-warning)' : 'var(--color-card-raised)',
           color: isPlaying ? '#000' : 'var(--color-text-secondary)',
-          minHeight: 44,
-          minWidth: 44,
-          width: 44,
+          minHeight: 40,
+          minWidth: 40,
         }}
-        title={isPlaying ? `Stop metronome` : `Metronome (${bpm} BPM)`}
+        title={`${t('metronome')} (${bpm} BPM)`}
+        aria-label={`${t('metronome')} (${bpm} BPM)`}
+        aria-pressed={isPlaying}
       >
         {isPlaying
           ? <Square size={16} strokeWidth={2.5} fill="currentColor" />

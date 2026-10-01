@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, Eye, EyeOff, Library, TableProperties } from 'lucide-react'
 import { useSettingsStore } from '../../../store/settingsStore'
 import { useChordLibraryStore } from '../../../store/chordLibraryStore'
@@ -12,9 +13,10 @@ import { generateId } from '../../../shared/lib/storage'
 import { alpha } from '../../../shared/lib/color'
 
 interface Props {
-  songId: string
   chordRows: ChordRow[]
   onChange: (rows: ChordRow[]) => void
+  /** 'top' renders existing rows above the song; 'bottom' renders the empty-state add controls below it */
+  placement?: 'top' | 'bottom'
 }
 
 const ROW_COLORS = [
@@ -30,7 +32,8 @@ function parseChordList(input: string): string[] {
     .filter((c) => c.length > 0)
 }
 
-export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) {
+export function ChordRowsPanel({ chordRows, onChange, placement = 'top' }: Props) {
+  const { t } = useTranslation()
   const {
     selectedInstrument, instruments,
     customChords, customPianoChords,
@@ -78,24 +81,28 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
 
   const visibleCount = chordRows.filter((r) => r.visible !== false).length
 
-  if (chordRows.length === 0 && !collapsed) {
+  // Empty: keep the reading area clean — the "add" controls live below the song instead
+  if (chordRows.length === 0 && placement === 'top') return null
+  if (chordRows.length > 0 && placement === 'bottom') return null
+
+  if (chordRows.length === 0) {
     return (
       <>
-        <div className="flex items-center gap-2 px-3 py-2">
-          <span className="text-xs flex-1" style={{ color: 'var(--color-text-muted)' }}>Chord rows</span>
+        <div className="flex items-center gap-2 mx-4 mb-2 px-3 py-2 rounded-xl max-w-3xl" style={{ border: '1px dashed var(--color-border)' }}>
+          <span className="text-xs flex-1" style={{ color: 'var(--color-text-tertiary)' }}>{t('chordRows')}</span>
           <button
             onClick={() => setShowPicker(true)}
             className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
             style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
           >
-            <Library size={12} strokeWidth={2} /> From library
+            <Library size={12} strokeWidth={2} /> {t('addFromLibrary')}
           </button>
           <button
             onClick={addRow}
             className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
             style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-text-tertiary)' }}
           >
-            <Plus size={12} strokeWidth={2} /> Add row
+            <Plus size={12} strokeWidth={2} /> {t('addRow')}
           </button>
         </div>
         {showPicker && (
@@ -114,21 +121,21 @@ export function ChordRowsPanel({ songId: _songId, chordRows, onChange }: Props) 
       <div className="flex items-center gap-2 px-3 py-1.5" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
         <button onClick={() => setCollapsed((c) => !c)} className="flex items-center gap-1 flex-1" style={{ color: 'var(--color-text-tertiary)' }}>
           {collapsed ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
-          <span className="text-xs">Chord rows ({visibleCount}/{chordRows.length})</span>
+          <span className="text-xs">{t('chordRows')} ({visibleCount}/{chordRows.length})</span>
         </button>
         <button
           onClick={() => setShowPicker(true)}
           className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
           style={{ backgroundColor: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
         >
-          <Library size={12} strokeWidth={2} /> Library
+          <Library size={12} strokeWidth={2} /> {t('libraryShort')}
         </button>
         <button
           onClick={addRow}
           className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all active:scale-95"
           style={{ backgroundColor: 'var(--color-card)', color: 'var(--color-chord)' }}
         >
-          <Plus size={12} strokeWidth={2} /> Add row
+          <Plus size={12} strokeWidth={2} /> {t('addRow')}
         </button>
       </div>
 

@@ -1,47 +1,11 @@
 import { useTranslation } from 'react-i18next'
+import { sectionColor } from '../lib/sectionColors'
 
 interface Props {
   labels: string[]
   pattern: string
   /** Optional manual override string e.g. "A B A B C B" */
   manualStructure?: string
-}
-
-const TYPE_COLORS: [string, string][] = [
-  ['КУПЛЕТ', 'var(--color-info)'],
-  ['VERSE', 'var(--color-info)'],
-  ['ПРИПЕВ', 'var(--color-accent)'],
-  ['CHORUS', 'var(--color-accent)'],
-  ['РЕФРЕН', 'var(--color-accent)'],
-  ['PRE-CHORUS', 'var(--color-info)'],
-  ['ПРЕДПРИПЕВ', 'var(--color-info)'],
-  ['МОСТ', 'var(--color-warning)'],
-  ['BRIDGE', 'var(--color-warning)'],
-  ['ВСТУПЛЕНИЕ', 'var(--color-chord)'],
-  ['INTRO', 'var(--color-chord)'],
-  ['ИНТРО', 'var(--color-chord)'],
-  ['ФИНАЛ', 'var(--color-error)'],
-  ['OUTRO', 'var(--color-error)'],
-  ['ENDING', 'var(--color-error)'],
-  ['ОКОНЧАНИЕ', 'var(--color-error)'],
-  ['КОДА', 'var(--color-error)'],
-  ['ПОВТОР', '#5e5ce6'],
-  ['INTERLUDE', '#ff6482'],
-  ['ИНТЕРЛЮДИЯ', '#ff6482'],
-  ['SOLO', '#ffd60a'],
-  ['СОЛО', '#ffd60a'],
-  ['TAG', '#5ac8fa'],
-  ['ТЕГ', '#5ac8fa'],
-  ['INSTRUMENTAL', 'var(--color-warning)'],
-  ['ИНСТРУМЕНТАЛ', 'var(--color-warning)'],
-]
-
-function sectionColor(label: string): string {
-  const up = label.toUpperCase()
-  for (const [key, color] of TYPE_COLORS) {
-    if (up.includes(key)) return color
-  }
-  return 'var(--color-text-tertiary)'
 }
 
 function collapseRepeats(parts: string[]): { label: string; count: number }[] {

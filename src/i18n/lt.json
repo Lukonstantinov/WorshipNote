@@ -214,5 +214,22 @@
   "noMatches": "Nieko nerasta",
   "clearFilters": "Išvalyti filtrus",
   "lyricsMatch": "žodžiuose",
-  "manageFolders": "Tvarkyti aplankus"
+  "manageFolders": "Tvarkyti aplankus",
+  "songNotFound": "Giesmė nerasta",
+  "backToLibrary": "Atgal į biblioteką",
+  "myNotes": "Mano užrašai",
+  "myNotesPlaceholder": "Rašykite užrašus čia…",
+  "resetTranspose": "Grąžinti pradinę tonaciją",
+  "capoShapesHint": "Kapodastras {{fret}} — akordai rodomi kaip pirštuotė",
+  "fontSmaller": "Mažesnis šriftas",
+  "fontLarger": "Didesnis šriftas",
+  "stopScroll": "Sustabdyti slinkimą",
+  "prevSong": "Ankstesnė",
+  "nextSong": "Kita",
+  "songOfTotal": "{{current}} iš {{total}}",
+  "lower": "Žemiau",
+  "higher": "Aukščiau",
+  "chordRows": "Akordų eilutės",
+  "addRow": "Pridėti eilutę",
+  "libraryShort": "Biblioteka"
 }

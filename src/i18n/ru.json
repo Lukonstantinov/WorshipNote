@@ -214,5 +214,22 @@
   "noMatches": "Ничего не найдено",
   "clearFilters": "Сбросить фильтры",
   "lyricsMatch": "в тексте",
-  "manageFolders": "Управление папками"
+  "manageFolders": "Управление папками",
+  "songNotFound": "Песня не найдена",
+  "backToLibrary": "Назад в библиотеку",
+  "myNotes": "Мои заметки",
+  "myNotesPlaceholder": "Пишите заметки здесь…",
+  "resetTranspose": "Вернуть исходную тональность",
+  "capoShapesHint": "Каподастр {{fret}} — аккорды показаны как аппликатура",
+  "fontSmaller": "Уменьшить шрифт",
+  "fontLarger": "Увеличить шрифт",
+  "stopScroll": "Остановить прокрутку",
+  "prevSong": "Назад",
+  "nextSong": "Далее",
+  "songOfTotal": "{{current}} из {{total}}",
+  "lower": "Ниже",
+  "higher": "Выше",
+  "chordRows": "Ряды аккордов",
+  "addRow": "Добавить ряд",
+  "libraryShort": "Библиотека"
 }

@@ -1,6 +1,7 @@
-import { Minus, Plus } from 'lucide-react'
-import { transposeChord } from '../lib/transposer'
+import { Minus, Plus, RotateCcw } from 'lucide-react'
+import { transposeKey } from '../lib/transposer'
 import { useTranslation } from 'react-i18next'
+import { alpha, keyColor } from '../../../shared/lib/color'
 
 interface Props {
   steps: number
@@ -10,89 +11,95 @@ interface Props {
   onCapoChange: (fret: number) => void
 }
 
+const stepBtn: React.CSSProperties = { minWidth: 40, minHeight: 40 }
+
+/** Compact pill controls: [− Key +]  [Capo − n +] */
 export function TransposeControls({ steps, originalKey, capoFret, onStepsChange, onCapoChange }: Props) {
   const { t } = useTranslation()
 
-  // Compute the actual transposed key
-  const effectiveKey = originalKey
-    ? steps !== 0 ? transposeChord(originalKey, steps) : originalKey
-    : '–'
-
-  // When capo is set, show what key the guitarist actually plays in
-  const capoPlayKey = capoFret > 0 && effectiveKey !== '–'
-    ? transposeChord(effectiveKey, -capoFret)
-    : null
-
-  const iconStyle = { color: 'var(--color-text-secondary)' }
+  const effectiveKey = originalKey ? transposeKey(originalKey, steps) : undefined
+  const kc = keyColor(effectiveKey)
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-3 p-3 rounded-2xl"
-      style={{ backgroundColor: 'var(--color-card)' }}
-    >
+    <>
       {/* Transpose */}
-      <div className="flex items-center gap-2">
+      <div
+        className="flex items-center rounded-2xl flex-shrink-0"
+        style={{ backgroundColor: alpha(kc, 14), border: `1px solid ${alpha(kc, 35)}` }}
+        role="group"
+        aria-label={t('transpose')}
+      >
         <button
           onClick={() => onStepsChange(steps - 1)}
-          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
+          className="flex items-center justify-center rounded-l-2xl active:scale-90 transition-transform"
+          style={{ ...stepBtn, color: kc }}
+          title={t('lower')}
+          aria-label={t('lower')}
         >
-          <Minus size={16} strokeWidth={2} style={iconStyle} />
+          <Minus size={16} strokeWidth={2.5} />
         </button>
-        <div className="text-center" style={{ minWidth: 52 }}>
-          <div className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{t('transpose')}</div>
-          <div className="font-bold text-sm" style={{ color: 'var(--color-chord)' }}>
-            {steps > 0 ? `+${steps}` : steps}
-          </div>
+        <div className="flex flex-col items-center leading-none px-1" style={{ minWidth: 44 }}>
+          <span className="font-bold text-base" style={{ color: kc }}>{effectiveKey ?? '♪'}</span>
+          <span className="text-[10px] font-semibold mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
+            {steps === 0 ? t('key') : steps > 0 ? `+${steps}` : steps}
+          </span>
         </div>
         <button
           onClick={() => onStepsChange(steps + 1)}
-          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
+          className="flex items-center justify-center rounded-r-2xl active:scale-90 transition-transform"
+          style={{ ...stepBtn, color: kc }}
+          title={t('higher')}
+          aria-label={t('higher')}
         >
-          <Plus size={16} strokeWidth={2} style={iconStyle} />
+          <Plus size={16} strokeWidth={2.5} />
         </button>
       </div>
-
-      {/* Key display */}
-      {originalKey && (
-        <div
-          className="text-sm px-3 py-1.5 rounded-xl"
-          style={{ backgroundColor: 'var(--color-card-raised)' }}
+      {steps !== 0 && (
+        <button
+          onClick={() => onStepsChange(0)}
+          className="btn-icon flex-shrink-0"
+          style={{ minWidth: 40, minHeight: 40 }}
+          title={t('resetTranspose')}
+          aria-label={t('resetTranspose')}
         >
-          <span style={{ color: 'var(--color-text-tertiary)', fontSize: 11 }}>{t('key')} </span>
-          <span className="font-semibold" style={{ color: 'var(--color-accent)' }}>{effectiveKey}</span>
-        </div>
+          <RotateCcw size={15} strokeWidth={2} />
+        </button>
       )}
 
       {/* Capo */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{t('capo')}</span>
+      <div
+        className="flex items-center rounded-2xl flex-shrink-0"
+        style={{
+          backgroundColor: capoFret > 0 ? 'var(--color-info-dim)' : 'var(--color-card-raised)',
+          border: `1px solid ${capoFret > 0 ? alpha('var(--color-info)', 35) : 'transparent'}`,
+        }}
+        role="group"
+        aria-label={t('capo')}
+      >
         <button
           onClick={() => onCapoChange(Math.max(0, capoFret - 1))}
-          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
+          disabled={capoFret === 0}
+          className="flex items-center justify-center rounded-l-2xl disabled:opacity-30 active:scale-90 transition-transform"
+          style={{ ...stepBtn, color: 'var(--color-info)' }}
+          aria-label={`${t('capo')} −`}
         >
-          <Minus size={14} strokeWidth={2} style={iconStyle} />
+          <Minus size={14} strokeWidth={2.5} />
         </button>
-        <span className="font-semibold text-sm" style={{ color: 'var(--color-info)', minWidth: '1ch', textAlign: 'center' }}>
-          {capoFret}
-        </span>
+        <div className="flex flex-col items-center leading-none" style={{ minWidth: 40 }}>
+          <span className="font-bold text-base" style={{ color: capoFret > 0 ? 'var(--color-info)' : 'var(--color-text-secondary)' }}>
+            {capoFret}
+          </span>
+          <span className="text-[10px] font-semibold mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{t('capo')}</span>
+        </div>
         <button
           onClick={() => onCapoChange(Math.min(12, capoFret + 1))}
-          className="flex items-center justify-center rounded-xl transition-all active:scale-95"
-          style={{ backgroundColor: 'var(--color-card-raised)', minWidth: 44, minHeight: 44 }}
+          className="flex items-center justify-center rounded-r-2xl active:scale-90 transition-transform"
+          style={{ ...stepBtn, color: 'var(--color-info)' }}
+          aria-label={`${t('capo')} +`}
         >
-          <Plus size={14} strokeWidth={2} style={iconStyle} />
+          <Plus size={14} strokeWidth={2.5} />
         </button>
       </div>
-
-      {/* Capo hint */}
-      {capoPlayKey && (
-        <div className="text-xs w-full" style={{ color: 'var(--color-info)' }}>
-          {t('capo')} {capoFret} · {t('playAs')} <span className="font-semibold">{capoPlayKey}</span>
-        </div>
-      )}
-    </div>
+    </>
   )
 }
